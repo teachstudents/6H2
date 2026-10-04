@@ -19,7 +19,6 @@
             flex-direction: column;
         }
 
-        /* --- GLOBAL NAVIGATION --- */
         .master-nav {
             position: fixed;
             top: 0; left: 0; width: 100%;
@@ -51,7 +50,7 @@
 
         .app-view {
             display: none;
-            padding-top: 60px; /* Space for fixed nav */
+            padding-top: 60px; 
             height: 100vh;
             animation: fadeIn 0.4s ease forwards;
         }
@@ -60,38 +59,33 @@
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* =========================================
-           APP 1: MODEL LETTERS (MODELS-APP)
-           ========================================= */
         .models-app { display: flex; flex-direction: column; height: 100%; width: 100%; max-width: 1600px; margin: 0 auto; position: relative; }
-        
-        .models-app .main-layout { display: flex; flex: 1; min-height: 0; }
+        .models-app .main-layout { display: flex; flex: 1; padding: 20px; gap: 20px;}
         
         /* Left Column - Locked to 20%, Fixed scrolling */
         .models-app .left-col { 
             flex: 0 0 20%; 
             min-width: 250px;
-            background: white;
-            border-right: 2px solid #e2e8f0;
+            background: transparent;
             overflow-y: auto; 
             display: flex; 
             flex-direction: column; 
-            height: calc(100vh - 60px);
+            gap: 15px;
+            height: calc(100vh - 100px); 
             position: sticky;
-            top: 60px;
-            padding: 20px;
+            top: 80px;
         }
         
         .models-app .left-col::-webkit-scrollbar { width: 4px; }
         .models-app .left-col::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
 
-        .models-app .legend, .models-app .checklist { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 15px; margin-bottom: 20px; }
-        .models-app .legend h3, .models-app .checklist h3 { color: #1e293b; margin-bottom: 12px; font-size: 1.05em; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; font-weight: 800; }
+        .models-app .legend, .models-app .checklist { background: white; border: 2px solid #e2e8f0; border-radius: 12px; padding: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.02);}
+        .models-app .legend h3, .models-app .checklist h3 { color: #1e293b; margin-bottom: 8px; font-size: 0.95em; border-bottom: 2px solid #e2e8f0; padding-bottom: 5px; font-weight: 800; }
         
-        .models-app .legend-category { font-weight: 700; color: #475569; margin: 15px 0 5px; font-size: 0.8em; text-transform: uppercase; }
-        .models-app .legend-item, .models-app .checklist-item { display: flex; align-items: center; gap: 8px; font-size: 0.85em; margin-bottom: 6px; font-weight: 600; padding: 6px 8px; cursor: pointer; border-radius: 6px; transition: all 0.2s ease; border: 2px solid transparent; color: #334155; line-height: 1.3;}
+        .models-app .legend-category { font-weight: 700; color: #475569; margin: 10px 0 4px; font-size: 0.75em; text-transform: uppercase; }
+        .models-app .legend-item, .models-app .checklist-item { display: flex; align-items: center; gap: 6px; font-size: 0.8em; margin-bottom: 4px; font-weight: 600; padding: 5px 6px; cursor: pointer; border-radius: 6px; transition: all 0.2s ease; border: 2px solid transparent; color: #334155; line-height: 1.2;}
         
-        .models-app .checklist-item { background: white; border-left: 4px solid #3b82f6; box-shadow: 0 1px 2px rgba(0,0,0,0.02); }
+        .models-app .checklist-item { background: #f8fafc; border-left: 4px solid #3b82f6; }
         .models-app .checklist-item span { color: #3b82f6; font-size: 1.1em; font-weight: 900; }
         
         .models-app .legend-item:hover, .models-app .checklist-item:hover { background: #e2e8f0; }
@@ -99,109 +93,72 @@
         
         .models-app .legend-color { width: 14px; height: 14px; border-radius: 3px; flex-shrink: 0; }
         
-        /* Highlight Colors */
-        .models-app .c1 { background: #fef08a; } 
-        .models-app .c2 { background: #bae6fd; } 
-        .models-app .c3 { background: #bbf7d0; } 
-        .models-app .v1 { background: #e9d5ff; } 
-        .models-app .g1 { background: #fecdd3; } 
-        .models-app .o1 { background: #a5f3fc; } 
-        .models-app .f1 { background: #e2e8f0; border-left: 3px solid #64748b;}
+        .models-app .c1 { background: #fef08a; } /* Content: Purpose */
+        .models-app .c2 { background: #bae6fd; } /* Content: Details/Timeline */
+        .models-app .c3 { background: #bbf7d0; } /* Content: Attempts/Request */
+        .models-app .l1 { background: #e9d5ff; } /* Language: B2 Vocab (Adjs/Advs) */
+        .models-app .l2 { background: #fecdd3; } /* Language: Tenses & Conditionals */
+        .models-app .o1 { background: #a5f3fc; } /* Organization: Connectives */
+        .models-app .s1 { background: #e2e8f0; border-left: 3px solid #64748b;} /* Style: Formal Layout */
 
         /* Right Column - 80% Space, Scrollable */
         .models-app .right-col { 
-            flex: 0 0 80%; 
+            flex: 0 0 calc(80% - 20px); 
             display: flex;
             flex-direction: column;
-            padding: 20px 40px;
-            overflow-y: auto;
-            height: calc(100vh - 60px);
-            position: relative;
+            padding-bottom: 40px;
         }
 
         .models-app .controls { margin-bottom: 20px; display: flex; justify-content: center; align-items: center; gap: 15px; }
-        .models-app .controls select { padding: 12px 20px; font-size: 1.05em; border-radius: 8px; border: 2px solid #3b82f6; outline: none; width: 100%; max-width: 500px; box-shadow: 0 4px 6px rgba(59, 130, 246, 0.1); font-weight: 600; cursor: pointer;}
+        .models-app .controls select { padding: 12px 20px; font-size: 1.05em; border-radius: 8px; border: 2px solid #3b82f6; outline: none; width: 100%; max-width: 600px; box-shadow: 0 4px 6px rgba(59, 130, 246, 0.1); font-weight: 600; cursor: pointer;}
         
-        .models-app .essay-wrapper { background: white; border: 3px solid #334155; border-radius: 12px; padding: 40px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 120px; position: relative;}
+        .models-app .essay-wrapper { background: white; border: 3px solid #334155; border-radius: 12px; padding: 40px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; position: relative;}
 
         .models-app .audio-corner { position: absolute; top: 15px; right: 15px; }
         .models-app .icon-btn { background: #cbd5e1; border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; transition: 0.2s; color: #1e293b;}
         .models-app .icon-btn:hover { background: #94a3b8; transform: scale(1.05); }
 
         /* ESSAY TEXT - Black by default, highlights ONLY when clicked */
-        .models-app .essay-content { font-size: 1.15em; color: #000; transition: color 0.3s ease; line-height: 1.5; }
-        .models-app .essay-section { margin-bottom: 1.2rem; } /* Exactly 1 space between 7 sections */
+        .models-app .essay-content { font-size: 1.15em; color: #0f172a; transition: color 0.3s ease; line-height: 1.7; white-space: pre-wrap; font-weight: 400;}
+        .models-app .essay-section { margin-bottom: 0; } 
         
         .models-app .essay-dimmed { color: #cbd5e1; }
         
         .models-app .hl { padding: 2px 0px; transition: all 0.3s ease; -webkit-box-decoration-break: clone; box-decoration-break: clone; cursor: pointer; background: transparent; color: inherit;}
         .models-app .essay-dimmed .hl:not(.highlight-focus) { background: transparent !important; color: #cbd5e1 !important; }
         
-        .models-app .hl.highlight-focus { transform: scale(1.01); display: inline-block; box-shadow: 0 4px 10px rgba(0,0,0,0.15); z-index: 10; position: relative; filter: brightness(0.95); color: #0f172a !important; font-weight: 500; padding: 2px 4px; border-radius: 4px;}
+        .models-app .hl.highlight-focus { transform: scale(1.01); display: inline-block; box-shadow: 0 4px 10px rgba(0,0,0,0.15); z-index: 10; position: relative; filter: brightness(0.95); color: #0f172a !important; padding: 2px 4px; border-radius: 4px;}
         
         .models-app .c1.highlight-focus { background: #fef08a; }
         .models-app .c2.highlight-focus { background: #bae6fd; }
         .models-app .c3.highlight-focus { background: #bbf7d0; }
-        .models-app .v1.highlight-focus { background: #e9d5ff; }
-        .models-app .g1.highlight-focus { background: #fecdd3; }
-        .models-app .o1.highlight-focus { background: #a5f3fc; }
-        .models-app .f1.highlight-focus { background: #e2e8f0; font-weight: 600;}
+        .models-app .l1.highlight-focus { background: #e9d5ff; font-weight: 600;}
+        .models-app .l2.highlight-focus { background: #fecdd3; }
+        .models-app .o1.highlight-focus { background: #a5f3fc; font-weight: 600;}
+        .models-app .s1.highlight-focus { background: #e2e8f0; font-weight: 600;}
 
-        /* Reduced Size Stats Row at Bottom */
-        .models-app .stats-footer { 
-            position: fixed; 
-            bottom: 0; 
-            right: 0; 
-            width: 80%; 
-            background: linear-gradient(135deg, #1e293b, #0f172a); 
-            padding: 10px 20px; 
-            color: white; 
-            display: flex; 
-            justify-content: space-around; 
-            align-items: center; 
-            font-size: 0.65em; 
-            box-shadow: 0 -4px 15px rgba(0,0,0,0.2);
-            z-index: 50;
-        }
-        .models-app .stats-footer div { text-align: center; font-weight: 500; }
-        .models-app .stats-footer b { font-size: 1.5em; font-weight: 900; display: block; color: #6ee7b7; margin-bottom: 2px;}
-        .models-app .stats-footer .total-score b { color: #fde047; font-size: 1.8em;}
+        /* Teacher Feedback Box */
+        .models-app .feedback-box { margin-top: 30px; padding: 20px; background: #f0fdf4; border-left: 5px solid #22c55e; border-radius: 8px; font-size: 0.95em; line-height: 1.6; color: #166534; }
+        .models-app .feedback-box h4 { color: #14532d; margin-bottom: 12px; font-size: 1.1em; border-bottom: 2px solid #bbf7d0; padding-bottom: 8px; }
 
         /* =========================================
            APP 2: LETTER BUILDER (DRAFTING-APP)
            ========================================= */
-        .drafting-app {
-            flex: 1;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
-            display: flex;
-            flex-direction: column;
-            height: calc(100vh - 60px);
-            padding: 20px;
-        }
-        
+        .drafting-app { flex: 1; background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%); display: flex; flex-direction: column; height: calc(100vh - 60px); padding: 20px; }
         .drafting-wrapper { flex: 1; background: rgba(255, 255, 255, 0.98); border-radius: 16px; box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2); display: flex; flex-direction: column; overflow: hidden; }
-        
         .drafting-app .scaffold-header { background: white; padding: 12px 25px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
         .drafting-app .badges { display: flex; gap: 10px; align-items: center; }
-        
         .drafting-app .draft-layout { display: flex; flex: 1; overflow: hidden; }
-        
-        /* Center: Workspace */
         .drafting-app .draft-center { flex: 1; display: flex; flex-direction: column; padding: 20px;}
         .drafting-app .free-write-area { flex: 1; resize: none; border: 2px dashed #cbd5e1; border-radius: 12px; padding: 25px; font-family: 'Inter', sans-serif; font-size: 1.1em; line-height: 1.8; color: #0f172a; transition: all 0.3s;}
         .drafting-app .free-write-area:focus { outline: none; border-color: #3b82f6; border-style: solid; box-shadow: 0 0 0 4px rgba(59,130,246,0.1);}
         .drafting-app .free-write-area.drag-over { background-color: #f0fdf4; border-color: #22c55e; }
-
-        /* Right: Drag & Drop Pool */
-        .drafting-app .draft-right { width: 380px; background: #f8fafc; border-left: 2px solid #e2e8f0; display: flex; flex-direction: column; }
+        .drafting-app .draft-right { width: 400px; background: #f8fafc; border-left: 2px solid #e2e8f0; display: flex; flex-direction: column; }
         .drafting-app .pool-header { padding: 15px; background: #1e293b; color: white; font-weight: 600; display: flex; justify-content: space-between; align-items: center;}
         .drafting-app .pool-items { flex: 1; padding: 15px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
-        
         .drafting-app .puzzle-item { background: white; border: 1px solid #cbd5e1; border-left: 4px solid #3b82f6; padding: 12px; border-radius: 8px; font-size: 0.9em; cursor: grab; transition: 0.2s; color: #334155; line-height: 1.5; box-shadow: 0 2px 4px rgba(0,0,0,0.02);}
         .drafting-app .puzzle-item:hover { transform: translateX(-4px); border-color: #3b82f6; box-shadow: 0 4px 8px rgba(59,130,246,0.1); }
-        .drafting-app .puzzle-item:active { cursor: grabbing; }
         .drafting-app .item-type { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 0.75em; font-weight: bold; margin-bottom: 6px; color: white; text-transform: uppercase;}
-        
         .drafting-app .type-opening { background: #f59e0b; } 
         .drafting-app .type-body { background: #3b82f6; } 
         .drafting-app .type-transition { background: #8b5cf6; } 
@@ -210,38 +167,19 @@
         /* =========================================
            APP 3: GRAMMAR WORKSHEET (GRAMMAR-APP)
            ========================================= */
-        .grammar-app {
-            flex: 1;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
-            padding: 40px 20px;
-            overflow-y: auto;
-            height: calc(100vh - 60px);
-        }
-
-        .grammar-app .nav-header {
-            background: white; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border-radius: 50px;
-            display: flex; align-items: center; justify-content: center; gap: 15px; padding: 12px 20px;
-            width: fit-content; margin: 0 auto 30px;
-        }
-        .grammar-app .nav-btn { background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; padding: 8px 18px; border-radius: 50px; font-size: 14px; font-weight: 700; cursor: pointer; transition: 0.3s;}
-        .grammar-app .nav-btn:disabled { background: #cbd5e1; cursor: not-allowed; }
+        .grammar-app { flex: 1; background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%); padding: 40px 20px; overflow-y: auto; height: calc(100vh - 60px); }
+        .grammar-app .nav-header { background: white; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border-radius: 50px; display: flex; align-items: center; justify-content: center; gap: 15px; padding: 12px 20px; width: fit-content; margin: 0 auto 30px; }
         .grammar-app .page-indicator { font-weight: 700; color: #667eea; padding: 0 10px; font-size: 0.95em;}
-        
         .grammar-wrapper { max-width: 900px; margin: 0 auto; background: white; border-radius: 16px; box-shadow: 0 15px 50px rgba(0, 0, 0, 0.2); overflow: hidden; }
         .grammar-app .worksheet-content { padding: 40px; min-height: 60vh; }
-        .grammar-app .page { display: none; animation: fadeIn 0.4s ease forwards; }
-        .grammar-app .page.active { display: block; }
-        
         .grammar-app .section { margin-bottom: 25px; padding: 25px; border: 2px solid #667eea; border-radius: 12px; background: white; }
         .grammar-app .section h2 { color: #667eea; margin-bottom: 15px; font-size: 1.4em; }
-        .grammar-app .rule-box { background: linear-gradient(135deg, #fff9e6, #fff3cd); border: 2px solid #f59e0b; border-radius: 10px; padding: 20px; margin: 15px 0; }
-        
         .grammar-app .practice-exercise { background: #f8fafc; border: 2px solid #cbd5e1; border-radius: 10px; padding: 20px; margin: 20px 0; }
         .grammar-app .practice-item { background: white; padding: 15px; margin: 10px 0; border-radius: 6px; border: 1px solid #e2e8f0; font-size: 0.95em;}
         .grammar-app .practice-item label { font-weight: 600; display: block; margin-bottom: 8px; color: #1e293b;}
         .grammar-app .practice-item input[type="text"] { width: 100%; padding: 10px 15px; border: 2px solid #e2e8f0; border-radius: 6px; margin-top: 5px; outline: none; font-size: 1em;}
-
         .grammar-app .btn { background: #3b82f6; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 600; margin: 10px 5px; font-size: 0.95em; transition: 0.2s;}
+
     </style>
 </head>
 <body>
@@ -263,32 +201,32 @@
                 <!-- Locked Left Column (20% width) -->
                 <div class="left-col">
                     <div class="legend">
-                        <h3>📖 G1-G6 Marking Scheme</h3>
+                        <h3>📖 G6 Marking Scheme</h3>
                         
                         <div class="legend-category">Content (10 Marks)</div>
-                        <div class="legend-item" data-class="c1" onclick="ModelsApp.toggleHighlight('c1', this)"><div class="legend-color c1"></div> Content 1: Purpose & Request</div>
-                        <div class="legend-item" data-class="c2" onclick="ModelsApp.toggleHighlight('c2', this)"><div class="legend-color c2"></div> Content 2: Problem Details</div>
-                        <div class="legend-item" data-class="c3" onclick="ModelsApp.toggleHighlight('c3', this)"><div class="legend-color c3"></div> Content 3: Previous Attempts</div>
+                        <div class="legend-item" data-class="c1" onclick="ModelsApp.toggleHighlight('c1', this)"><div class="legend-color c1"></div> [C1] Purpose & Problem</div>
+                        <div class="legend-item" data-class="c2" onclick="ModelsApp.toggleHighlight('c2', this)"><div class="legend-color c2"></div> [C2] Details & Timeline</div>
+                        <div class="legend-item" data-class="c3" onclick="ModelsApp.toggleHighlight('c3', this)"><div class="legend-color c3"></div> [C3] Attempts & Request</div>
                         
                         <div class="legend-category">Language (10 Marks)</div>
-                        <div class="legend-item" data-class="v1" onclick="ModelsApp.toggleHighlight('v1', this)"><div class="legend-color v1"></div> Language 1: B2 Appliance Vocab</div>
-                        <div class="legend-item" data-class="g1" onclick="ModelsApp.toggleHighlight('g1', this)"><div class="legend-color g1"></div> Language 2: Past Simple/Pres. Perfect</div>
+                        <div class="legend-item" data-class="l1" onclick="ModelsApp.toggleHighlight('l1', this)"><div class="legend-color l1"></div> [L1] B2 Vocab (Adjs/Advs)</div>
+                        <div class="legend-item" data-class="l2" onclick="ModelsApp.toggleHighlight('l2', this)"><div class="legend-color l2"></div> [L2] Tenses & Conditionals</div>
 
                         <div class="legend-category">Organization (5 Marks)</div>
-                        <div class="legend-item" data-class="o1" onclick="ModelsApp.toggleHighlight('o1', this)"><div class="legend-color o1"></div> Organization: Sequence Connectives</div>
+                        <div class="legend-item" data-class="o1" onclick="ModelsApp.toggleHighlight('o1', this)"><div class="legend-color o1"></div> [O1] Connectives</div>
 
                         <div class="legend-category">Style & Tone (5 Marks)</div>
-                        <div class="legend-item" data-class="f1" onclick="ModelsApp.toggleHighlight('f1', this)"><div class="legend-color f1"></div> Style: Formal Format & Closing</div>
+                        <div class="legend-item" data-class="s1" onclick="ModelsApp.toggleHighlight('s1', this)"><div class="legend-color s1"></div> [S1] Formal Layout</div>
                     </div>
 
                     <div class="checklist">
-                        <h3>✅ Complaint Checklist</h3>
-                        <div class="checklist-item" data-class="c1" onclick="ModelsApp.toggleHighlight('c1', this)"><span>✓</span> Clear purpose & request stated</div>
-                        <div class="checklist-item" onclick="alert('Checking word count...')"><span>✓</span> Word count between 120-140 words</div>
-                        <div class="checklist-item" data-class="g1" onclick="ModelsApp.toggleHighlight('g1', this)"><span>✓</span> Uses Past Simple & Present Perfect</div>
-                        <div class="checklist-item" data-class="v1" onclick="ModelsApp.toggleHighlight('v1', this)"><span>✓</span> Includes B2 appliance vocabulary</div>
-                        <div class="checklist-item" data-class="o1" onclick="ModelsApp.toggleHighlight('o1', this)"><span>✓</span> 5 sequence connectives (First, Then...)</div>
-                        <div class="checklist-item" data-class="f1" onclick="ModelsApp.toggleHighlight('f1', this)"><span>✓</span> Formal layout and sign-off</div>
+                        <h3>✅ Unit 1 Checklist</h3>
+                        <div class="checklist-item" data-class="c1" onclick="ModelsApp.toggleHighlight('c1', this)"><span>✓</span> "Although" Clause used</div>
+                        <div class="checklist-item" data-class="o1" onclick="ModelsApp.toggleHighlight('o1', this)"><span>✓</span> 5-Step Timeline</div>
+                        <div class="checklist-item" data-class="l1" onclick="ModelsApp.toggleHighlight('l1', this)"><span>✓</span> Adj & Adv used</div>
+                        <div class="checklist-item" data-class="c3" onclick="ModelsApp.toggleHighlight('c3', this)"><span>✓</span> "If" Conditional (Effect)</div>
+                        <div class="checklist-item" data-class="c3" onclick="ModelsApp.toggleHighlight('c3', this)"><span>✓</span> Standardized Request</div>
+                        <div class="checklist-item" data-class="s1" onclick="ModelsApp.toggleHighlight('s1', this)"><span>✓</span> Full Block Format</div>
                     </div>
                 </div>
 
@@ -300,26 +238,16 @@
 
                     <div class="essay-wrapper">
                         <div class="audio-corner">
-                            <button class="icon-btn" id="models-audioBtn" onclick="ModelsApp.toggleAudio()" title="Read Aloud">▶️</button>
+                            <button class="icon-btn" id="models-audioBtn" onclick="ModelsApp.toggleAudio()" title="Read Aloud">▶</button>
                         </div>
                         
                         <!-- Essay content remains black until left column item is clicked -->
                         <div class="essay-content" id="models-essay"></div>
                         
                         <!-- Teacher Feedback Section -->
-                        <div id="models-feedback" style="margin-top: 30px; padding: 20px; background: #f0fdf4; border-left: 5px solid #22c55e; border-radius: 8px; font-size: 0.9em; line-height: 1.6; color: #166534;"></div>
+                        <div class="feedback-box" id="models-feedback"></div>
                     </div>
                 </div>
-            </div>
-
-            <!-- Bottom Stats Row (Fixed at Bottom, Reduced Size) -->
-            <div class="stats-footer">
-                <div><b id="models-words">120</b> Word Count (120-140)</div>
-                <div><b>10/10</b> Content Score</div>
-                <div><b>10/10</b> Language Score</div>
-                <div><b>5/5</b> Organization</div>
-                <div><b>5/5</b> Style & Tone</div>
-                <div class="total-score"><b>30/30</b> Total Score</div>
             </div>
         </div>
     </div>
@@ -341,7 +269,7 @@
                 <main class="draft-layout">
                     <!-- Center: Workspace (Drop Zone) -->
                     <div class="draft-center">
-                        <textarea class="free-write-area" id="draft-essayWorkspace" ondragover="DraftingApp.allowDrop(event)" ondrop="DraftingApp.drop(event)" placeholder="Drag and drop formal letter blocks from the right panel here...&#10;&#10;💡 Ensure you construct exactly 7 sections separated by blank lines."></textarea>
+                        <textarea class="free-write-area" id="draft-essayWorkspace" ondragover="DraftingApp.allowDrop(event)" ondrop="DraftingApp.drop(event)" placeholder="Drag and drop formal letter blocks from the right panel here...&#10;&#10;💡 Construct a full block formal complaint letter using the 4-paragraph structure."></textarea>
                     </div>
 
                     <!-- Right: Draggable Sentence Pool -->
@@ -351,8 +279,8 @@
                             <select id="draft-poolFilter" onchange="DraftingApp.filterPool()" style="padding: 4px; border-radius: 4px; border: 1px solid #cbd5e1; outline: none;">
                                 <option value="all">All Blocks</option>
                                 <option value="opening">1. Openings</option>
-                                <option value="body">2. Body Details</option>
-                                <option value="transition">3. Connectives</option>
+                                <option value="transition">2. Body Connectives</option>
+                                <option value="body">3. Details / Effects</option>
                                 <option value="closing">4. Closings</option>
                             </select>
                         </div>
@@ -374,18 +302,16 @@
 
             <div class="grammar-wrapper">
                 <div class="worksheet-content">
-                    <div class="page active">
-                        <div class="section">
-                            <h2>Fill in the Blanks</h2>
-                            <p>Complete each sentence with the correct backshifted modal verb (would, could, might, had to, should).</p>
-                            <div class="practice-exercise">
-                                <div class="practice-item"><label>1. "I will help." -> She said she <input type="text" id="gram-q1"></label></div>
-                                <div class="practice-item"><label>2. "You can come." -> He said I <input type="text" id="gram-q2"></label></div>
-                                <div class="practice-item"><label>3. "It may rain." -> They said it <input type="text" id="gram-q3"></label></div>
-                                <div class="practice-item"><label>4. "You must finish." -> The teacher said I <input type="text" id="gram-q4"></label></div>
-                            </div>
-                            <button class="btn" onclick="GrammarApp.checkAnswers()">Check Answers</button>
+                    <div class="section">
+                        <h2>Fill in the Blanks</h2>
+                        <p>Complete each sentence with the correct backshifted modal verb (would, could, might, had to, should).</p>
+                        <div class="practice-exercise">
+                            <div class="practice-item"><label>1. "I will help." -> She said she <input type="text" id="gram-q1"></label></div>
+                            <div class="practice-item"><label>2. "You can come." -> He said I <input type="text" id="gram-q2"></label></div>
+                            <div class="practice-item"><label>3. "It may rain." -> They said it <input type="text" id="gram-q3"></label></div>
+                            <div class="practice-item"><label>4. "You must finish." -> The teacher said I <input type="text" id="gram-q4"></label></div>
                         </div>
+                        <button class="btn" onclick="GrammarApp.checkAnswers()">Check Answers</button>
                     </div>
                 </div>
             </div>
@@ -406,309 +332,249 @@
         }
 
         /* -------------------------------------------------------------------------
-           APP 1: MODELS LOGIC 
+           APP 1: MODELS LOGIC (20 Full Letters matching criteria)
            ------------------------------------------------------------------------- */
         const ModelsApp = {
             data: [
                 {
-                    id: 0, title: "1. Air Conditioner", words: 120,
+                    id: 0, title: "1. Air Conditioner Unit",
                     html: `
-<div class="essay-section"><span class="hl f1">123 Main St, Shenzhen</span></div>
-<div class="essay-section"><span class="hl f1">October 4, 2026</span></div>
-<div class="essay-section"><span class="hl f1">Customer Service Team<br>CoolBreeze Climate Systems</span></div>
-<div class="essay-section"><span class="hl f1">Dear Customer Service Team,</span></div>
-<div class="essay-section"><span class="hl c1">I am writing to report a serious problem with the CoolBreeze AC‑900 installed at my residence on September 20.</span></div>
-<div class="essay-section"><span class="hl c2"><span class="hl o1">First,</span> the unit <span class="hl g1">began</span> leaking water from the lower vent. <span class="hl o1">Then,</span> the <span class="hl v1">airflow</span> <span class="hl g1">weakened</span> noticeably, making the room feel warm. <span class="hl o1">Next,</span> the machine <span class="hl g1">emitted</span> a sharp burning smell. <span class="hl o1">After that,</span> the motor <span class="hl g1">produced</span> a loud rattling noise that <span class="hl g1">worried</span> my family. <span class="hl o1">Finally,</span> the system <span class="hl g1">shut down</span> completely during operation.</span></div>
-<div class="essay-section"><span class="hl c3"><span class="hl g1">I immediately switched off</span> the power to prevent further damage.</span> <span class="hl c1">I kindly request that a certified technician inspect and replace the <span class="hl v1">defective unit</span> as soon as possible.</span></div>
-<div class="essay-section"><span class="hl f1">Kind regards,<br>Joel Wang</span></div>`,
-                    feedback: `<b>👨‍🏫 Teacher's Feedback:</b><br>
-                    <b>🌟 What was done well:</b> You perfectly adhered to the Full Block Layout with exactly 7 sections separated by blank lines. The 5-step timeline connectives [O1] map out the defects logically using the Past Simple tense.<br>
-                    <b>📈 Target for growth:</b> Excellent integration of B2 vocabulary ("defective unit", "airflow"). You have effectively met all criteria of the marking scheme.`
+<span class="hl s1">12A Tech Road, Shenzhen<br>October 4, 2026<br><br>Customer Service<br>CoolBreeze Appliances<br><br>Dear Sir or Madam,</span><br><br>
+<span class="hl c1">I am writing to formally complain about the CoolBreeze AC-900 that I purchased from MegaMart on September 20. <span class="hl c1"><span class="hl l2">Although</span> I maintained it <span class="hl l1">very carefully</span>, it failed <span class="hl l1">unexpectedly</span>.</span></span><br><br>
+<span class="hl c2">Unfortunately, after only a few days of <span class="hl l1">normal</span> use, the appliance stopped working properly. <span class="hl o1">First,</span> it <span class="hl l2">leaked</span> water <span class="hl l1">profusely</span>. <span class="hl o1">Then,</span> the airflow <span class="hl l2">weakened</span> <span class="hl l1">significantly</span>. <span class="hl o1">Next,</span> the machine <span class="hl l2">emitted</span> a <span class="hl l1">sharp</span> burning smell. <span class="hl o1">After that,</span> the motor <span class="hl l2">produced</span> a <span class="hl l1">loud</span> rattling noise. <span class="hl o1">Finally,</span> the system <span class="hl l2">shut down</span> <span class="hl l1">completely</span>.</span><br><br>
+<span class="hl c3"><span class="hl l2">I have tried cleaning the filter and restarting it many times</span>, but the problem continues. <span class="hl c3"><span class="hl l2">If</span> it causes an electrical fire, the result will be <span class="hl l1">absolutely disastrous</span>.</span> As this appliance is still under the one-year warranty, I would appreciate it if you could repair or replace it as soon as possible.</span><br><br>
+<span class="hl s1">Thank you for your attention to this matter. I look forward to your prompt response.<br><br>Yours sincerely,<br><br>Joel Wang</span>`,
+                    feedback: `<h4>👨‍🏫 Teacher's Feedback</h4>
+                    <div style="margin-bottom: 10px; background: white; padding: 12px; border-radius: 6px; border-left: 4px solid #22c55e;"><b>🌟 What was done well:</b> Excellent use of the 5-step timeline connectives and the inclusion of both an 'Although' clause and 'If' conditional.</div>
+                    <div style="background: white; padding: 12px; border-radius: 6px; border-left: 4px solid #ef4444; color: #991b1b;"><b>📈 Target for growth:</b> Try adding a formal passive voice structure to elevate your language complexity.</div>`
                 },
                 {
-                    id: 1, title: "2. Smart Refrigerator", words: 132,
+                    id: 1, title: "2. Smart Refrigerator",
                     html: `
-<div class="essay-section"><span class="hl f1">123 Main St, Shenzhen</span></div>
-<div class="essay-section"><span class="hl f1">October 4, 2026</span></div>
-<div class="essay-section"><span class="hl f1">Technical Support Department<br>FrostTech Home Appliances</span></div>
-<div class="essay-section"><span class="hl f1">Dear Technical Support Department,</span></div>
-<div class="essay-section"><span class="hl c1">I am writing to complain about the FrostTech SmartCool X2 refrigerator delivered on September 18.</span></div>
-<div class="essay-section"><span class="hl c2"><span class="hl o1">First,</span> the fridge <span class="hl g1">failed</span> to cool properly, causing vegetables and meat to spoil. <span class="hl o1">Then,</span> the touchscreen <span class="hl g1">froze</span> repeatedly, making it impossible to adjust settings. <span class="hl o1">Next,</span> the interior lights <span class="hl g1">flickered</span> whenever the door opened. <span class="hl o1">After that,</span> the temperature alarm <span class="hl g1">sounded</span> without reason, disturbing my family at night. <span class="hl o1">Finally,</span> the <span class="hl v1">compressor</span> <span class="hl g1">began</span> making a loud humming noise that <span class="hl g1">grew</span> worse each day.</span></div>
-<div class="essay-section"><span class="hl c3"><span class="hl g1">I have unplugged</span> the unit to avoid electrical damage.</span> <span class="hl c1">I kindly request an immediate inspection and full replacement under warranty.</span></div>
-<div class="essay-section"><span class="hl f1">Best regards,<br>Joel Wang</span></div>`,
-                    feedback: `<b>👨‍🏫 Teacher's Feedback:</b><br>
-                    <b>🌟 What was done well:</b> Excellent use of the Present Perfect tense ("I have unplugged") for the troubleshooting attempt [G1]. The B2 vocabulary ("compressor") makes your request highly professional.<br>
-                    <b>📈 Target for growth:</b> The Content [C2] is vividly detailed and well-organized. You've maximized your marks in all areas.`
+<span class="hl s1">88 Lotus Avenue, Shenzhen<br>October 4, 2026<br><br>Technical Support<br>FrostTech Electronics<br><br>Dear Sir or Madam,</span><br><br>
+<span class="hl c1">I am writing to formally complain about the FrostTech X2 that I purchased from ElectroWorld on September 18. <span class="hl c1"><span class="hl l2">Although</span> I closed the door <span class="hl l1">securely</span>, it failed <span class="hl l1">rapidly</span>.</span></span><br><br>
+<span class="hl c2">Unfortunately, after only a few days of <span class="hl l1">standard</span> use, the appliance stopped working properly. <span class="hl o1">First,</span> the fridge <span class="hl l2">stopped</span> cooling <span class="hl l1">entirely</span>. <span class="hl o1">Then,</span> the touchscreen <span class="hl l2">froze</span> <span class="hl l1">repeatedly</span>. <span class="hl o1">Next,</span> the interior lights <span class="hl l2">flickered</span> <span class="hl l1">wildly</span>. <span class="hl o1">After that,</span> the temperature alarm <span class="hl l2">sounded</span> <span class="hl l1">continuously</span>. <span class="hl o1">Finally,</span> the compressor <span class="hl l2">broke</span> <span class="hl l1">completely</span>.</span><br><br>
+<span class="hl c3"><span class="hl l2">I have tried adjusting the temperature and restarting it many times</span>, but the problem continues. <span class="hl c3"><span class="hl l2">If</span> the food spoils entirely, the waste will be <span class="hl l1">extremely costly</span>.</span> As this appliance is still under the one-year warranty, I would appreciate it if you could repair or replace it as soon as possible.</span><br><br>
+<span class="hl s1">Thank you for your attention to this matter. I look forward to your prompt response.<br><br>Yours sincerely,<br><br>Joel Wang</span>`,
+                    feedback: `<h4>👨‍🏫 Teacher's Feedback</h4>
+                    <div style="margin-bottom: 10px; background: white; padding: 12px; border-radius: 6px; border-left: 4px solid #22c55e;"><b>🌟 What was done well:</b> The Full Block format is executed flawlessly alongside strong adverbs like 'repeatedly' and 'wildly'.</div>
+                    <div style="background: white; padding: 12px; border-radius: 6px; border-left: 4px solid #ef4444; color: #991b1b;"><b>📈 Target for growth:</b> Swap the basic adjective 'costly' for a stronger B2 equivalent like 'financially disastrous'.</div>`
                 },
                 {
-                    id: 2, title: "3. Induction Cooker", words: 128,
+                    id: 2, title: "3. Induction Cooker",
                     html: `
-<div class="essay-section"><span class="hl f1">123 Main St, Shenzhen</span></div>
-<div class="essay-section"><span class="hl f1">October 4, 2026</span></div>
-<div class="essay-section"><span class="hl f1">Service Manager<br>HeatWave Kitchen Solutions</span></div>
-<div class="essay-section"><span class="hl f1">Dear Service Manager,</span></div>
-<div class="essay-section"><span class="hl c1">I am writing to lodge a complaint about the HeatWave InductPro cooker purchased on September 22.</span></div>
-<div class="essay-section"><span class="hl c2"><span class="hl o1">First,</span> the cooker <span class="hl v1">overheated</span> within minutes, making it unsafe to touch. <span class="hl o1">Then,</span> it <span class="hl g1">produced</span> loud popping sounds that <span class="hl g1">frightened</span> my children. <span class="hl o1">Next,</span> scratches <span class="hl g1">appeared</span> on the heating surface despite careful use. <span class="hl o1">After that,</span> the temperature controls <span class="hl g1">stopped</span> responding, leaving food half‑cooked. <span class="hl o1">Finally,</span> the unit <span class="hl g1">shut down</span> suddenly while boiling water, which <span class="hl g1">created</span> a dangerous situation.</span></div>
-<div class="essay-section"><span class="hl c3"><span class="hl g1">I disconnected</span> the device immediately for safety.</span> <span class="hl c1">I kindly request a technician to inspect and replace the faulty product today.</span></div>
-<div class="essay-section"><span class="hl f1">Kind regards,<br>Joel Wang</span></div>`,
-                    feedback: `<b>👨‍🏫 Teacher's Feedback:</b><br>
-                    <b>🌟 What was done well:</b> The greeting "Dear Service Manager" and sign-off "Kind regards," perfectly demonstrate your grasp of the formal register [F1]. Word count is perfectly concise and compliant.<br>
-                    <b>📈 Target for growth:</b> Your usage of the past simple tense to recount the sequence of events guarantees a top language score.`
+<span class="hl s1">55 Pearl Street, Shenzhen<br>October 4, 2026<br><br>Customer Support<br>HeatWave Appliances<br><br>Dear Sir or Madam,</span><br><br>
+<span class="hl c1">I am writing to formally complain about the HeatWave InductPro that I purchased from HomeGoods on September 22. <span class="hl c1"><span class="hl l2">Although</span> I used compatible pots <span class="hl l1">gently</span>, it failed <span class="hl l1">suddenly</span>.</span></span><br><br>
+<span class="hl c2">Unfortunately, after only a few days of <span class="hl l1">daily</span> use, the appliance stopped working properly. <span class="hl o1">First,</span> it <span class="hl l2">overheated</span> within minutes. <span class="hl o1">Then,</span> it <span class="hl l2">produced</span> <span class="hl l1">loud</span> popping sounds. <span class="hl o1">Next,</span> <span class="hl l1">deep</span> scratches <span class="hl l2">appeared</span> <span class="hl l1">mysteriously</span>. <span class="hl o1">After that,</span> the buttons <span class="hl l2">jammed</span> <span class="hl l1">stubbornly</span>. <span class="hl o1">Finally,</span> the unit <span class="hl l2">shut down</span> <span class="hl l1">entirely</span>.</span><br><br>
+<span class="hl c3"><span class="hl l2">I have tried unplugging the device and restarting it many times</span>, but the problem continues. <span class="hl c3"><span class="hl l2">If</span> it explodes suddenly, the burns will be <span class="hl l1">incredibly dangerous</span>.</span> As this appliance is still under the one-year warranty, I would appreciate it if you could repair or replace it as soon as possible.</span><br><br>
+<span class="hl s1">Thank you for your attention to this matter. I look forward to your prompt response.<br><br>Yours sincerely,<br><br>Joel Wang</span>`,
+                    feedback: `<h4>👨‍🏫 Teacher's Feedback</h4>
+                    <div style="margin-bottom: 10px; background: white; padding: 12px; border-radius: 6px; border-left: 4px solid #22c55e;"><b>🌟 What was done well:</b> The conditional 'If' clause strongly emphasizes the physical danger, scoring highly in Content.</div>
+                    <div style="background: white; padding: 12px; border-radius: 6px; border-left: 4px solid #ef4444; color: #991b1b;"><b>📈 Target for growth:</b> Try adding a formal passive voice structure in your final request paragraph.</div>`
                 },
                 {
-                    id: 3, title: "4. Water Purifier", words: 130,
+                    id: 3, title: "4. Water Purifier",
                     html: `
-<div class="essay-section"><span class="hl f1">123 Main St, Shenzhen</span></div>
-<div class="essay-section"><span class="hl f1">October 4, 2026</span></div>
-<div class="essay-section"><span class="hl f1">Product Support Team<br>PureFlow Water Systems</span></div>
-<div class="essay-section"><span class="hl f1">Dear Product Support Team,</span></div>
-<div class="essay-section"><span class="hl c1">I am writing to report serious issues with the PureFlow AquaGuard purifier installed on September 19.</span></div>
-<div class="essay-section"><span class="hl c2"><span class="hl o1">First,</span> the machine <span class="hl g1">released</span> cloudy water that <span class="hl g1">looked</span> unsafe to drink. <span class="hl o1">Then,</span> it <span class="hl g1">produced</span> a grinding noise during <span class="hl v1">filtration</span>. <span class="hl o1">Next,</span> the filter indicator <span class="hl g1">failed</span> to light up, even after resetting the system. <span class="hl o1">After that,</span> water pressure <span class="hl g1">dropped</span> sharply, making it difficult to fill a glass. <span class="hl o1">Finally,</span> the unit <span class="hl g1">stopped</span> dispensing water altogether.</span></div>
-<div class="essay-section"><span class="hl c3"><span class="hl g1">I have turned off</span> the system to prevent <span class="hl v1">contamination</span>.</span> <span class="hl c1">I kindly request an urgent inspection and replacement of the purifier.</span></div>
-<div class="essay-section"><span class="hl f1">Best regards,<br>Joel Wang</span></div>`,
-                    feedback: `<b>👨‍🏫 Teacher's Feedback:</b><br>
-                    <b>🌟 What was done well:</b> Using the advanced nouns "filtration" and "contamination" [V1] fits perfectly in this formal context, elevating the Language score.<br>
-                    <b>📈 Target for growth:</b> Organization [O1] is strong, seamlessly guiding the reader through the escalating issues step-by-step.`
+<span class="hl s1">9B River Walk, Shenzhen<br>October 4, 2026<br><br>Service Department<br>PureFlow Systems<br><br>Dear Sir or Madam,</span><br><br>
+<span class="hl c1">I am writing to formally complain about the PureFlow AquaGuard that I purchased from AquaStore on September 19. <span class="hl c1"><span class="hl l2">Although</span> I followed the manual <span class="hl l1">strictly</span>, it failed <span class="hl l1">miserably</span>.</span></span><br><br>
+<span class="hl c2">Unfortunately, after only a few days of <span class="hl l1">routine</span> use, the appliance stopped working properly. <span class="hl o1">First,</span> it <span class="hl l2">released</span> <span class="hl l1">cloudy</span> water <span class="hl l1">continuously</span>. <span class="hl o1">Then,</span> it <span class="hl l2">made</span> a grinding noise. <span class="hl o1">Next,</span> the <span class="hl l1">smart</span> indicator <span class="hl l2">broke</span>. <span class="hl o1">After that,</span> water pressure <span class="hl l2">dropped</span> <span class="hl l1">sharply</span>. <span class="hl o1">Finally,</span> the dispenser <span class="hl l2">stopped</span> <span class="hl l1">completely</span>.</span><br><br>
+<span class="hl c3"><span class="hl l2">I have tried flushing the filter and restarting it many times</span>, but the problem continues. <span class="hl c3"><span class="hl l2">If</span> we drink contaminated water, the sickness will be <span class="hl l1">terribly severe</span>.</span> As this appliance is still under the one-year warranty, I would appreciate it if you could repair or replace it as soon as possible.</span><br><br>
+<span class="hl s1">Thank you for your attention to this matter. I look forward to your prompt response.<br><br>Yours sincerely,<br><br>Joel Wang</span>`,
+                    feedback: `<h4>👨‍🏫 Teacher's Feedback</h4>
+                    <div style="margin-bottom: 10px; background: white; padding: 12px; border-radius: 6px; border-left: 4px solid #22c55e;"><b>🌟 What was done well:</b> Excellent use of the Present Perfect to correctly identify your troubleshooting actions.</div>
+                    <div style="background: white; padding: 12px; border-radius: 6px; border-left: 4px solid #ef4444; color: #991b1b;"><b>📈 Target for growth:</b> Enhance the vocabulary by swapping 'terribly severe' for a more formal term like 'medically disastrous'.</div>`
                 },
                 {
-                    id: 4, title: "5. Robot Vacuum", words: 124,
+                    id: 4, title: "5. Robot Vacuum",
                     html: `
-<div class="essay-section"><span class="hl f1">123 Main St, Shenzhen</span></div>
-<div class="essay-section"><span class="hl f1">October 4, 2026</span></div>
-<div class="essay-section"><span class="hl f1">Customer Care Department<br>CleanBot Robotics</span></div>
-<div class="essay-section"><span class="hl f1">Dear Customer Care Department,</span></div>
-<div class="essay-section"><span class="hl c1">I am writing to complain about the CleanBot Navigator purchased on September 23.</span></div>
-<div class="essay-section"><span class="hl c2"><span class="hl o1">First,</span> the vacuum <span class="hl g1">lost</span> <span class="hl v1">navigation</span> and <span class="hl g1">spun</span> in circles. <span class="hl o1">Then,</span> it <span class="hl g1">bumped</span> into furniture repeatedly, leaving scratches. <span class="hl o1">Next,</span> the <span class="hl v1">sensors</span> <span class="hl g1">failed</span> to detect obstacles, causing it to get stuck under the sofa. <span class="hl o1">After that,</span> the battery <span class="hl g1">drained</span> within minutes. <span class="hl o1">Finally,</span> a burnt‑rubber smell <span class="hl g1">emerged</span> from the motor, which <span class="hl g1">worried</span> my family.</span></div>
-<div class="essay-section"><span class="hl c3"><span class="hl g1">I have stopped using</span> the device for safety reasons.</span> <span class="hl c1">I kindly request a full inspection and replacement under warranty.</span></div>
-<div class="essay-section"><span class="hl f1">Kind regards,<br>Joel Wang</span></div>`,
-                    feedback: `<b>👨‍🏫 Teacher's Feedback:</b><br>
-                    <b>🌟 What was done well:</b> The Present Perfect tense ("I have stopped using") correctly describes an action with a present result, securing top marks for Grammar accuracy.<br>
-                    <b>📈 Target for growth:</b> The factual details [C2] vividly map the failure of the machine's navigation and sensors.`
+<span class="hl s1">101 Cyber Park, Shenzhen<br>October 4, 2026<br><br>Customer Care<br>CleanBot Robotics<br><br>Dear Sir or Madam,</span><br><br>
+<span class="hl c1">I am writing to formally complain about the CleanBot Navigator that I purchased from TechHub on September 23. <span class="hl c1"><span class="hl l2">Although</span> I charged it <span class="hl l1">fully</span> overnight, it failed <span class="hl l1">instantly</span>.</span></span><br><br>
+<span class="hl c2">Unfortunately, after only a few days of <span class="hl l1">indoor</span> use, the appliance stopped working properly. <span class="hl o1">First,</span> the vacuum <span class="hl l2">lost</span> navigation. <span class="hl o1">Then,</span> it <span class="hl l2">bumped</span> into furniture <span class="hl l1">repeatedly</span>. <span class="hl o1">Next,</span> the sensors <span class="hl l2">failed</span> <span class="hl l1">totally</span>. <span class="hl o1">After that,</span> the battery <span class="hl l2">drained</span> <span class="hl l1">quickly</span>. <span class="hl o1">Finally,</span> a burnt smell <span class="hl l2">emerged</span> <span class="hl l1">constantly</span>.</span><br><br>
+<span class="hl c3"><span class="hl l2">I have tried emptying the dustbin and restarting it many times</span>, but the problem continues. <span class="hl c3"><span class="hl l2">If</span> it damages my wooden floors, the repair will be <span class="hl l1">very costly</span>.</span> As this appliance is still under the one-year warranty, I would appreciate it if you could repair or replace it as soon as possible.</span><br><br>
+<span class="hl s1">Thank you for your attention to this matter. I look forward to your prompt response.<br><br>Yours sincerely,<br><br>Joel Wang</span>`,
+                    feedback: `<h4>👨‍🏫 Teacher's Feedback</h4>
+                    <div style="margin-bottom: 10px; background: white; padding: 12px; border-radius: 6px; border-left: 4px solid #22c55e;"><b>🌟 What was done well:</b> Impeccable timeline structure. Every step logically follows the previous one using Past Simple verbs.</div>
+                    <div style="background: white; padding: 12px; border-radius: 6px; border-left: 4px solid #ef4444; color: #991b1b;"><b>📈 Target for growth:</b> Vary the sentence lengths slightly in the second paragraph to improve the flow of the narrative.</div>`
                 },
                 {
-                    id: 5, title: "6. Electric Kettle", words: 121,
+                    id: 5, title: "6. Electric Kettle",
                     html: `
-<div class="essay-section"><span class="hl f1">123 Main St, Shenzhen</span></div>
-<div class="essay-section"><span class="hl f1">October 4, 2026</span></div>
-<div class="essay-section"><span class="hl f1">Support Manager<br>BoilMaster Appliances</span></div>
-<div class="essay-section"><span class="hl f1">Dear Support Manager,</span></div>
-<div class="essay-section"><span class="hl c1">I am writing to file a complaint regarding the BoilMaster RapidHeat kettle purchased on September 21.</span></div>
-<div class="essay-section"><span class="hl c2"><span class="hl o1">First,</span> the kettle <span class="hl g1">failed</span> to shut off automatically. <span class="hl o1">Then,</span> it <span class="hl g1">boiled</span> dry during use, which <span class="hl g1">created</span> a dangerous situation. <span class="hl o1">Next,</span> the handle <span class="hl g1">became</span> extremely hot and difficult to hold. <span class="hl o1">After that,</span> steam <span class="hl g1">leaked</span> from the lid, making the counter wet. <span class="hl o1">Finally,</span> the base <span class="hl v1">emitted</span> a faint burning smell.</span></div>
-<div class="essay-section"><span class="hl c3"><span class="hl g1">I unplugged</span> the kettle immediately.</span> <span class="hl c1">I kindly request a technician to inspect and replace the <span class="hl v1">defective unit</span>.</span></div>
-<div class="essay-section"><span class="hl f1">Best regards,<br>Joel Wang</span></div>`,
-                    feedback: `<b>👨‍🏫 Teacher's Feedback:</b><br>
-                    <b>🌟 What was done well:</b> Using the advanced verb "emitted" [V1] fits perfectly in this formal context, elevating the overall tone of the letter.<br>
-                    <b>📈 Target for growth:</b> Style & Tone [F1] is flawless. The exact format and spacing demands of the block layout have been perfectly executed.`
+<span class="hl s1">3C Sunrise Tower, Shenzhen<br>October 4, 2026<br><br>Support Team<br>BoilMaster Appliances<br><br>Dear Sir or Madam,</span><br><br>
+<span class="hl c1">I am writing to formally complain about the BoilMaster RapidHeat that I purchased from KitchenPlus on September 21. <span class="hl c1"><span class="hl l2">Although</span> I never overfilled it <span class="hl l1">recklessly</span>, it failed <span class="hl l1">immediately</span>.</span></span><br><br>
+<span class="hl c2">Unfortunately, after only a few days of <span class="hl l1">cautious</span> use, the appliance stopped working properly. <span class="hl o1">First,</span> the kettle <span class="hl l2">boiled</span> <span class="hl l1">continuously</span>. <span class="hl o1">Then,</span> hot steam <span class="hl l2">leaked</span> <span class="hl l1">heavily</span>. <span class="hl o1">Next,</span> the handle <span class="hl l2">became</span> <span class="hl l1">dangerously</span> hot. <span class="hl o1">After that,</span> the lid <span class="hl l2">jammed</span> <span class="hl l1">tightly</span>. <span class="hl o1">Finally,</span> the base <span class="hl l2">emitted</span> smoke.</span><br><br>
+<span class="hl c3"><span class="hl l2">I have tried cleaning the base and restarting it many times</span>, but the problem continues. <span class="hl c3"><span class="hl l2">If</span> it burns someone accidentally, the injuries will be <span class="hl l1">quite severe</span>.</span> As this appliance is still under the one-year warranty, I would appreciate it if you could repair or replace it as soon as possible.</span><br><br>
+<span class="hl s1">Thank you for your attention to this matter. I look forward to your prompt response.<br><br>Yours sincerely,<br><br>Joel Wang</span>`,
+                    feedback: `<h4>👨‍🏫 Teacher's Feedback</h4>
+                    <div style="margin-bottom: 10px; background: white; padding: 12px; border-radius: 6px; border-left: 4px solid #22c55e;"><b>🌟 What was done well:</b> The inclusion of B2 vocabulary like 'emitted' and 'severe' perfectly fits the formal register.</div>
+                    <div style="background: white; padding: 12px; border-radius: 6px; border-left: 4px solid #ef4444; color: #991b1b;"><b>📈 Target for growth:</b> Ensure your concluding paragraph incorporates an introductory transition to sound smoother.</div>`
                 },
                 {
-                    id: 6, title: "7. Washing Machine", words: 133,
+                    id: 6, title: "7. Washing Machine",
                     html: `
-<div class="essay-section"><span class="hl f1">123 Main St, Shenzhen</span></div>
-<div class="essay-section"><span class="hl f1">October 4, 2026</span></div>
-<div class="essay-section"><span class="hl f1">Technical Support Department<br>WashPro Laundry Systems</span></div>
-<div class="essay-section"><span class="hl f1">Dear Technical Support Department,</span></div>
-<div class="essay-section"><span class="hl c1">I am writing to complain about the WashPro UltraSpin washer installed on September 17.</span></div>
-<div class="essay-section"><span class="hl c2"><span class="hl o1">First,</span> the machine <span class="hl g1">shook</span> violently during the spin cycle, moving across the floor. <span class="hl o1">Then,</span> detergent <span class="hl g1">leaked</span> from the drawer, leaving a sticky mess. <span class="hl o1">Next,</span> the <span class="hl v1">control panel</span> <span class="hl g1">flashed</span> repeated error codes that I could not clear. <span class="hl o1">After that,</span> the drum <span class="hl g1">failed</span> to drain properly, leaving clothes soaking wet. <span class="hl o1">Finally,</span> the washer <span class="hl g1">stopped</span> mid‑cycle and <span class="hl g1">refused</span> to restart.</span></div>
-<div class="essay-section"><span class="hl c3"><span class="hl g1">I have disconnected</span> the power supply.</span> <span class="hl c1">I kindly request immediate inspection and replacement.</span></div>
-<div class="essay-section"><span class="hl f1">Kind regards,<br>Joel Wang</span></div>`,
-                    feedback: `<b>👨‍🏫 Teacher's Feedback:</b><br>
-                    <b>🌟 What was done well:</b> The 7-section layout is flawless. You effectively separated each major component (sender, date, recipient, etc.) with exactly one blank line.<br>
-                    <b>📈 Target for growth:</b> The timeline connectives [O1] flawlessly lead the reader through the breakdown process. Excellent execution.`
+<span class="hl s1">44 Clean Avenue, Shenzhen<br>October 4, 2026<br><br>Technical Support<br>WashPro Solutions<br><br>Dear Sir or Madam,</span><br><br>
+<span class="hl c1">I am writing to formally complain about the WashPro UltraSpin that I purchased from MegaMart on September 17. <span class="hl c1"><span class="hl l2">Although</span> I loaded it <span class="hl l1">properly</span>, it failed <span class="hl l1">disastrously</span>.</span></span><br><br>
+<span class="hl c2">Unfortunately, after only a few days of <span class="hl l1">regular</span> use, the appliance stopped working properly. <span class="hl o1">First,</span> the machine <span class="hl l2">shook</span> <span class="hl l1">violently</span>. <span class="hl o1">Then,</span> soapy detergent <span class="hl l2">leaked</span> <span class="hl l1">steadily</span>. <span class="hl o1">Next,</span> the control panel <span class="hl l2">flashed</span> <span class="hl l1">rapidly</span>. <span class="hl o1">After that,</span> the drum <span class="hl l2">jammed</span>. <span class="hl o1">Finally,</span> the washer <span class="hl l2">stopped</span> mid-cycle <span class="hl l1">entirely</span>.</span><br><br>
+<span class="hl c3"><span class="hl l2">I have tried clearing the drain and restarting it many times</span>, but the problem continues. <span class="hl c3"><span class="hl l2">If</span> the kitchen floods, the floor damage will be <span class="hl l1">completely ruined</span>.</span> As this appliance is still under the one-year warranty, I would appreciate it if you could repair or replace it as soon as possible.</span><br><br>
+<span class="hl s1">Thank you for your attention to this matter. I look forward to your prompt response.<br><br>Yours sincerely,<br><br>Joel Wang</span>`,
+                    feedback: `<h4>👨‍🏫 Teacher's Feedback</h4>
+                    <div style="margin-bottom: 10px; background: white; padding: 12px; border-radius: 6px; border-left: 4px solid #22c55e;"><b>🌟 What was done well:</b> Adverbs like 'violently' and 'steadily' powerfully illustrate the exact functional defects.</div>
+                    <div style="background: white; padding: 12px; border-radius: 6px; border-left: 4px solid #ef4444; color: #991b1b;"><b>📈 Target for growth:</b> Try adding a passive voice construction like 'The floor will be ruined' instead of active voice.</div>`
                 },
                 {
-                    id: 7, title: "8. Microwave Oven", words: 129,
+                    id: 7, title: "8. Microwave Oven",
                     html: `
-<div class="essay-section"><span class="hl f1">123 Main St, Shenzhen</span></div>
-<div class="essay-section"><span class="hl f1">October 4, 2026</span></div>
-<div class="essay-section"><span class="hl f1">Customer Service Team<br>HeatWave Electronics</span></div>
-<div class="essay-section"><span class="hl f1">Dear Customer Service Team,</span></div>
-<div class="essay-section"><span class="hl c1">I am writing to report faults with the HeatWave MicroChef oven purchased on September 20.</span></div>
-<div class="essay-section"><span class="hl c2"><span class="hl o1">First,</span> the microwave <span class="hl g1">sparked</span> during heating. <span class="hl o1">Then,</span> the <span class="hl v1">turntable</span> <span class="hl g1">rotated</span> unevenly, causing food to spill. <span class="hl o1">Next,</span> meals <span class="hl g1">remained</span> partially uncooked even after long heating times. <span class="hl o1">After that,</span> the timer <span class="hl g1">froze</span> and would not count down. <span class="hl o1">Finally,</span> the interior light <span class="hl g1">flickered</span> continuously, making it difficult to see inside.</span></div>
-<div class="essay-section"><span class="hl c3"><span class="hl g1">I have stopped using</span> the appliance to avoid fire risk.</span> <span class="hl c1">I kindly request a technician to replace the <span class="hl v1">defective unit</span>.</span></div>
-<div class="essay-section"><span class="hl f1">Best regards,<br>Joel Wang</span></div>`,
-                    feedback: `<b>👨‍🏫 Teacher's Feedback:</b><br>
-                    <b>🌟 What was done well:</b> Excellent factual details [C2] mapping the failure of the machine (sparked, uneven rotation, uncooked, frozen timer, flickering light).<br>
-                    <b>📈 Target for growth:</b> Past Simple tense control [G1] is robust and maintains perfect consistency throughout the narrative paragraph.`
+<span class="hl s1">77 Food Plaza, Shenzhen<br>October 4, 2026<br><br>Customer Service<br>HeatWave Electronics<br><br>Dear Sir or Madam,</span><br><br>
+<span class="hl c1">I am writing to formally complain about the HeatWave MicroChef that I purchased from ElectroWorld on September 20. <span class="hl c1"><span class="hl l2">Although</span> I cleaned it <span class="hl l1">daily</span>, it failed <span class="hl l1">abruptly</span>.</span></span><br><br>
+<span class="hl c2">Unfortunately, after only a few days of <span class="hl l1">gentle</span> use, the appliance stopped working properly. <span class="hl o1">First,</span> the microwave <span class="hl l2">sparked</span> inside. <span class="hl o1">Then,</span> the turntable <span class="hl l2">rotated</span> <span class="hl l1">unevenly</span>. <span class="hl o1">Next,</span> <span class="hl l1">loud</span> popping noises <span class="hl l2">emerged</span>. <span class="hl o1">After that,</span> the timer <span class="hl l2">froze</span>. <span class="hl o1">Finally,</span> it <span class="hl l2">stopped</span> heating <span class="hl l1">completely</span>.</span><br><br>
+<span class="hl c3"><span class="hl l2">I have tried unplugging the cord and restarting it many times</span>, but the problem continues. <span class="hl c3"><span class="hl l2">If</span> the microwave catches fire, the damage will be <span class="hl l1">massively catastrophic</span>.</span> As this appliance is still under the one-year warranty, I would appreciate it if you could repair or replace it as soon as possible.</span><br><br>
+<span class="hl s1">Thank you for your attention to this matter. I look forward to your prompt response.<br><br>Yours sincerely,<br><br>Joel Wang</span>`,
+                    feedback: `<h4>👨‍🏫 Teacher's Feedback</h4>
+                    <div style="margin-bottom: 10px; background: white; padding: 12px; border-radius: 6px; border-left: 4px solid #22c55e;"><b>🌟 What was done well:</b> The conditional 'If' clause highlights a massive danger, effectively using formal persuasion.</div>
+                    <div style="background: white; padding: 12px; border-radius: 6px; border-left: 4px solid #ef4444; color: #991b1b;"><b>📈 Target for growth:</b> 'Massively catastrophic' is slightly redundant. Choose one strong adjective like 'catastrophic'.</div>`
                 },
                 {
-                    id: 8, title: "9. Smart Door Lock", words: 126,
+                    id: 8, title: "9. Smart Door Lock",
                     html: `
-<div class="essay-section"><span class="hl f1">123 Main St, Shenzhen</span></div>
-<div class="essay-section"><span class="hl f1">October 4, 2026</span></div>
-<div class="essay-section"><span class="hl f1">Warranty Services Department<br>SecureHome Technologies</span></div>
-<div class="essay-section"><span class="hl f1">Dear Warranty Services Department,</span></div>
-<div class="essay-section"><span class="hl c1">I am writing to complain about the SecureHome SmartLock installed on September 24.</span></div>
-<div class="essay-section"><span class="hl c2"><span class="hl o1">First,</span> the battery <span class="hl g1">drained</span> within hours. <span class="hl o1">Then,</span> the lock <span class="hl g1">jammed</span> during unlocking, trapping us outside. <span class="hl o1">Next,</span> the <span class="hl v1">keypad</span> <span class="hl g1">became</span> unresponsive, even after changing batteries. <span class="hl o1">After that,</span> the app <span class="hl g1">failed</span> to connect, making remote access impossible. <span class="hl o1">Finally,</span> the device <span class="hl g1">triggered</span> false alarms late at night.</span></div>
-<div class="essay-section"><span class="hl c3"><span class="hl g1">I have left the lock disengaged</span> for safety.</span> <span class="hl c1">I kindly request urgent replacement.</span></div>
-<div class="essay-section"><span class="hl f1">Kind regards,<br>Joel Wang</span></div>`,
-                    feedback: `<b>👨‍🏫 Teacher's Feedback:</b><br>
-                    <b>🌟 What was done well:</b> The Present Perfect clause [G1] ("I have left the lock disengaged") effectively showcases the result of your troubleshooting action.<br>
-                    <b>📈 Target for growth:</b> Incorporating words like "keypad" and describing the "false alarms" demonstrates excellent situational B2 vocabulary [V1].`
+<span class="hl s1">21 Secure Lane, Shenzhen<br>October 4, 2026<br><br>Support Center<br>SecureHome Tech<br><br>Dear Sir or Madam,</span><br><br>
+<span class="hl c1">I am writing to formally complain about the SecureHome Lock that I purchased from TechHub on September 24. <span class="hl c1"><span class="hl l2">Although</span> I set it up <span class="hl l1">correctly</span>, it failed <span class="hl l1">terribly</span>.</span></span><br><br>
+<span class="hl c2">Unfortunately, after only a few days of <span class="hl l1">basic</span> use, the appliance stopped working properly. <span class="hl o1">First,</span> the battery <span class="hl l2">drained</span> <span class="hl l1">rapidly</span>. <span class="hl o1">Then,</span> the keypad <span class="hl l2">froze</span> <span class="hl l1">unexpectedly</span>. <span class="hl o1">Next,</span> a <span class="hl l1">loud</span> alarm <span class="hl l2">triggered</span>. <span class="hl o1">After that,</span> the app <span class="hl l2">disconnected</span>. <span class="hl o1">Finally,</span> the lock <span class="hl l2">jammed</span> <span class="hl l1">completely</span>.</span><br><br>
+<span class="hl c3"><span class="hl l2">I have tried replacing the batteries and restarting it many times</span>, but the problem continues. <span class="hl c3"><span class="hl l2">If</span> I get locked out tonight, the situation will be <span class="hl l1">highly inconvenient</span>.</span> As this appliance is still under the one-year warranty, I would appreciate it if you could repair or replace it as soon as possible.</span><br><br>
+<span class="hl s1">Thank you for your attention to this matter. I look forward to your prompt response.<br><br>Yours sincerely,<br><br>Joel Wang</span>`,
+                    feedback: `<h4>👨‍🏫 Teacher's Feedback</h4>
+                    <div style="margin-bottom: 10px; background: white; padding: 12px; border-radius: 6px; border-left: 4px solid #22c55e;"><b>🌟 What was done well:</b> Your use of the Present Perfect tense correctly defines your previous actions and attempts.</div>
+                    <div style="background: white; padding: 12px; border-radius: 6px; border-left: 4px solid #ef4444; color: #991b1b;"><b>📈 Target for growth:</b> Ensure the transition from the problem paragraph to the attempts paragraph flows smoothly.</div>`
                 },
                 {
-                    id: 9, title: "10. Ceiling Fan", words: 122,
+                    id: 9, title: "10. Ceiling Fan",
                     html: `
-<div class="essay-section"><span class="hl f1">123 Main St, Shenzhen</span></div>
-<div class="essay-section"><span class="hl f1">October 4, 2026</span></div>
-<div class="essay-section"><span class="hl f1">Product Support Team<br>AirFlow Home Systems</span></div>
-<div class="essay-section"><span class="hl f1">Dear Product Support Team,</span></div>
-<div class="essay-section"><span class="hl c1">I am writing to report issues with the AirFlow BreezeMax fan installed on September 16.</span></div>
-<div class="essay-section"><span class="hl c2"><span class="hl o1">First,</span> the fan <span class="hl g1">wobbled</span> at low speed. <span class="hl o1">Then,</span> it <span class="hl g1">emitted</span> a metallic grinding noise. <span class="hl o1">Next,</span> the motor <span class="hl v1">overheated</span>, making the room smell burnt. <span class="hl o1">After that,</span> the blades <span class="hl g1">slowed</span> unexpectedly. <span class="hl o1">Finally,</span> the unit <span class="hl g1">shut down</span> completely.</span></div>
-<div class="essay-section"><span class="hl c3"><span class="hl g1">I switched off</span> the power immediately.</span> <span class="hl c1">I kindly request a technician to inspect and replace the fan.</span></div>
-<div class="essay-section"><span class="hl f1">Best regards,<br>Joel Wang</span></div>`,
-                    feedback: `<b>👨‍🏫 Teacher's Feedback:</b><br>
-                    <b>🌟 What was done well:</b> A brilliant 10/10 for Language and Content. The structure relies heavily and accurately on Past Simple [G1] to rapidly recount the escalating danger of the fan.<br>
-                    <b>📈 Target for growth:</b> You fulfilled all layout and content criteria precisely within the 120-140 word limit. Well done!`
+<span class="hl s1">99 Breeze Way, Shenzhen<br>October 4, 2026<br><br>Customer Support<br>AirFlow Systems<br><br>Dear Sir or Madam,</span><br><br>
+<span class="hl c1">I am writing to formally complain about the AirFlow BreezeMax that I purchased from HomeGoods on September 16. <span class="hl c1"><span class="hl l2">Although</span> it was balanced <span class="hl l1">perfectly</span>, it failed <span class="hl l1">horribly</span>.</span></span><br><br>
+<span class="hl c2">Unfortunately, after only a few days of <span class="hl l1">quiet</span> use, the appliance stopped working properly. <span class="hl o1">First,</span> the fan <span class="hl l2">wobbled</span> <span class="hl l1">dangerously</span>. <span class="hl o1">Then,</span> it <span class="hl l2">made</span> a grinding noise. <span class="hl o1">Next,</span> the motor <span class="hl l2">overheated</span> <span class="hl l1">rapidly</span>. <span class="hl o1">After that,</span> the blades <span class="hl l2">slowed</span> down. <span class="hl o1">Finally,</span> the unit <span class="hl l2">stopped</span> spinning <span class="hl l1">entirely</span>.</span><br><br>
+<span class="hl c3"><span class="hl l2">I have tried dusting the blades and restarting it many times</span>, but the problem continues. <span class="hl c3"><span class="hl l2">If</span> the fan falls suddenly, the injuries will be <span class="hl l1">tragically fatal</span>.</span> As this appliance is still under the one-year warranty, I would appreciate it if you could repair or replace it as soon as possible.</span><br><br>
+<span class="hl s1">Thank you for your attention to this matter. I look forward to your prompt response.<br><br>Yours sincerely,<br><br>Joel Wang</span>`,
+                    feedback: `<h4>👨‍🏫 Teacher's Feedback</h4>
+                    <div style="margin-bottom: 10px; background: white; padding: 12px; border-radius: 6px; border-left: 4px solid #22c55e;"><b>🌟 What was done well:</b> The conditional 'If' effectively outlines a very severe consequence, fitting the formal complaint genre perfectly.</div>
+                    <div style="background: white; padding: 12px; border-radius: 6px; border-left: 4px solid #ef4444; color: #991b1b;"><b>📈 Target for growth:</b> For a perfect 10/10 Language score, merge the "Next" and "After that" sentences using 'and then'.</div>`
                 },
                 {
-                    id: 10, title: "11. Electric Heater", words: 125,
+                    id: 10, title: "11. Electric Heater",
                     html: `
-<div class="essay-section"><span class="hl f1">123 Main St, Shenzhen</span></div>
-<div class="essay-section"><span class="hl f1">October 4, 2026</span></div>
-<div class="essay-section"><span class="hl f1">Customer Support Department<br>WarmHome Appliances</span></div>
-<div class="essay-section"><span class="hl f1">Dear Customer Support Department,</span></div>
-<div class="essay-section"><span class="hl c1">I am writing to lodge a formal complaint regarding the WarmHome HeatGuard heater purchased on September 19.</span></div>
-<div class="essay-section"><span class="hl c2"><span class="hl o1">First,</span> the heater <span class="hl g1">produced</span> an unusual clicking sound. <span class="hl o1">Then,</span> it <span class="hl g1">failed</span> to regulate temperature and <span class="hl v1">overheated</span> the room. <span class="hl o1">Next,</span> smoke <span class="hl g1">appeared</span> near the top vent. <span class="hl o1">After that,</span> the casing <span class="hl g1">became</span> extremely hot to the touch. <span class="hl o1">Finally,</span> the unit <span class="hl g1">emitted</span> a sharp burning smell.</span></div>
-<div class="essay-section"><span class="hl c3"><span class="hl g1">I immediately unplugged</span> the heater to prevent a fire.</span> <span class="hl c1">I kindly request an urgent inspection and full replacement of this <span class="hl v1">hazardous</span> device.</span></div>
-<div class="essay-section"><span class="hl f1">Yours sincerely,<br>Joel Wang</span></div>`,
-                    feedback: `<b>👨‍🏫 Teacher's Feedback:</b><br>
-                    <b>🌟 What was done well:</b> The sequence of events builds tension logically [O1], effectively communicating the hazard to customer service.<br>
-                    <b>📈 Target for growth:</b> Vocabulary [V1] is strong ("hazardous"). Perfect execution of the Full Block style.`
+<span class="hl s1">8A Warmth Court, Shenzhen<br>October 4, 2026<br><br>Customer Support<br>WarmHome Appliances<br><br>Dear Sir or Madam,</span><br><br>
+<span class="hl c1">I am writing to formally complain about the WarmHome HeatGuard that I purchased from ComfortStore on September 19. <span class="hl c1"><span class="hl l2">Although</span> I placed it <span class="hl l1">safely</span>, it failed <span class="hl l1">frighteningly</span>.</span></span><br><br>
+<span class="hl c2">Unfortunately, after only a few days of <span class="hl l1">winter</span> use, the appliance stopped working properly. <span class="hl o1">First,</span> the heater <span class="hl l2">clicked</span> <span class="hl l1">loudly</span>. <span class="hl o1">Then,</span> it <span class="hl l2">blew</span> cold air <span class="hl l1">constantly</span>. <span class="hl o1">Next,</span> a burning odor <span class="hl l2">appeared</span>. <span class="hl o1">After that,</span> the casing <span class="hl l2">overheated</span>. <span class="hl o1">Finally,</span> it <span class="hl l2">shut down</span> <span class="hl l1">completely</span>.</span><br><br>
+<span class="hl c3"><span class="hl l2">I have tried cleaning the vents and restarting it many times</span>, but the problem continues. <span class="hl c3"><span class="hl l2">If</span> it catches fire indoors, the house damage will be <span class="hl l1">totally destroyed</span>.</span> As this appliance is still under the one-year warranty, I would appreciate it if you could repair or replace it as soon as possible.</span><br><br>
+<span class="hl s1">Thank you for your attention to this matter. I look forward to your prompt response.<br><br>Yours sincerely,<br><br>Joel Wang</span>`,
+                    feedback: `<h4>👨‍🏫 Teacher's Feedback</h4>
+                    <div style="margin-bottom: 10px; background: white; padding: 12px; border-radius: 6px; border-left: 4px solid #22c55e;"><b>🌟 What was done well:</b> Strict adherence to the Full Block format and excellent use of the 5-step timeline connectives.</div>
+                    <div style="background: white; padding: 12px; border-radius: 6px; border-left: 4px solid #ef4444; color: #991b1b;"><b>📈 Target for growth:</b> 'House damage will be destroyed' is grammatically awkward. Say 'the house will be destroyed'.</div>`
                 },
                 {
-                    id: 11, title: "12. Dishwasher", words: 125,
+                    id: 11, title: "12. Dishwasher",
                     html: `
-<div class="essay-section"><span class="hl f1">123 Main St, Shenzhen</span></div>
-<div class="essay-section"><span class="hl f1">October 4, 2026</span></div>
-<div class="essay-section"><span class="hl f1">Technical Support Department<br>CleanWave Systems</span></div>
-<div class="essay-section"><span class="hl f1">Dear Technical Support Department,</span></div>
-<div class="essay-section"><span class="hl c1">I am writing to complain about the CleanWave AquaWash dishwasher installed on September 22.</span></div>
-<div class="essay-section"><span class="hl c2"><span class="hl o1">First,</span> the machine <span class="hl g1">left</span> dishes dirty after a full cycle. <span class="hl o1">Then,</span> water <span class="hl g1">leaked</span> from the bottom door seal. <span class="hl o1">Next,</span> the heating element <span class="hl g1">failed</span> to dry the load. <span class="hl o1">After that,</span> the control panel <span class="hl g1">froze</span>. <span class="hl o1">Finally,</span> the dishwasher <span class="hl g1">stopped</span> mid‑cycle with a loud beep.</span></div>
-<div class="essay-section"><span class="hl c3"><span class="hl g1">I have disconnected</span> the appliance to avoid electrical damage.</span> <span class="hl c1">I kindly request immediate inspection and replacement under warranty.</span></div>
-<div class="essay-section"><span class="hl f1">Yours sincerely,<br>Joel Wang</span></div>`,
-                    feedback: `<b>👨‍🏫 Teacher's Feedback:</b><br>
-                    <b>🌟 What was done well:</b> Using "I have disconnected" correctly applies the Present Perfect tense [G1] to describe an action with present consequences.<br>
-                    <b>📈 Target for growth:</b> Factual details [C2] effectively describe functional failures.`
+<span class="hl s1">66 Aqua Street, Shenzhen<br>October 4, 2026<br><br>Technical Support<br>CleanWave Systems<br><br>Dear Sir or Madam,</span><br><br>
+<span class="hl c1">I am writing to formally complain about the CleanWave AquaWash that I purchased from KitchenPlus on September 22. <span class="hl c1"><span class="hl l2">Although</span> I arranged dishes <span class="hl l1">correctly</span>, it failed <span class="hl l1">badly</span>.</span></span><br><br>
+<span class="hl c2">Unfortunately, after only a few days of <span class="hl l1">heavy</span> use, the appliance stopped working properly. <span class="hl o1">First,</span> the machine <span class="hl l2">leaked</span> water. <span class="hl o1">Then,</span> it <span class="hl l2">beeped</span> <span class="hl l1">loudly</span> and <span class="hl l1">repeatedly</span>. <span class="hl o1">Next,</span> the soap dispenser <span class="hl l2">jammed</span>. <span class="hl o1">After that,</span> the dishes <span class="hl l2">remained</span> dirty. <span class="hl o1">Finally,</span> it <span class="hl l2">stopped</span> working <span class="hl l1">entirely</span>.</span><br><br>
+<span class="hl c3"><span class="hl l2">I have tried clearing the drain filter and restarting it many times</span>, but the problem continues. <span class="hl c3"><span class="hl l2">If</span> the water ruins my floor, the repair cost will be <span class="hl l1">terribly expensive</span>.</span> As this appliance is still under the one-year warranty, I would appreciate it if you could repair or replace it as soon as possible.</span><br><br>
+<span class="hl s1">Thank you for your attention to this matter. I look forward to your prompt response.<br><br>Yours sincerely,<br><br>Joel Wang</span>`,
+                    feedback: `<h4>👨‍🏫 Teacher's Feedback</h4>
+                    <div style="margin-bottom: 10px; background: white; padding: 12px; border-radius: 6px; border-left: 4px solid #22c55e;"><b>🌟 What was done well:</b> The 'Although' clause beautifully sets up the contrast between your proper usage and the machine's failure.</div>
+                    <div style="background: white; padding: 12px; border-radius: 6px; border-left: 4px solid #ef4444; color: #991b1b;"><b>📈 Target for growth:</b> Replace the basic adjective 'badly' with a B2 formal equivalent like 'disastrously' or 'unexpectedly'.</div>`
                 },
                 {
-                    id: 12, title: "13. Portable Air Purifier", words: 124,
+                    id: 12, title: "13. Portable Air Purifier",
                     html: `
-<div class="essay-section"><span class="hl f1">123 Main St, Shenzhen</span></div>
-<div class="essay-section"><span class="hl f1">October 4, 2026</span></div>
-<div class="essay-section"><span class="hl f1">Customer Care Department<br>PureAir Technologies</span></div>
-<div class="essay-section"><span class="hl f1">Dear Customer Care Department,</span></div>
-<div class="essay-section"><span class="hl c1">I am writing to report faults with the PureAir MiniClean purifier purchased on September 20.</span></div>
-<div class="essay-section"><span class="hl c2"><span class="hl o1">First,</span> the purifier <span class="hl g1">rattled</span> loudly during operation. <span class="hl o1">Then,</span> it <span class="hl g1">released</span> a chemical smell. <span class="hl o1">Next,</span> the filter door <span class="hl g1">refused</span> to close properly. <span class="hl o1">After that,</span> airflow <span class="hl g1">weakened</span> significantly. <span class="hl o1">Finally,</span> the device <span class="hl g1">shut down</span> without warning.</span></div>
-<div class="essay-section"><span class="hl c3"><span class="hl g1">I have stopped using</span> the purifier for safety reasons.</span> <span class="hl c1">I kindly request a technician to inspect and replace the <span class="hl v1">defective unit</span>.</span></div>
-<div class="essay-section"><span class="hl f1">Yours sincerely,<br>Joel Wang</span></div>`,
-                    feedback: `<b>👨‍🏫 Teacher's Feedback:</b><br>
-                    <b>🌟 What was done well:</b> The purpose statement [C1] is clear, direct, and sets a formal tone right from the opening.<br>
-                    <b>📈 Target for growth:</b> Organization [O1] connects the series of mechanical breakdowns smoothly.`
+<span class="hl s1">18 Fresh Road, Shenzhen<br>October 4, 2026<br><br>Customer Care<br>PureAir Technologies<br><br>Dear Sir or Madam,</span><br><br>
+<span class="hl c1">I am writing to formally complain about the PureAir MiniClean that I purchased from AquaStore on September 20. <span class="hl c1"><span class="hl l2">Although</span> I changed filters <span class="hl l1">regularly</span>, it failed <span class="hl l1">swiftly</span>.</span></span><br><br>
+<span class="hl c2">Unfortunately, after only a few days of <span class="hl l1">continuous</span> use, the appliance stopped working properly. <span class="hl o1">First,</span> the purifier <span class="hl l2">rattled</span> <span class="hl l1">loudly</span>. <span class="hl o1">Then,</span> the airflow <span class="hl l2">dropped</span> <span class="hl l1">significantly</span>. <span class="hl o1">Next,</span> a chemical smell <span class="hl l2">leaked</span>. <span class="hl o1">After that,</span> the buttons <span class="hl l2">froze</span>. <span class="hl o1">Finally,</span> the device <span class="hl l2">powered</span> off <span class="hl l1">entirely</span>.</span><br><br>
+<span class="hl c3"><span class="hl l2">I have tried refitting the cover and restarting it many times</span>, but the problem continues. <span class="hl c3"><span class="hl l2">If</span> the air quality worsens, our lung health will be <span class="hl l1">dangerously unhealthy</span>.</span> As this appliance is still under the one-year warranty, I would appreciate it if you could repair or replace it as soon as possible.</span><br><br>
+<span class="hl s1">Thank you for your attention to this matter. I look forward to your prompt response.<br><br>Yours sincerely,<br><br>Joel Wang</span>`,
+                    feedback: `<h4>👨‍🏫 Teacher's Feedback</h4>
+                    <div style="margin-bottom: 10px; background: white; padding: 12px; border-radius: 6px; border-left: 4px solid #22c55e;"><b>🌟 What was done well:</b> The Present Perfect troubleshooting steps are clearly articulated and specific to the appliance.</div>
+                    <div style="background: white; padding: 12px; border-radius: 6px; border-left: 4px solid #ef4444; color: #991b1b;"><b>📈 Target for growth:</b> For top-tier Organization, ensure your concluding paragraph incorporates an introductory transition.</div>`
                 },
                 {
-                    id: 13, title: "14. Smart TV", words: 123,
+                    id: 13, title: "14. Smart TV",
                     html: `
-<div class="essay-section"><span class="hl f1">123 Main St, Shenzhen</span></div>
-<div class="essay-section"><span class="hl f1">October 4, 2026</span></div>
-<div class="essay-section"><span class="hl f1">Support Team<br>VisionTech Electronics</span></div>
-<div class="essay-section"><span class="hl f1">Dear Support Team,</span></div>
-<div class="essay-section"><span class="hl c1">I am writing to complain about the VisionTech UltraView TV delivered on September 18.</span></div>
-<div class="essay-section"><span class="hl c2"><span class="hl o1">First,</span> the screen <span class="hl g1">flickered</span> during startup. <span class="hl o1">Then,</span> the speakers <span class="hl g1">crackled</span> loudly. <span class="hl o1">Next,</span> the remote control <span class="hl g1">stopped</span> responding. <span class="hl o1">After that,</span> the TV <span class="hl g1">shut down</span> unexpectedly. <span class="hl o1">Finally,</span> the device <span class="hl g1">displayed</span> repeated error codes.</span></div>
-<div class="essay-section"><span class="hl c3"><span class="hl g1">I have unplugged</span> the unit to prevent further damage.</span> <span class="hl c1">I kindly request an immediate inspection and full replacement.</span></div>
-<div class="essay-section"><span class="hl f1">Yours sincerely,<br>Joel Wang</span></div>`,
-                    feedback: `<b>👨‍🏫 Teacher's Feedback:</b><br>
-                    <b>🌟 What was done well:</b> Excellent use of the precise verbs "flickered" and "crackled" [V1] to describe technological issues.<br>
-                    <b>📈 Target for growth:</b> Your layout formatting [F1] perfectly fulfills the Full Block requirement.`
+<span class="hl s1">100 Vision Avenue, Shenzhen<br>October 4, 2026<br><br>Support Team<br>VisionTech Electronics<br><br>Dear Sir or Madam,</span><br><br>
+<span class="hl c1">I am writing to formally complain about the VisionTech UltraView that I purchased from ElectroWorld on September 18. <span class="hl c1"><span class="hl l2">Although</span> I updated the software <span class="hl l1">safely</span>, it failed <span class="hl l1">frequently</span>.</span></span><br><br>
+<span class="hl c2">Unfortunately, after only a few days of <span class="hl l1">evening</span> use, the appliance stopped working properly. <span class="hl o1">First,</span> the screen <span class="hl l2">flickered</span> <span class="hl l1">annoyingly</span>. <span class="hl o1">Then,</span> the speakers <span class="hl l2">crackled</span> <span class="hl l1">loudly</span>. <span class="hl o1">Next,</span> the remote control <span class="hl l2">disconnected</span>. <span class="hl o1">After that,</span> green lines <span class="hl l2">appeared</span> <span class="hl l1">randomly</span>. <span class="hl o1">Finally,</span> the TV <span class="hl l2">went</span> black <span class="hl l1">completely</span>.</span><br><br>
+<span class="hl c3"><span class="hl l2">I have tried unplugging the cables and restarting it many times</span>, but the problem continues. <span class="hl c3"><span class="hl l2">If</span> I miss important news, the situation will be <span class="hl l1">highly inconvenient</span>.</span> As this appliance is still under the one-year warranty, I would appreciate it if you could repair or replace it as soon as possible.</span><br><br>
+<span class="hl s1">Thank you for your attention to this matter. I look forward to your prompt response.<br><br>Yours sincerely,<br><br>Joel Wang</span>`,
+                    feedback: `<h4>👨‍🏫 Teacher's Feedback</h4>
+                    <div style="margin-bottom: 10px; background: white; padding: 12px; border-radius: 6px; border-left: 4px solid #22c55e;"><b>🌟 What was done well:</b> The 5-step sequence perfectly captures the escalating failure of the device.</div>
+                    <div style="background: white; padding: 12px; border-radius: 6px; border-left: 4px solid #ef4444; color: #991b1b;"><b>📈 Target for growth:</b> Try adding a formal passive voice construction in your request paragraph.</div>`
                 },
                 {
-                    id: 14, title: "15. Electric Scooter Charger", words: 125,
+                    id: 14, title: "15. Electric Scooter Charger",
                     html: `
-<div class="essay-section"><span class="hl f1">123 Main St, Shenzhen</span></div>
-<div class="essay-section"><span class="hl f1">October 4, 2026</span></div>
-<div class="essay-section"><span class="hl f1">Customer Service Department<br>RideSafe Mobility</span></div>
-<div class="essay-section"><span class="hl f1">Dear Customer Service Department,</span></div>
-<div class="essay-section"><span class="hl c1">I am writing to report serious issues with the RideSafe ChargeMax scooter charger purchased on September 23.</span></div>
-<div class="essay-section"><span class="hl c2"><span class="hl o1">First,</span> the charger <span class="hl g1">overheated</span> within minutes. <span class="hl o1">Then,</span> the LED indicators <span class="hl g1">failed</span> to light up. <span class="hl o1">Next,</span> the cable insulation <span class="hl g1">softened</span>. <span class="hl o1">After that,</span> the charging speed <span class="hl g1">dropped</span> sharply. <span class="hl o1">Finally,</span> a faint burning smell <span class="hl g1">appeared</span> near the adapter.</span></div>
-<div class="essay-section"><span class="hl c3"><span class="hl g1">I disconnected</span> the charger immediately.</span> <span class="hl c1">I kindly request urgent replacement due to the severe fire risk.</span></div>
-<div class="essay-section"><span class="hl f1">Yours sincerely,<br>Joel Wang</span></div>`,
-                    feedback: `<b>👨‍🏫 Teacher's Feedback:</b><br>
-                    <b>🌟 What was done well:</b> Identifying a "severe fire risk" [C3] makes your closing request persuasive and urgent.<br>
-                    <b>📈 Target for growth:</b> Consistent and accurate Past Simple usage [G1] is maintained throughout the timeline.`
+<span class="hl s1">22 Ride Way, Shenzhen<br>October 4, 2026<br><br>Customer Service<br>RideSafe Mobility<br><br>Dear Sir or Madam,</span><br><br>
+<span class="hl c1">I am writing to formally complain about the RideSafe ChargeMax that I purchased from MobilityStore on September 23. <span class="hl c1"><span class="hl l2">Although</span> I plugged it in <span class="hl l1">properly</span>, it failed <span class="hl l1">dismally</span>.</span></span><br><br>
+<span class="hl c2">Unfortunately, after only a few days of <span class="hl l1">normal</span> use, the appliance stopped working properly. <span class="hl o1">First,</span> the charger <span class="hl l2">overheated</span> <span class="hl l1">quickly</span>. <span class="hl o1">Then,</span> the LED indicators <span class="hl l2">blinked</span> <span class="hl l1">rapidly</span>. <span class="hl o1">Next,</span> the plastic cable <span class="hl l2">melted</span> <span class="hl l1">slightly</span>. <span class="hl o1">After that,</span> the charging speed <span class="hl l2">slowed</span>. <span class="hl o1">Finally,</span> it <span class="hl l2">stopped</span> working <span class="hl l1">completely</span>.</span><br><br>
+<span class="hl c3"><span class="hl l2">I have tried cooling the adapter and restarting it many times</span>, but the problem continues. <span class="hl c3"><span class="hl l2">If</span> it damages my scooter battery, the replacement will be <span class="hl l1">extremely costly</span>.</span> As this appliance is still under the one-year warranty, I would appreciate it if you could repair or replace it as soon as possible.</span><br><br>
+<span class="hl s1">Thank you for your attention to this matter. I look forward to your prompt response.<br><br>Yours sincerely,<br><br>Joel Wang</span>`,
+                    feedback: `<h4>👨‍🏫 Teacher's Feedback</h4>
+                    <div style="margin-bottom: 10px; background: white; padding: 12px; border-radius: 6px; border-left: 4px solid #22c55e;"><b>🌟 What was done well:</b> Consistently formal Tone alongside perfectly accurate Past Simple verbs.</div>
+                    <div style="background: white; padding: 12px; border-radius: 6px; border-left: 4px solid #ef4444; color: #991b1b;"><b>📈 Target for growth:</b> Mention the original price of the charger in your opening paragraph.</div>`
                 },
                 {
-                    id: 15, title: "16. Dehumidifier", words: 122,
+                    id: 15, title: "16. Dehumidifier",
                     html: `
-<div class="essay-section"><span class="hl f1">123 Main St, Shenzhen</span></div>
-<div class="essay-section"><span class="hl f1">October 4, 2026</span></div>
-<div class="essay-section"><span class="hl f1">Technical Support Department<br>DryAir Solutions</span></div>
-<div class="essay-section"><span class="hl f1">Dear Technical Support Department,</span></div>
-<div class="essay-section"><span class="hl c1">I am writing to complain about the DryAir HumidiClear dehumidifier installed on September 21.</span></div>
-<div class="essay-section"><span class="hl c2"><span class="hl o1">First,</span> the unit <span class="hl g1">vibrated</span> excessively. <span class="hl o1">Then,</span> it <span class="hl g1">released</span> hot air instead of cool. <span class="hl o1">Next,</span> water <span class="hl g1">leaked</span> from the reservoir. <span class="hl o1">After that,</span> the humidity sensor <span class="hl g1">failed</span>. <span class="hl o1">Finally,</span> the machine <span class="hl g1">shut down</span> completely.</span></div>
-<div class="essay-section"><span class="hl c3"><span class="hl g1">I have turned off</span> the device to avoid electrical hazards.</span> <span class="hl c1">I kindly request a full inspection and replacement under warranty.</span></div>
-<div class="essay-section"><span class="hl f1">Yours sincerely,<br>Joel Wang</span></div>`,
-                    feedback: `<b>👨‍🏫 Teacher's Feedback:</b><br>
-                    <b>🌟 What was done well:</b> The connectives [O1] move the reader efficiently through the 5-step breakdown of the dehumidifier.<br>
-                    <b>📈 Target for growth:</b> Excellent integration of formal business register [F1] from start to finish.`
+<span class="hl s1">33 Dry Lane, Shenzhen<br>October 4, 2026<br><br>Technical Support<br>DryAir Solutions<br><br>Dear Sir or Madam,</span><br><br>
+<span class="hl c1">I am writing to formally complain about the DryAir HumidiClear that I purchased from ComfortStore on September 21. <span class="hl c1"><span class="hl l2">Although</span> I emptied the tank <span class="hl l1">daily</span>, it failed <span class="hl l1">annoyingly</span>.</span></span><br><br>
+<span class="hl c2">Unfortunately, after only a few days of <span class="hl l1">constant</span> use, the appliance stopped working properly. <span class="hl o1">First,</span> the unit <span class="hl l2">vibrated</span> <span class="hl l1">excessively</span>. <span class="hl o1">Then,</span> it <span class="hl l2">released</span> hot air <span class="hl l1">loudly</span>. <span class="hl o1">Next,</span> the humidity sensor <span class="hl l2">malfunctioned</span>. <span class="hl o1">After that,</span> dirty water <span class="hl l2">leaked</span>. <span class="hl o1">Finally,</span> the machine <span class="hl l2">shut off</span> <span class="hl l1">entirely</span>.</span><br><br>
+<span class="hl c3"><span class="hl l2">I have tried repositioning the bucket and restarting it many times</span>, but the problem continues. <span class="hl c3"><span class="hl l2">If</span> the dampness ruins my walls, the mold will be <span class="hl l1">horribly disastrous</span>.</span> As this appliance is still under the one-year warranty, I would appreciate it if you could repair or replace it as soon as possible.</span><br><br>
+<span class="hl s1">Thank you for your attention to this matter. I look forward to your prompt response.<br><br>Yours sincerely,<br><br>Joel Wang</span>`,
+                    feedback: `<h4>👨‍🏫 Teacher's Feedback</h4>
+                    <div style="margin-bottom: 10px; background: white; padding: 12px; border-radius: 6px; border-left: 4px solid #22c55e;"><b>🌟 What was done well:</b> Excellent vocabulary usage like 'excessively' and 'malfunctioned' scores highly in the Language rubric.</div>
+                    <div style="background: white; padding: 12px; border-radius: 6px; border-left: 4px solid #ef4444; color: #991b1b;"><b>📈 Target for growth:</b> Try adding a formal passive voice structure in paragraph 3.</div>`
                 },
                 {
-                    id: 16, title: "17. Electric Rice Cooker", words: 122,
+                    id: 16, title: "17. Electric Rice Cooker",
                     html: `
-<div class="essay-section"><span class="hl f1">123 Main St, Shenzhen</span></div>
-<div class="essay-section"><span class="hl f1">October 4, 2026</span></div>
-<div class="essay-section"><span class="hl f1">Customer Support Team<br>CookMaster Appliances</span></div>
-<div class="essay-section"><span class="hl f1">Dear Customer Support Team,</span></div>
-<div class="essay-section"><span class="hl c1">I am writing to lodge a complaint regarding the CookMaster SteamPro cooker purchased on September 19.</span></div>
-<div class="essay-section"><span class="hl c2"><span class="hl o1">First,</span> the cooker <span class="hl g1">burned</span> rice even on low settings. <span class="hl o1">Then,</span> smoke <span class="hl g1">appeared</span> from the lid. <span class="hl o1">Next,</span> the locking mechanism <span class="hl g1">failed</span> to secure properly. <span class="hl o1">After that,</span> the timer <span class="hl g1">malfunctioned</span>. <span class="hl o1">Finally,</span> the unit <span class="hl g1">shut off</span> mid‑cycle.</span></div>
-<div class="essay-section"><span class="hl c3"><span class="hl g1">I unplugged</span> the cooker immediately for safety.</span> <span class="hl c1">I kindly request a technician to inspect and replace this <span class="hl v1">defective unit</span>.</span></div>
-<div class="essay-section"><span class="hl f1">Yours sincerely,<br>Joel Wang</span></div>`,
-                    feedback: `<b>👨‍🏫 Teacher's Feedback:</b><br>
-                    <b>🌟 What was done well:</b> Using B2 vocabulary like "malfunctioned" and "locking mechanism" [V1] elevates the technical detail of your complaint.<br>
-                    <b>📈 Target for growth:</b> Word count perfectly aligns with the concise limits of a block-style formal letter.`
+<span class="hl s1">88 Cook Street, Shenzhen<br>October 4, 2026<br><br>Customer Support<br>CookMaster Appliances<br><br>Dear Sir or Madam,</span><br><br>
+<span class="hl c1">I am writing to formally complain about the CookMaster SteamPro that I purchased from KitchenPlus on September 19. <span class="hl c1"><span class="hl l2">Although</span> I washed the pot <span class="hl l1">carefully</span>, it failed <span class="hl l1">surprisingly</span>.</span></span><br><br>
+<span class="hl c2">Unfortunately, after only a few days of <span class="hl l1">dinner</span> use, the appliance stopped working properly. <span class="hl o1">First,</span> the cooker <span class="hl l2">burned</span> rice. <span class="hl o1">Then,</span> hot steam <span class="hl l2">escaped</span> <span class="hl l1">heavily</span>. <span class="hl o1">Next,</span> the locking mechanism <span class="hl l2">jammed</span>. <span class="hl o1">After that,</span> the timer <span class="hl l2">malfunctioned</span>. <span class="hl o1">Finally,</span> the unit <span class="hl l2">lost</span> power <span class="hl l1">completely</span>.</span><br><br>
+<span class="hl c3"><span class="hl l2">I have tried cleaning the heating plate and restarting it many times</span>, but the problem continues. <span class="hl c3"><span class="hl l2">If</span> my kitchen fills with smoke, the breathing will be <span class="hl l1">highly hazardous</span>.</span> As this appliance is still under the one-year warranty, I would appreciate it if you could repair or replace it as soon as possible.</span><br><br>
+<span class="hl s1">Thank you for your attention to this matter. I look forward to your prompt response.<br><br>Yours sincerely,<br><br>Joel Wang</span>`,
+                    feedback: `<h4>👨‍🏫 Teacher's Feedback</h4>
+                    <div style="margin-bottom: 10px; background: white; padding: 12px; border-radius: 6px; border-left: 4px solid #22c55e;"><b>🌟 What was done well:</b> The conditional 'If' clause clearly highlights the hazard, fulfilling the Content rubric criteria beautifully.</div>
+                    <div style="background: white; padding: 12px; border-radius: 6px; border-left: 4px solid #ef4444; color: #991b1b;"><b>📈 Target for growth:</b> Consolidate paragraph 2's short sentences into complex ones to increase Language points.</div>`
                 },
                 {
-                    id: 17, title: "18. Hair Dryer", words: 122,
+                    id: 17, title: "18. Hair Dryer",
                     html: `
-<div class="essay-section"><span class="hl f1">123 Main St, Shenzhen</span></div>
-<div class="essay-section"><span class="hl f1">October 4, 2026</span></div>
-<div class="essay-section"><span class="hl f1">Service Department<br>StyleTech Beauty Devices</span></div>
-<div class="essay-section"><span class="hl f1">Dear Service Department,</span></div>
-<div class="essay-section"><span class="hl c1">I am writing to complain about the StyleTech AirGlow dryer purchased on September 20.</span></div>
-<div class="essay-section"><span class="hl c2"><span class="hl o1">First,</span> the dryer <span class="hl g1">sparked</span> near the nozzle. <span class="hl o1">Then,</span> airflow <span class="hl g1">weakened</span>. <span class="hl o1">Next,</span> the handle <span class="hl g1">became</span> dangerously hot to hold. <span class="hl o1">After that,</span> the motor <span class="hl g1">produced</span> a grinding noise. <span class="hl o1">Finally,</span> the device <span class="hl g1">shut down</span> suddenly.</span></div>
-<div class="essay-section"><span class="hl c3"><span class="hl g1">I have stopped using</span> the dryer for safety.</span> <span class="hl c1">I kindly request immediate replacement under the product's warranty terms.</span></div>
-<div class="essay-section"><span class="hl f1">Yours sincerely,<br>Joel Wang</span></div>`,
-                    feedback: `<b>👨‍🏫 Teacher's Feedback:</b><br>
-                    <b>🌟 What was done well:</b> The Present Perfect phrasing [G1] ("I have stopped using") effectively communicates your safety protocol to the company.<br>
-                    <b>📈 Target for growth:</b> The defect timeline [C2] is vividly described and highly realistic.`
+<span class="hl s1">5A Style Road, Shenzhen<br>October 4, 2026<br><br>Service Department<br>StyleTech Beauty Devices<br><br>Dear Sir or Madam,</span><br><br>
+<span class="hl c1">I am writing to formally complain about the StyleTech AirGlow that I purchased from BeautyStore on September 20. <span class="hl c1"><span class="hl l2">Although</span> I stored it <span class="hl l1">safely</span>, it failed <span class="hl l1">shockingly</span>.</span></span><br><br>
+<span class="hl c2">Unfortunately, after only a few days of <span class="hl l1">morning</span> use, the appliance stopped working properly. <span class="hl o1">First,</span> the dryer <span class="hl l2">sparked</span> <span class="hl l1">suddenly</span>. <span class="hl o1">Then,</span> the airflow <span class="hl l2">weakened</span> <span class="hl l1">noticeably</span>. <span class="hl o1">Next,</span> the handle <span class="hl l2">overheated</span> <span class="hl l1">quickly</span>. <span class="hl o1">After that,</span> a grinding noise <span class="hl l2">started</span>. <span class="hl o1">Finally,</span> the device <span class="hl l2">stopped</span> blowing <span class="hl l1">completely</span>.</span><br><br>
+<span class="hl c3"><span class="hl l2">I have tried cleaning the back vent and restarting it many times</span>, but the problem continues. <span class="hl c3"><span class="hl l2">If</span> it shocks someone accidentally, the burn injury will be <span class="hl l1">terribly severe</span>.</span> As this appliance is still under the one-year warranty, I would appreciate it if you could repair or replace it as soon as possible.</span><br><br>
+<span class="hl s1">Thank you for your attention to this matter. I look forward to your prompt response.<br><br>Yours sincerely,<br><br>Joel Wang</span>`,
+                    feedback: `<h4>👨‍🏫 Teacher's Feedback</h4>
+                    <div style="margin-bottom: 10px; background: white; padding: 12px; border-radius: 6px; border-left: 4px solid #22c55e;"><b>🌟 What was done well:</b> Utilizing words like 'severe' and 'suddenly' correctly applies B2 vocabulary required for top bands.</div>
+                    <div style="background: white; padding: 12px; border-radius: 6px; border-left: 4px solid #ef4444; color: #991b1b;"><b>📈 Target for growth:</b> Mention whether you want to drop the item off or have a technician collect it.</div>`
                 },
                 {
-                    id: 18, title: "19. Smart Speaker", words: 122,
+                    id: 18, title: "19. Smart Speaker",
                     html: `
-<div class="essay-section"><span class="hl f1">123 Main St, Shenzhen</span></div>
-<div class="essay-section"><span class="hl f1">October 4, 2026</span></div>
-<div class="essay-section"><span class="hl f1">Customer Care Team<br>SoundSphere Electronics</span></div>
-<div class="essay-section"><span class="hl f1">Dear Customer Care Team,</span></div>
-<div class="essay-section"><span class="hl c1">I am writing to report faults with the SoundSphere EchoPlus speaker purchased on September 22.</span></div>
-<div class="essay-section"><span class="hl c2"><span class="hl o1">First,</span> the speaker <span class="hl g1">disconnected</span> repeatedly from Wi-Fi. <span class="hl o1">Then,</span> it <span class="hl g1">responded</span> incorrectly to voice commands. <span class="hl o1">Next,</span> a buzzing noise <span class="hl g1">emerged</span> from the driver. <span class="hl o1">After that,</span> the mobile app <span class="hl g1">failed</span> to sync. <span class="hl o1">Finally,</span> the device <span class="hl g1">froze</span> completely.</span></div>
-<div class="essay-section"><span class="hl c3"><span class="hl g1">I have unplugged</span> the unit from the power source.</span> <span class="hl c1">I kindly request a technician to inspect and replace the <span class="hl v1">defective product</span>.</span></div>
-<div class="essay-section"><span class="hl f1">Yours sincerely,<br>Joel Wang</span></div>`,
-                    feedback: `<b>👨‍🏫 Teacher's Feedback:</b><br>
-                    <b>🌟 What was done well:</b> You achieved an excellent 5/5 in Organization [O1] by strictly following the 5-step chronological timeline.<br>
-                    <b>📈 Target for growth:</b> Formal format [F1] constraints (1 space between 7 sections) are respected perfectly.`
+<span class="hl s1">42 Sound Blvd, Shenzhen<br>October 4, 2026<br><br>Customer Care<br>SoundSphere Electronics<br><br>Dear Sir or Madam,</span><br><br>
+<span class="hl c1">I am writing to formally complain about the SoundSphere EchoPlus that I purchased from TechHub on September 22. <span class="hl c1"><span class="hl l2">Although</span> I connected the Wi-Fi <span class="hl l1">correctly</span>, it failed <span class="hl l1">glitchily</span>.</span></span><br><br>
+<span class="hl c2">Unfortunately, after only a few days of <span class="hl l1">musical</span> use, the appliance stopped working properly. <span class="hl o1">First,</span> the speaker <span class="hl l2">disconnected</span> <span class="hl l1">randomly</span>. <span class="hl o1">Then,</span> it <span class="hl l2">misunderstood</span> commands <span class="hl l1">repeatedly</span>. <span class="hl o1">Next,</span> a <span class="hl l1">loud</span> buzz <span class="hl l2">sounded</span>. <span class="hl o1">After that,</span> the buttons <span class="hl l2">froze</span>. <span class="hl o1">Finally,</span> the device <span class="hl l2">muted</span> itself <span class="hl l1">completely</span>.</span><br><br>
+<span class="hl c3"><span class="hl l2">I have tried resetting the network and restarting it many times</span>, but the problem continues. <span class="hl c3"><span class="hl l2">If</span> it randomly plays loud music at night, the sleep loss will be <span class="hl l1">highly disruptive</span>.</span> As this appliance is still under the one-year warranty, I would appreciate it if you could repair or replace it as soon as possible.</span><br><br>
+<span class="hl s1">Thank you for your attention to this matter. I look forward to your prompt response.<br><br>Yours sincerely,<br><br>Joel Wang</span>`,
+                    feedback: `<h4>👨‍🏫 Teacher's Feedback</h4>
+                    <div style="margin-bottom: 10px; background: white; padding: 12px; border-radius: 6px; border-left: 4px solid #22c55e;"><b>🌟 What was done well:</b> The Organization connects each technical failure logically using the 5-step timeline format.</div>
+                    <div style="background: white; padding: 12px; border-radius: 6px; border-left: 4px solid #ef4444; color: #991b1b;"><b>📈 Target for growth:</b> Provide the exact model number of the speaker in the introductory paragraph.</div>`
                 },
                 {
-                    id: 19, title: "20. Electric Pressure Cooker", words: 123,
+                    id: 19, title: "20. Electric Pressure Cooker",
                     html: `
-<div class="essay-section"><span class="hl f1">123 Main St, Shenzhen</span></div>
-<div class="essay-section"><span class="hl f1">October 4, 2026</span></div>
-<div class="essay-section"><span class="hl f1">Technical Support Department<br>SafeCook Appliances</span></div>
-<div class="essay-section"><span class="hl f1">Dear Technical Support Department,</span></div>
-<div class="essay-section"><span class="hl c1">I am writing to complain about the SafeCook PowerPress cooker purchased on September 18.</span></div>
-<div class="essay-section"><span class="hl c2"><span class="hl o1">First,</span> the cooker <span class="hl g1">failed</span> to build internal pressure. <span class="hl o1">Then,</span> steam <span class="hl g1">leaked</span> heavily from the sides. <span class="hl o1">Next,</span> the safety valve <span class="hl g1">jammed</span> shut. <span class="hl o1">After that,</span> the digital timer <span class="hl g1">malfunctioned</span>. <span class="hl o1">Finally,</span> the unit <span class="hl g1">shut down</span> completely mid‑cycle.</span></div>
-<div class="essay-section"><span class="hl c3"><span class="hl g1">I disconnected</span> the cooker immediately due to safety concerns.</span> <span class="hl c1">I kindly request an urgent inspection and full replacement.</span></div>
-<div class="essay-section"><span class="hl f1">Yours sincerely,<br>Joel Wang</span></div>`,
-                    feedback: `<b>👨‍🏫 Teacher's Feedback:</b><br>
-                    <b>🌟 What was done well:</b> The inclusion of specific details like "safety valve" and "digital timer" [C2] creates a highly credible complaint narrative.<br>
-                    <b>📈 Target for growth:</b> Grammar accuracy [G1] is flawless with perfectly formed Past Simple verbs marking the sequence of failure.`
+<span class="hl s1">7C Safe Cook Lane, Shenzhen<br>October 4, 2026<br><br>Technical Support<br>SafeCook Appliances<br><br>Dear Sir or Madam,</span><br><br>
+<span class="hl c1">I am writing to formally complain about the SafeCook PowerPress that I purchased from MegaMart on September 18. <span class="hl c1"><span class="hl l2">Although</span> I locked the lid <span class="hl l1">securely</span>, it failed <span class="hl l1">explosively</span>.</span></span><br><br>
+<span class="hl c2">Unfortunately, after only a few days of <span class="hl l1">stewing</span> use, the appliance stopped working properly. <span class="hl o1">First,</span> the cooker <span class="hl l2">lost</span> pressure. <span class="hl o1">Then,</span> boiling steam <span class="hl l2">leaked</span> <span class="hl l1">continuously</span>. <span class="hl o1">Next,</span> the safety valve <span class="hl l2">jammed</span>. <span class="hl o1">After that,</span> the digital timer <span class="hl l2">broke</span>. <span class="hl o1">Finally,</span> the unit <span class="hl l2">shut down</span> <span class="hl l1">entirely</span>.</span><br><br>
+<span class="hl c3"><span class="hl l2">I have tried washing the rubber seal and restarting it many times</span>, but the problem continues. <span class="hl c3"><span class="hl l2">If</span> the lid blows off violently, the explosion will be <span class="hl l1">instantly fatal</span>.</span> As this appliance is still under the one-year warranty, I would appreciate it if you could repair or replace it as soon as possible.</span><br><br>
+<span class="hl s1">Thank you for your attention to this matter. I look forward to your prompt response.<br><br>Yours sincerely,<br><br>Joel Wang</span>`,
+                    feedback: `<h4>👨‍🏫 Teacher's Feedback</h4>
+                    <div style="margin-bottom: 10px; background: white; padding: 12px; border-radius: 6px; border-left: 4px solid #22c55e;"><b>🌟 What was done well:</b> The conditional 'If' effectively outlines a very severe physical danger, maximizing your Content score.</div>
+                    <div style="background: white; padding: 12px; border-radius: 6px; border-left: 4px solid #ef4444; color: #991b1b;"><b>📈 Target for growth:</b> For a perfect 10/10 Language score, merge the "Next" and "After that" sentences using 'and then'.</div>`
                 }
             ],
             synth: window.speechSynthesis,
@@ -731,7 +597,7 @@
                     const span = e.target.closest('.hl');
                     if (span) {
                         const classes = Array.from(span.classList);
-                        const targetClass = classes.find(c => ['c1','c2','c3','v1','g1','o1','f1'].includes(c));
+                        const targetClass = classes.find(c => ['c1','c2','c3','l1','l2','o1','s1'].includes(c));
                         if (targetClass) this.toggleHighlight(targetClass, document.querySelector(`.models-app .legend-item[data-class="${targetClass}"]`));
                     } else if (this.activeClass) {
                         this.toggleHighlight(this.activeClass, null); 
@@ -748,7 +614,6 @@
 
                 const essay = this.data[index];
                 document.getElementById('models-essay').innerHTML = essay.html;
-                document.getElementById('models-words').textContent = essay.words;
                 document.getElementById('models-feedback').innerHTML = essay.feedback;
                 
                 this.activeClass = null;
@@ -793,7 +658,6 @@
                     const utter = new SpeechSynthesisUtterance(temp.innerText);
                     utter.rate = 0.85; 
                     
-                    // Prioritize Microsoft Emma -> Sonia -> General English
                     let voice = this.voices.find(v => v.name.includes('Emma') && (v.name.includes('Multilingual') || v.name.includes('Online'))) || 
                                 this.voices.find(v => v.name.includes('Sonia')) || 
                                 this.voices.find(v => v.lang.startsWith('en-GB') || v.lang.startsWith('en-US'));
@@ -811,21 +675,18 @@
            ------------------------------------------------------------------------- */
         const DraftingApp = {
             pool: [
-                { type: 'opening', text: '123 Main St, Shenzhen\n\nOctober 4, 2026\n\nCustomer Service Team\nAppliance Corp\n\nDear Customer Service Team,\n\nSubject: Formal Complaint Regarding Defective Appliance' },
-                { type: 'opening', text: 'I am writing to report a serious problem with the [Appliance] installed at my residence on [Date].' },
-                { type: 'opening', text: 'I am writing to complain about the [Appliance] delivered on [Date].' },
-                { type: 'body', text: 'The unit failed to cool properly, causing vegetables and meat to spoil.' },
-                { type: 'body', text: 'The machine emitted a sharp burning smell.' },
-                { type: 'transition', text: 'First, the unit began leaking water from the lower vent.' },
-                { type: 'transition', text: 'Then, the airflow weakened noticeably, making the room feel warm.' },
+                { type: 'opening', text: '12A Tech Road, Shenzhen\nOctober 4, 2026\n\nCustomer Service\nAppliance Corp\n\nDear Sir or Madam,' },
+                { type: 'opening', text: 'I am writing to formally complain about the CoolBreeze AC-900 that I purchased from MegaMart on September 20. Although I maintained it very carefully, it failed unexpectedly.' },
+                { type: 'body', text: 'Unfortunately, after only a few days of normal use, the appliance stopped working properly.' },
+                { type: 'transition', text: 'First, it leaked water profusely.' },
+                { type: 'transition', text: 'Then, the airflow weakened significantly.' },
                 { type: 'transition', text: 'Next, the machine emitted a sharp burning smell.' },
-                { type: 'transition', text: 'After that, the motor produced a loud rattling noise that worried my family.' },
-                { type: 'transition', text: 'Finally, the system shut down completely during operation.' },
-                { type: 'closing', text: 'I immediately switched off the power to prevent further damage.' },
-                { type: 'closing', text: 'I have unplugged the unit to avoid electrical damage.' },
-                { type: 'closing', text: 'I have turned off the system to prevent contamination.' },
-                { type: 'closing', text: 'I kindly request that a certified technician inspect and replace the defective unit as soon as possible.\n\nKind regards,\nJoel Wang' },
-                { type: 'closing', text: 'I kindly request an immediate inspection and full replacement under warranty.\n\nBest regards,\nJoel Wang' }
+                { type: 'transition', text: 'After that, the motor produced a loud rattling noise.' },
+                { type: 'transition', text: 'Finally, the system shut down completely.' },
+                { type: 'body', text: 'I have tried cleaning the filter and restarting it many times, but the problem continues.' },
+                { type: 'body', text: 'If it causes an electrical fire, the result will be absolutely disastrous.' },
+                { type: 'closing', text: 'As this appliance is still under the one-year warranty, I would appreciate it if you could repair or replace it as soon as possible.' },
+                { type: 'closing', text: 'Thank you for your attention to this matter. I look forward to your prompt response.\n\nYours sincerely,\n\nJoel Wang' }
             ],
             
             init() {
