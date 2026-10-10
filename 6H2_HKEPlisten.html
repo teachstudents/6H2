@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Listening Master</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f1f5f9;
+            overflow: hidden; /* STRICTLY Prevents all scrolling */
+            touch-action: manipulation;
+            user-select: none;
+            margin: 0; padding: 0;
+        }
+
+        /* Highly aggressive fluid fonts to maximize size without breaking layout */
+        .fluid-q-row { font-size: clamp(1.1rem, 1.6vw + 0.5rem, 1.7rem); line-height: 1.1; letter-spacing: -0.02em; }
+        .fluid-o-row { font-size: clamp(1rem, 1.3vw + 0.3rem, 1.4rem); line-height: 1.1; }
+        
+        .fluid-q-grid { font-size: clamp(0.85rem, 1vw + 0.3rem, 1.1rem); line-height: 1.1; letter-spacing: -0.02em; }
+        .fluid-o-grid { font-size: clamp(0.75rem, 0.9vw + 0.2rem, 1rem); line-height: 1.05; }
+
+        .btn-option {
+            transition: background-color 0.1s, border-color 0.1s;
+            -webkit-tap-highlight-color: transparent;
+            word-wrap: break-word;
+            white-space: normal;
+        }
+
+        .correct-ans { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #166534 !important; }
+        .wrong-ans { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #991b1b !important; text-decoration: line-through; }
+        .disabled-btn { pointer-events: none; opacity: 0.85; }
+        
+        .fade-in { animation: fadeIn 0.15s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
+
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    </style>
+</head>
+<body class="h-screen w-screen flex flex-col m-0 p-0 text-slate-900">
+
+    <header class="bg-slate-800 text-white shadow-md flex-shrink-0 px-1 py-1 flex items-center justify-between z-20 h-12 w-full">
+        <div class="flex items-center gap-1 h-full">
+            <!-- Home -->
+            <button id="btn-home" class="hidden h-9 w-9 flex items-center justify-center bg-slate-700 hover:bg-slate-600 rounded transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+            </button>
+
+            <!-- Play / Pause / Stop Group -->
+            <div id="audio-controls" class="hidden flex items-center bg-slate-900 rounded-lg p-0.5 gap-0.5 shadow-inner">
+                <button id="btn-play" class="h-9 w-9 flex items-center justify-center bg-green-500 hover:bg-green-600 rounded text-white transition-transform active:scale-95">
+                    <svg class="w-6 h-6 ml-0.5" fill="currentColor" viewBox="0 0 20 20"><path d="M4 4l12 6-12 6z"/></svg>
+                </button>
+                <button id="btn-pause" class="hidden h-9 w-9 flex items-center justify-center bg-amber-500 hover:bg-amber-600 rounded text-white transition-transform active:scale-95">
+                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                </button>
+                <button id="btn-stop" class="h-9 w-9 flex items-center justify-center bg-rose-500 hover:bg-rose-600 rounded text-white transition-transform active:scale-95">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3 3h14v14H3V3z" clip-rule="evenodd"/></svg>
+                </button>
+            </div>
+            
+            <!-- Transcript Modal Button -->
+            <button id="btn-transcript" onclick="toggleTranscript()" class="hidden h-9 flex items-center justify-center bg-sky-500 hover:bg-sky-600 rounded px-2 transition-colors gap-1 text-sm font-black shadow-sm">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                Transcript
+            </button>
+        </div>
+
+        <button id="btn-skills" onclick="toggleSkills()" class="h-9 flex items-center justify-center bg-indigo-500 hover:bg-indigo-600 text-white rounded px-2 transition-colors shadow-sm gap-1 text-sm font-black">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+            Skills
+        </button>
+    </header>
+
+    <div id="view-menu" class="flex-grow flex flex-col p-2 bg-slate-200 overflow-y-auto custom-scrollbar">
+        <h1 class="text-2xl font-black text-slate-800 mb-2 text-center">Interactive Listening Hub</h1>
+        
+        <div class="w-full max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2">
+            
+            <!-- Mock Set A -->
+            <div class="bg-white p-2 rounded shadow-sm border-2 border-emerald-200">
+                <h2 class="text-lg font-black text-emerald-700 mb-1 border-b-2 border-emerald-100">Mock Set A</h2>
+                <div class="flex flex-col gap-1">
+                    <button onclick="startListening(0)" class="bg-slate-50 border-2 border-slate-200 rounded p-2 text-left hover:border-emerald-500">
+                        <div class="font-black text-lg">Part 1</div><div class="text-xs text-slate-500 font-bold">Central Green Trail</div>
+                    </button>
+                    <button onclick="startListening(1)" class="bg-slate-50 border-2 border-slate-200 rounded p-2 text-left hover:border-emerald-500">
+                        <div class="font-black text-lg">Part 2</div><div class="text-xs text-slate-500 font-bold">Sea Animal Caretaker</div>
+                    </button>
+                    <button onclick="startListening(2)" class="bg-slate-50 border-2 border-slate-200 rounded p-2 text-left hover:border-emerald-500">
+                        <div class="font-black text-lg">Part 3</div><div class="text-xs text-slate-500 font-bold">Clinic Form</div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Mock Set B -->
+            <div class="bg-white p-2 rounded shadow-sm border-2 border-indigo-200">
+                <h2 class="text-lg font-black text-indigo-700 mb-1 border-b-2 border-indigo-100">Mock Set B</h2>
+                <div class="flex flex-col gap-1">
+                    <button onclick="startListening(3)" class="bg-slate-50 border-2 border-slate-200 rounded p-2 text-left hover:border-indigo-500">
+                        <div class="font-black text-lg">Part 1</div><div class="text-xs text-slate-500 font-bold">Harbourfront Mall Speech</div>
+                    </button>
+                    <button onclick="startListening(4)" class="bg-slate-50 border-2 border-slate-200 rounded p-2 text-left hover:border-indigo-500">
+                        <div class="font-black text-lg">Part 2</div><div class="text-xs text-slate-500 font-bold">Hobby Shop Complaint</div>
+                    </button>
+                    <button onclick="startListening(5)" class="bg-slate-50 border-2 border-slate-200 rounded p-2 text-left hover:border-indigo-500">
+                        <div class="font-black text-lg">Part 3</div><div class="text-xs text-slate-500 font-bold">Eco-Farm Group Form</div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Mock Set C -->
+            <div class="bg-white p-2 rounded shadow-sm border-2 border-sky-200">
+                <h2 class="text-lg font-black text-sky-700 mb-1 border-b-2 border-sky-100">Mock Set C</h2>
+                <div class="flex flex-col gap-1">
+                    <button onclick="startListening(6)" class="bg-slate-50 border-2 border-slate-200 rounded p-2 text-left hover:border-sky-500">
+                        <div class="font-black text-lg">Part 1</div><div class="text-xs text-slate-500 font-bold">Principal's Speech</div>
+                    </button>
+                    <button onclick="startListening(7)" class="bg-slate-50 border-2 border-slate-200 rounded p-2 text-left hover:border-sky-500">
+                        <div class="font-black text-lg">Part 2</div><div class="text-xs text-slate-500 font-bold">Country Park Barbecue</div>
+                    </button>
+                    <button onclick="startListening(8)" class="bg-slate-50 border-2 border-slate-200 rounded p-2 text-left hover:border-sky-500">
+                        <div class="font-black text-lg">Part 3</div><div class="text-xs text-slate-500 font-bold">Sydney Tour Booking</div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 3x3 Speed Tests -->
+            <div class="bg-white p-2 rounded shadow-sm border-2 border-rose-200">
+                <h2 class="text-lg font-black text-rose-700 mb-1 border-b-2 border-rose-100">Speed Tests (3x3)</h2>
+                <div class="flex flex-col gap-1 h-full overflow-y-auto custom-scrollbar pr-1">
+                    <button onclick="startListening(9)" class="bg-slate-50 border-2 border-slate-200 rounded p-1 text-left hover:border-rose-500 flex justify-between items-center">
+                        <div><div class="font-black text-sm">Speed Test 01</div><div class="text-[10px] text-slate-500 font-bold">General Traps</div></div>
+                    </button>
+                    <button onclick="startListening(10)" class="bg-slate-50 border-2 border-slate-200 rounded p-1 text-left hover:border-rose-500 flex justify-between items-center">
+                        <div><div class="font-black text-sm">Speed Test 02</div><div class="text-[10px] text-slate-500 font-bold">Hard Traps</div></div>
+                    </button>
+                    <button onclick="startListening(11)" class="bg-slate-50 border-2 border-slate-200 rounded p-1 text-left hover:border-rose-500 flex justify-between items-center">
+                        <div><div class="font-black text-sm">Speed Test 03</div><div class="text-[10px] text-slate-500 font-bold">Mixed Skills A</div></div>
+                    </button>
+                    <button onclick="startListening(12)" class="bg-slate-50 border-2 border-slate-200 rounded p-1 text-left hover:border-rose-500 flex justify-between items-center">
+                        <div><div class="font-black text-sm">Speed Test 04</div><div class="text-[10px] text-slate-500 font-bold">Mixed Skills B</div></div>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="view-quiz" class="hidden w-full bg-slate-300 p-0.5" style="height: calc(100vh - 3rem);">
+        <!-- Tightly packed Grid injected via JS -->
+        <div id="questions-grid" class="w-full h-full gap-0.5"></div>
+    </div>
+
+    <div id="transcript-modal" class="hidden fixed inset-0 bg-slate-900/95 z-50 flex flex-col p-2 backdrop-blur-sm">
+        <div class="bg-white rounded shadow-2xl w-full h-full flex flex-col border-2 border-slate-400">
+            <div class="flex justify-between items-center p-2 border-b-2 bg-slate-100">
+                <h3 class="font-black text-xl text-slate-800">Audio Transcript</h3>
+                <button onclick="toggleTranscript()" class="text-slate-600 hover:text-rose-600 text-4xl leading-none font-black px-2">&times;</button>
+            </div>
+            <div id="transcript-content" class="p-3 overflow-y-auto text-xl font-bold text-slate-700 space-y-3 custom-scrollbar flex-grow"></div>
+        </div>
+    </div>
+
+    <div id="skills-modal" class="hidden fixed inset-0 bg-slate-100 z-50 flex flex-col">
+        <header class="bg-indigo-600 text-white shadow-md p-2 flex justify-between items-center">
+            <h1 class="text-xl font-black">🧠 HKAT Skills Guide</h1>
+            <button onclick="toggleSkills()" class="bg-indigo-700 hover:bg-indigo-800 rounded px-2 py-1 font-bold text-sm">Close X</button>
+        </header>
+        <div class="flex-grow p-2 overflow-y-auto custom-scrollbar bg-slate-200">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                <!-- Color coded skills examples -->
+                <div class="bg-white rounded border-2 border-slate-300 p-2">
+                    <h3 class="font-black text-lg border-b-2 pb-1 mb-1">1. Time Math & Deductions</h3>
+                    <div class="bg-slate-50 p-2 rounded text-sm font-bold border border-slate-200">
+                        <span class="text-blue-600">Audio:</span> "The route takes <span class="text-red-600">4 hours</span> to finish, including a <span class="text-blue-600">30-minute break</span>."<br>
+                        <span class="text-blue-600">Q:</span> Time spent walking without a break?<br>
+                        <span class="text-green-600">Ans:</span> 3.5 hours (4 hrs - 30 mins).<br>
+                        <span class="text-red-600 text-xs">Trap: Selecting 4 hours.</span>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded border-2 border-slate-300 p-2">
+                    <h3 class="font-black text-lg border-b-2 pb-1 mb-1">2. Original Purpose vs. Surprise</h3>
+                    <div class="bg-slate-50 p-2 rounded text-sm font-bold border border-slate-200">
+                        <span class="text-blue-600">Audio:</span> "Built to <span class="text-green-600">connect habitats</span>... <span class="text-blue-600">Unexpectedly</span>, it became a <span class="text-red-600">selfie hotspot</span>."<br>
+                        <span class="text-blue-600">Q:</span> Which is NOT a main reason?<br>
+                        <span class="text-green-600">Ans:</span> Selfie hotspot.<br>
+                        <span class="text-red-600 text-xs">Trap: Confusing accidental popularity with the design goal.</span>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded border-2 border-slate-300 p-2">
+                    <h3 class="font-black text-lg border-b-2 pb-1 mb-1">3. Decisive Qualifiers (Mainly)</h3>
+                    <div class="bg-slate-50 p-2 rounded text-sm font-bold border border-slate-200">
+                        <span class="text-blue-600">Audio:</span> "You need to <span class="text-red-600">love nature</span>, but <span class="text-blue-600">mainly</span> I was chosen because I'm a <span class="text-green-600">certified diver</span>."<br>
+                        <span class="text-green-600">Ans:</span> Certified diver.<br>
+                        <span class="text-red-600 text-xs">Trap: Selecting basic requirements like loving nature.</span>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded border-2 border-slate-300 p-2">
+                    <h3 class="font-black text-lg border-b-2 pb-1 mb-1">4. Date Adjustments</h3>
+                    <div class="bg-slate-50 p-2 rounded text-sm font-bold border border-slate-200">
+                        <span class="text-blue-600">Audio:</span> "Is your birthday <span class="text-red-600">Christmas Eve</span>?" "No, the day <span class="text-blue-600">after Christmas Day</span>."<br>
+                        <span class="text-green-600">Ans:</span> 26th December.<br>
+                        <span class="text-red-600 text-xs">Trap: Writing down 24th or 25th.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const testData = [
+            // 0: Set A - Part 1: Central Green Trail
+            {
+                title: "Part 1: Hiking Trail",
+                script: [
+                    { speaker: 'Andrew', text: "I'm your host Sam Lau. Today I'm introducing a hiking trail that is loved by many people: the Central Green and Heritage Trail. It is in total 4.97 km." },
+                    { speaker: 'Andrew', text: "Normally it takes around 4 hours to finish it including a half an hour break, but if you're very experienced, you may finish it in under 3 hours." },
+                    { speaker: 'Andrew', text: "The trail was built with the main purpose of combining an urban park with a nature trail so that busy people can be close to nature and culture. It also aims to tell the stories of the city." },
+                    { speaker: 'Andrew', text: "Unexpectedly, many tourists like to take photos there and it has now become a popular tourist spot." },
+                    { speaker: 'Andrew', text: "At the beginning, you can see Victoria Harbour. In the second section, you see the Peak Tram Station. When you reach the end, you can enjoy the view of Victoria Gap at the Peak Lookout Restaurant." },
+                    { speaker: 'Andrew', text: "When planning your trip, make sure there won't be any bad weather signals. Wear comfortable shoes and pack an extra T-shirt for changing after the hike. You don't need to pack a big meal. In conclusion, this trail's difficulty is low to medium, quite suitable for first-time hikers." }
+                ],
+                questions: [
+                    { q: "1. For normal hikers, how long is needed without taking a break?", opts: ["Under 3 hours", "3.5 hours", "4 hours", "4.5 hours"], correct: 1, trap: "Math: 4 hours total - 30 min break = 3.5 hours active walking." },
+                    { q: "2. Which of the following is NOT a main reason for building?", opts: ["Combining urban park with nature", "Bringing people close to nature", "Telling historical stories", "Attracting tourists for photos"], correct: 3, trap: "Unexpected Outcome: Tourist photos happened 'unexpectedly', not as a main goal." },
+                    { q: "3. What can you see in the LAST section?", opts: ["Star Ferry Pier", "St. Joseph's College", "Peak Tram Station", "Peak Lookout Restaurant"], correct: 3, trap: "Chronology: Peak Lookout Restaurant is 'when you reach the end'." },
+                    { q: "4. What do you need to do BEFORE the trip?", opts: ["Change extra T-shirt", "Eat a big meal", "Check weather signals", "Exit after section two"], correct: 2, trap: "Sequence: Changing shirts is 'after'. Big meals are not needed." },
+                    { q: "5. Which is TRUE about the trail?", opts: ["Only for experienced hikers", "Must finish all sections", "Difficulty is low to medium", "Nearly 10 km long"], correct: 2, trap: "Fact Check: It's suitable for first-timers, not just experienced. It is 4.97 km." }
+                ]
+            },
+            // 1: Set A - Part 2: Sea Animal Caretaker
+            {
+                title: "Part 2: Sea Animal Caretaker",
+                script: [
+                    { speaker: 'Emma', text: "Welcome. I'm Kate. Today we have invited Tom Pang. He used to study here and is now working as a sea animal caretaker at Water Park." },
+                    { speaker: 'Andrew', text: "Hi! I received an email from the principal Mrs. Lam last week. She knows students love sea animals, so she asked me to come here and share my work experience." },
+                    { speaker: 'Emma', text: "Do you feed the animals and play with them?" },
+                    { speaker: 'Andrew', text: "Yes, but I do more. I need to clean the animals' habitats. I also hold talks for the visitors and guide animals when visitors take photos. I don't sell admission tickets." },
+                    { speaker: 'Emma', text: "That's interesting. But not everything is great." },
+                    { speaker: 'Emma', text: "Oh, really? I didn't expect that. What do you not like?" },
+                    { speaker: 'Andrew', text: "Animals get sick and I worry. I often wake up at 1:00 a.m. But the worst part is that I work on shift. So, I can't spend time with my family on weekends and holidays." },
+                    { speaker: 'Emma', text: "How did you get the job?" },
+                    { speaker: 'Andrew', text: "You need to love animals and swim. I had similar work experience, but mainly I got this job because I'm a qualified diver." }
+                ],
+                questions: [
+                    { q: "1. Tom is on the radio program because:", opts: ["He misses his teachers", "Principal invited him to share", "He wants to promote the park", "Kate is his sister"], correct: 1, trap: "Trigger: He received an email from the principal asking him to share." },
+                    { q: "2. Which is NOT Tom's duty?", opts: ["Feeding animals", "Cleaning habitats", "Selling admission tickets", "Holding talks"], correct: 2, trap: "Negative Fact: He feeds, cleans, and talks, but never sells tickets." },
+                    { q: "3. How did Kate feel when hearing the job wasn't all great?", opts: ["Surprised", "Frightened", "Annoyed", "Delighted"], correct: 0, trap: "Emotion: 'Oh, really? I didn't expect that' means surprised." },
+                    { q: "4. What does Tom dislike the MOST?", opts: ["Cleaning habitats", "Animals getting sick", "Waking up at odd hours", "Missing family on weekends"], correct: 3, trap: "Superlative: He explicitly says 'the worst part is' shift work / missing family." },
+                    { q: "5. Tom got the job MAINLY because:", opts: ["He loves animals", "He knows how to swim", "Past experience", "He is a qualified diver"], correct: 3, trap: "Main Qualifier: He mentions other factors, but says 'mainly... qualified diver'." }
+                ]
+            },
+            // 2: Set A - Part 3: Clinic Form
+            {
+                title: "Part 3: Clinic Form",
+                script: [
+                    { speaker: 'Emma', text: "Wilson, I'm not feeling well. Can you help me fill in the patient registration form?" },
+                    { speaker: 'Andrew', text: "Sure, Mum. What is your date of birth? Is your birthday the 21st of December?" },
+                    { speaker: 'Emma', text: "No, you always get it wrong. It's the day after Christmas Day." },
+                    { speaker: 'Andrew', text: "Sorry. Next, your ID card number. What are the first four digits?" },
+                    { speaker: 'Emma', text: "They're capital H 270." },
+                    { speaker: 'Andrew', text: "Got it. Your email address?" },
+                    { speaker: 'Emma', text: "It is adahlamb18@wmail.com. All in small letters with no spaces." },
+                    { speaker: 'Andrew', text: "OK. Do you have a headache or a sore throat?" },
+                    { speaker: 'Emma', text: "I got a cold last night. I'm having a runny nose." },
+                    { speaker: 'Andrew', text: "I'll tick runny nose. Did you travel outside Hong Kong in the past 2 weeks? We went to Thailand in late August. Does that count?" },
+                    { speaker: 'Emma', text: "I don't think so." },
+                    { speaker: 'Andrew', text: "Hang on. Didn't you visit grandma in Macau last weekend?" },
+                    { speaker: 'Emma', text: "Oh, you're right. Write down Macau." },
+                    { speaker: 'Andrew', text: "Lastly, any allergies?" },
+                    { speaker: 'Emma', text: "I don't have drug allergies, but I have food allergies. I cannot have milk or soya beans." },
+                    { speaker: 'Andrew', text: "OK, milk and soya beans. All done." }
+                ],
+                questions: [
+                    { q: "1. Date of Birth:", opts: ["21st December", "25th December", "26th December", "1st January"], correct: 2, trap: "Landmark Math: 'Day after Christmas' (Dec 25) is Dec 26." },
+                    { q: "2. ID Card No. (first 4 digits):", opts: ["h270", "H270", "H720", "h720"], correct: 1, trap: "Case Sensitivity: Audio specifies 'capital H'." },
+                    { q: "3. Email Address:", opts: ["adah lamb 18@wmail.com", "Adahlamb18@wmail.com", "adahlamb18@gmail.com", "adahlamb18@wmail.com"], correct: 3, trap: "Formatting: All small letters, no spaces, correct domain." },
+                    { q: "4. Current Symptom:", opts: ["Headache", "Sore throat", "Runny nose", "Stomachache"], correct: 2, trap: "Distractor rejection: She denies headache/throat, has a 'runny nose'." },
+                    { q: "5. Travel (past 2 weeks):", opts: ["Thailand", "Macau", "Shenzhen", "Japan"], correct: 1, trap: "Time Window: Thailand was August (too long ago). Macau was last weekend." },
+                    { q: "6. Allergies (Food):", opts: ["Drug allergies", "Milk and soya beans", "Peanuts", "Seafood"], correct: 1, trap: "Category: Denies drug allergies, specifies milk and soya beans for food." }
+                ]
+            },
+            // 3: Set B - Part 1: Mall Speech
+            {
+                title: "Part 1: Mall Speech",
+                script: [
+                    { speaker: 'Andrew', text: "Good morning! I am Marcus Tsang, director of Starlight Harbour Mall. Our grand opening will take place on New Year's Day next month!" },
+                    { speaker: 'Andrew', text: "We are not the oldest center, but we are the largest waterfront mall featuring eight spacious floors." },
+                    { speaker: 'Andrew', text: "Aside from shopping, the third floor features an interactive indoor playground that you cannot find in any other shopping mall in Hong Kong." },
+                    { speaker: 'Andrew', text: "On our fourth floor, we have an indoor ice rink, a bouldering wall, and a gymnastic zone." },
+                    { speaker: 'Andrew', text: "Getting here is straightforward. The minibus takes 10 minutes to walk. The bus and MTR take 5 minutes. Most convenient of all, the ferry pier is directly in front of our entrance." }
+                ],
+                questions: [
+                    { q: "1. The speech is most likely given in:", opts: ["January", "June", "September", "December"], correct: 3, trap: "Calendar Inference: Opens 'New Year's Day next month' (Jan 1). Current is Dec." },
+                    { q: "2. Which statement about the Mall is TRUE?", opts: ["It is the oldest center.", "It has eight floors in total.", "All shops have already opened.", "It is on Hong Kong Island."], correct: 1, trap: "Fact Verification: Has 8 floors. It is 'not' the oldest." },
+                    { q: "3. Which facility is ONLY available at this Mall?", opts: ["Ceramic studio", "DIY bakery", "Interactive indoor playground", "Rooftop dining"], correct: 2, trap: "Superlative: Playground is qualified with 'cannot find in any other mall'." },
+                    { q: "4. Which facility is located on the FOURTH floor?", opts: ["Leather workshops", "Sportswear shops", "Indoor ice rink", "Terrace restaurants"], correct: 2, trap: "Floor Mapping: Ice rink is listed explicitly on the fourth floor." },
+                    { q: "5. To walk the LEAST distance, take the:", opts: ["Minibus", "Bus", "MTR", "Ferry"], correct: 3, trap: "Distance Comparison: Ferry is 'directly in front' (0 min walk)." }
+                ]
+            },
+            // 4: Set B - Part 2: Hobby Shop
+            {
+                title: "Part 2: Hobby Shop",
+                script: [
+                    { speaker: 'Andrew', text: "I purchased a drone called Sky Voyager, and I want to lodge a complaint." },
+                    { speaker: 'Emma', text: "Sky Voyager is an outdoor racing drone that allows users to customize flight speed via an app." },
+                    { speaker: 'Andrew', text: "When I unboxed it, the logo was smudged. Worse, there was a crack across the left propeller. My brother checked the guidebook and noticed printing errors in the setup instructions." },
+                    { speaker: 'Emma', text: "I am so sorry. This must have caused you a great deal of frustration." },
+                    { speaker: 'Emma', text: "To exchange: First, bring the set and fill in a form. Second, we will send a confirmation SMS. Third, collect the replacement. Finally, inspect the parts." },
+                    { speaker: 'Emma', text: "Can you drop by tomorrow, Gary?" },
+                    { speaker: 'Andrew', text: "I have training. My elder brother will drop by after his class." }
+                ],
+                questions: [
+                    { q: "1. Which statement is NOT true about Sky Voyager?", opts: ["It is a top-selling item.", "It uses an app for speed.", "It is exclusively for indoor flying.", "It is a racing drone."], correct: 2, trap: "Negative Fact: Shopkeeper explicitly calls it an 'outdoor' racing drone." },
+                    { q: "2. Gary's brother noticed that:", opts: ["drone could not turn on", "case was missing", "guidebook contained incorrect setup instructions", "battery was empty"], correct: 2, trap: "Attribution: Gary noticed the crack. His brother noticed the guidebook errors." },
+                    { q: "3. The shopkeeper's tone when apologizing is:", opts: ["Apologetic / Sympathetic", "Annoyed", "Shocked", "Confused"], correct: 0, trap: "Emotion: 'So sorry. This must have caused a great deal of frustration'." },
+                    { q: "4. Correct exchange order:", opts: ["Form -> SMS -> Collect -> Inspect", "Form -> Collect -> SMS -> Inspect", "SMS -> Form -> Collect -> Inspect", "Form -> SMS -> Inspect -> Collect"], correct: 0, trap: "Sequence: 1. Form, 2. SMS, 3. Collect, 4. Inspect." },
+                    { q: "5. Who will bring the drone back?", opts: ["Gary", "Mother", "Gary's elder brother", "Friend"], correct: 2, trap: "Delegation: Gary is busy, delegates to elder brother." }
+                ]
+            },
+            // 5: Set B - Part 3: Eco-Farm
+            {
+                title: "Part 3: Eco-Farm",
+                script: [
+                    { speaker: 'Andrew', text: "For the contact person, shall I write my name, Gary Wong?" },
+                    { speaker: 'Emma', text: "You should write down my name instead: Janice Cheung. And tick the Teacher box." },
+                    { speaker: 'Andrew', text: "What about the telephone and email?" },
+                    { speaker: 'Emma', text: "Use 2715 4890. Email is optional, so leave a cross." },
+                    { speaker: 'Andrew', text: "Our break begins on the 18th of April. Shall we visit on that day?" },
+                    { speaker: 'Emma', text: "We have a staff meeting. Better to go on the next day! We can depart after lunch." },
+                    { speaker: 'Andrew', text: "There are 24 pupils. Should I tick that?" },
+                    { speaker: 'Emma', text: "Count me in! That makes 25." },
+                    { speaker: 'Andrew', text: "Wait! Ryan is traveling. He won't join." },
+                    { speaker: 'Emma', text: "Right. Tick the box for 24 participants then." },
+                    { speaker: 'Emma', text: "Request an organic farming workshop and three shaded picnic benches." }
+                ],
+                questions: [
+                    { q: "1. Contact Person & Role", opts: ["Gary Wong (Student)", "Gary Wong (Teacher)", "Janice Cheung (Teacher)", "Janice Cheung (Student)"], correct: 2, trap: "Correction: Gary suggests himself, but Miss Cheung corrects." },
+                    { q: "2. Phone & Email", opts: ["2715 4890 / [X] for email", "2715 4980 / provided", "2715 8490 / [X] for email", "2715 4890 / provided"], correct: 0, trap: "Transcription: '2715 4890' and 'leave a cross' for email." },
+                    { q: "3. Date & Time of Visit", opts: ["18th April, Morning", "18th April, After lunch", "19th April, Morning", "19th April, After lunch"], correct: 3, trap: "Math: Break begins 18th, go 'the next day' (19th) 'after lunch'." },
+                    { q: "4. Total Visitors", opts: ["20-23", "24-27", "28-30", "30+"], correct: 1, trap: "Headcount: 24 + 1 = 25. Minus 1 (Ryan) = 24. Fits 24-27." },
+                    { q: "5. Special Requests", opts: ["Farming workshop & Benches", "Farming workshop & Tents", "Cooking class & Benches", "Choir rehearsal & Tents"], correct: 0, trap: "Recall: 'organic farming workshop' and 'shaded picnic benches'." }
+                ]
+            },
+            // 6: Set C - Part 1: Principal's Speech
+            {
+                title: "Part 1: Principal Speech",
+                script: [
+                    { speaker: 'Emma', text: "I am Mrs. Teresa Chan, principal of Greenfield Primary. Thirty years ago, Dr. William Fong founded this school." },
+                    { speaker: 'Emma', text: "Today, we employ 48 teaching staff. We don't have an indoor swimming pool yet, but we are preparing to construct one." },
+                    { speaker: 'Emma', text: "I am glad when test scores improve, but nothing gives me greater pride and joy than witnessing your acts of kindness and good moral values!" },
+                    { speaker: 'Emma', text: "Every pupil will receive a welcome gift today. It has two zipper compartments where you can organize your pens, pencils, rulers, and erasers." },
+                    { speaker: 'Emma', text: "Now, let us enjoy a short video clip showcasing the exciting clubs you can join this term!" }
+                ],
+                questions: [
+                    { q: "1. Who founded the School?", opts: ["Mrs. Teresa Chan", "Mr. Kevin Lau", "Dr. William Fong", "Mrs. Elizabeth Fong"], correct: 2, trap: "Names: Many listed, Dr. William Fong explicitly named founder." },
+                    { q: "2. The principal is MOST pleased when students show:", opts: ["academic improvements", "good moral values and kindness", "athletic records", "clean classrooms"], correct: 1, trap: "Superlative: Likes scores, but 'nothing gives greater pride' than kindness." },
+                    { q: "3. Which statement is TRUE?", opts: ["It is in Kowloon.", "It has an indoor swimming pool.", "It employs 48 teachers.", "It was founded five years ago."], correct: 2, trap: "Facts: Employs 48. Pool NOT built. Founded 30 yrs ago." },
+                    { q: "4. What gift did the principal prepare?", opts: ["A water bottle", "A pencil case", "A notebook", "A backpack"], correct: 1, trap: "Inference: Holds 'pens, pencils' in 'zipper compartments' = Pencil Case." },
+                    { q: "5. The video clip is MOST likely about:", opts: ["Life of Dr. Fong", "Recycling paper", "School clubs and activities", "Pool blueprints"], correct: 2, trap: "Prediction: 'showcasing the exciting clubs you can join'." }
+                ]
+            },
+            // 7: Set C - Part 2: Country Park BBQ
+            {
+                title: "Part 2: BBQ Outing",
+                script: [
+                    { speaker: 'Emma', text: "Let's organize a barbecue! What time should we set off? 9:30 a.m.?" },
+                    { speaker: 'Andrew', text: "I have a one-hour violin lesson at 9:00 a.m." },
+                    { speaker: 'Emma', text: "Let's leave 15 minutes after your violin lesson finishes." },
+                    { speaker: 'Emma', text: "How about fried noodles before we go?" },
+                    { speaker: 'Andrew', text: "No, too heavy. Beef patties?" },
+                    { speaker: 'Emma', text: "We grill meat later. I will make a vegetable sandwich instead." },
+                    { speaker: 'Emma', text: "We need wide-brimmed hats and mini electric fans." },
+                    { speaker: 'Andrew', text: "Don't forget foldable walking sticks! Last time, we hiked steep steps." },
+                    { speaker: 'Emma', text: "That was an exhausting, miserable experience! Dad is busy, so we have to take the bus." }
+                ],
+                questions: [
+                    { q: "1. What time will they leave home?", opts: ["9:30 a.m.", "10:00 a.m.", "10:15 a.m.", "10:30 a.m."], correct: 2, trap: "Time Math: Lesson (9:00 + 1 hr) ends 10:00. Leave 15 mins later = 10:15." },
+                    { q: "2. What will they eat before leaving?", opts: ["Fried noodles", "Beef patties", "Steamed rice", "Vegetable sandwich"], correct: 3, trap: "Negotiation: Noodles & patties rejected. Settled on veg sandwich." },
+                    { q: "3. Which item will they NOT take?", opts: ["Foldable walking sticks", "Raincoats", "Wide-brimmed hats", "Mini electric fans"], correct: 1, trap: "Negative Fact: Weather dry. Hats, fans, sticks mentioned. Raincoats NOT." },
+                    { q: "4. How will they travel?", opts: ["Dad will drive", "Take a bus", "Walk", "Taxi"], correct: 1, trap: "Context: Dad is busy, Mum says 'take the bus'." },
+                    { q: "5. How did Mum feel about the previous visit?", opts: ["Delighted", "Miserable and exhausted", "Excited", "Relaxed"], correct: 1, trap: "Emotion: Explicitly states 'exhausting and miserable experience'." }
+                ]
+            },
+            // 8: Set C - Part 3: Sydney Tour
+            {
+                title: "Part 3: Tour Booking",
+                script: [
+                    { speaker: 'Emma', text: "Our flight touches down on the 12th of October. Shall we join the tour then?" },
+                    { speaker: 'Emma', text: "No, your father will fly in one day later. Let's book the tour for the day he arrives!" },
+                    { speaker: 'Andrew', text: "Participants. Two adults, and one child for me?" },
+                    { speaker: 'Emma', text: "You forgot your cousins, Brandon and Kelly! They are both twelve years old, like you." },
+                    { speaker: 'Emma', text: "You and Brandon love thrilling rides. Kelly adores chocolate factories. Dad and I want exotic flowers. Route A covers all three! Put '1' for Route A." },
+                    { speaker: 'Andrew', text: "Route C visits koalas, thrill rides, and flowers. I'll put '2' for Route C." },
+                    { speaker: 'Emma', text: "Request a morning wake-up call and extended shopping time. We do NOT need evening drop-off. Put a cross. Breakfast is at 8:30 a.m." },
+                    { speaker: 'Andrew', text: "What time should the coach pick us up?" },
+                    { speaker: 'Emma', text: "One hour later." }
+                ],
+                questions: [
+                    { q: "1. Tour Date:", opts: ["12th October", "13th October", "14th October", "15th October"], correct: 1, trap: "Math: Arrive 12th, Dad arrives 'one day later' (13th). Join day he arrives." },
+                    { q: "2. Travelers:", opts: ["2 Adults, 1 Child", "2 Adults, 2 Children", "2 Adults, 3 Children", "3 Adults, 2 Children"], correct: 2, trap: "Headcount: Peter (1) + cousins (2) = 3 Children." },
+                    { q: "3. 1st Choice Route:", opts: ["Route A", "Route B", "Route C", "Route D"], correct: 0, trap: "Preference: Route A has rides, desserts, flowers matching all." },
+                    { q: "4. Special Requests:", opts: ["Wake-up call & Extra Shopping", "Wheelchair & Extra Shopping", "Vegetarian meal & Wake-up call", "None"], correct: 0, trap: "Recall: 'morning wake-up call' and 'extended shopping time'." },
+                    { q: "5. Pickup Time:", opts: ["8:30 a.m.", "9:00 a.m.", "9:30 a.m.", "10:00 a.m."], correct: 2, trap: "Elapsed Time: Breakfast at 8:30. Pickup 'One hour later' = 9:30." }
+                ]
+            },
+            // 9: Speed Test 01 - General Traps
+            {
+                title: "ST01: General Traps",
+                script: [
+                    { speaker: 'Andrew', text: "Scenario 1: I am looking for a new role because the daily commute takes over 2 hours each way." },
+                    { speaker: 'Emma', text: "Scenario 2: The forecast predicted a heavy thunderstorm, so I cancelled my photo shoot." },
+                    { speaker: 'Andrew', text: "Scenario 3: My voice is trembling. I am absolutely terrified of making a mistake." },
+                    { speaker: 'Emma', text: "Scenario 4: Entering the burning building to save the puppy was an incredibly valiant act." },
+                    { speaker: 'Andrew', text: "Scenario 5: The bridge repair is only a transient solution until we rebuild it." },
+                    { speaker: 'Emma', text: "Scenario 6: The webinar starts at 3:20 p.m., not 2:30." },
+                    { speaker: 'Andrew', text: "Scenario 7: It is spelled B R I D G E T O N with a D and E in the middle." },
+                    { speaker: 'Emma', text: "Scenario 8: The fee was $95, but it was adjusted down to $59." },
+                    { speaker: 'Andrew', text: "Scenario 9: The cargo shipment weighs 98 kg." }
+                ],
+                questions: [
+                    { q: "Q1. Why find a new job?", opts: ["Hates tasks", "Low salary", "2 hour commute", "No lunch"], correct: 2, trap: "Direct Reason." },
+                    { q: "Q2. Why cancel shoot?", opts: ["Broken gear", "Thunderstorm", "Lost way", "Tired"], correct: 1, trap: "Direct Cause." },
+                    { q: "Q3. Speaker's feeling?", opts: ["Confident", "Annoyed", "Terrified", "Calm"], correct: 2, trap: "Emotion matching." },
+                    { q: "Q4. Synonym for valiant?", opts: ["Foolish", "Brave", "Cowardly", "Fast"], correct: 1, trap: "Vocabulary match." },
+                    { q: "Q5. Synonym for transient?", opts: ["Permanent", "Temporary", "Strong", "Expensive"], correct: 1, trap: "Vocabulary match." },
+                    { q: "Q6. Start time?", opts: ["2:30 p.m.", "3:20 p.m.", "2:00 p.m.", "3:00 p.m."], correct: 1, trap: "Corrected Time." },
+                    { q: "Q7. Spelling?", opts: ["BRIGHTON", "BRIDGETON", "BRIGETON", "BRIDGEON"], correct: 1, trap: "Spelling Correction." },
+                    { q: "Q8. Updated fee?", opts: ["$95", "$59", "$90", "$50"], correct: 1, trap: "Price Adjustment." },
+                    { q: "Q9. Weight?", opts: ["89 kg", "98 kg", "88 kg", "99 kg"], correct: 1, trap: "Number transcription." }
+                ]
+            },
+            // 10: Speed Test 02 - Hard Traps
+            {
+                title: "ST02: Hard Traps",
+                script: [
+                    { speaker: 'Emma', text: "Scenario 1: I hesitated due to parking costs, but rejected the lease because the internet was extremely unstable." },
+                    { speaker: 'Andrew', text: "Scenario 2: The taxi had a flat tire, delaying her enough to miss her flight to Chicago." },
+                    { speaker: 'Emma', text: "Scenario 3: My paper was accepted! I am completely overjoyed and deeply satisfied." },
+                    { speaker: 'Andrew', text: "Scenario 4: You must be circumspect when handling these ancient artifacts." },
+                    { speaker: 'Emma', text: "Scenario 5: The launch was shifted from the 7th of October to the 17th of October." },
+                    { speaker: 'Andrew', text: "Scenario 6: It is spelled S M Y T H E with a Y and an E at the end." },
+                    { speaker: 'Emma', text: "Scenario 7: The ticket was $70, reduced to $47 via online early bird discount." },
+                    { speaker: 'Andrew', text: "Scenario 8: I run the database index updates bi-weekly." },
+                    { speaker: 'Emma', text: "Scenario 9: The neighborhood bulletin is published quarterly." }
+                ],
+                questions: [
+                    { q: "Q1. Why reject lease?", opts: ["Parking costs", "Unstable internet", "Far away", "Too small"], correct: 1, trap: "Decisive factor: Hesitated on parking, rejected on internet." },
+                    { q: "Q2. Why miss flight?", opts: ["Slept in", "Flat tire", "Traffic jam", "Lost ticket"], correct: 1, trap: "Direct Cause." },
+                    { q: "Q3. Speaker's feeling?", opts: ["Anxious", "Overjoyed", "Angry", "Bored"], correct: 1, trap: "Emotion match." },
+                    { q: "Q4. Synonym for circumspect?", opts: ["Careless", "Cautious", "Reckless", "Fast"], correct: 1, trap: "Vocabulary match." },
+                    { q: "Q5. Launch date?", opts: ["7th Oct", "17th Oct", "27th Oct", "7th Nov"], correct: 1, trap: "Corrected Date." },
+                    { q: "Q6. Spelling?", opts: ["SMITH", "SMYTHE", "SMYTH", "SMIYTHE"], correct: 1, trap: "Spelling Correction." },
+                    { q: "Q7. Final price?", opts: ["$70", "$47", "$74", "$40"], correct: 1, trap: "Price Adjustment." },
+                    { q: "Q8. Bi-weekly meaning?", opts: ["Twice a week", "Every 2 weeks", "Monthly", "Yearly"], correct: 1, trap: "Frequency definition." },
+                    { q: "Q9. Quarterly meaning?", opts: ["Monthly", "Twice a year", "4 times a year", "Yearly"], correct: 2, trap: "Frequency definition." }
+                ]
+            },
+            // 11: Speed Test 03 - Mixed Skills A
+            {
+                title: "ST03: Mixed Skills A",
+                script: [
+                    { speaker: 'Andrew', text: "Scenario 1: I bought this jacket for $120, but with the $20 discount, I only paid $100." },
+                    { speaker: 'Emma', text: "Scenario 2: My poor dog went missing yesterday. I am absolutely devastated." },
+                    { speaker: 'Andrew', text: "Scenario 3: The delivery is scheduled for Thursday, the 14th. Wait, let me check... it's actually Tuesday the 12th." },
+                    { speaker: 'Emma', text: "Scenario 4: He was selected mainly because of his exceptional coding skills, not just his university degree." },
+                    { speaker: 'Andrew', text: "Scenario 5: I clean the pool, mow the lawn, and trim the hedges, but I never paint the fences." },
+                    { speaker: 'Emma', text: "Scenario 6: The seminar was postponed because the guest speaker fell ill with the flu." },
+                    { speaker: 'Andrew', text: "Scenario 7: Please spell your surname. It's P H I L I P S with one L." },
+                    { speaker: 'Emma', text: "Scenario 8: I don't mind the long hours, but the meticulous attention to detail is the hardest part of this craft." },
+                    { speaker: 'Andrew', text: "Scenario 9: The ferry departs every 30 minutes, but the bus only runs hourly." }
+                ],
+                questions: [
+                    { q: "Q1. Price paid?", opts: ["$120", "$100", "$96", "$20"], correct: 1, trap: "Math: $120 minus $20 discount = $100." },
+                    { q: "Q2. Emotion?", opts: ["Angry", "Devastated", "Excited", "Calm"], correct: 1, trap: "Emotion match: Missing dog = devastated." },
+                    { q: "Q3. Delivery Date?", opts: ["Thursday 14th", "Tuesday 12th", "Thursday 12th", "Tuesday 14th"], correct: 1, trap: "Correction: Changes from 14th to Tuesday 12th." },
+                    { q: "Q4. Mainly selected for?", opts: ["Coding skills", "Degree", "Interview", "Experience"], correct: 0, trap: "Mainly because: Exceptional coding skills." },
+                    { q: "Q5. What does he NOT do?", opts: ["Clean pool", "Mow lawn", "Trim hedges", "Paint fences"], correct: 3, trap: "Negative Fact: Explicitly says 'never paint the fences'." },
+                    { q: "Q6. Why postponed?", opts: ["Bad weather", "Speaker illness", "No power", "Low turnout"], correct: 1, trap: "Cause: Speaker fell ill." },
+                    { q: "Q7. Surname spelling?", opts: ["PHILLIPS", "PHILIPS", "PHILLIP", "PHILIPES"], correct: 1, trap: "Spelling: P-H-I-L-I-P-S with one L." },
+                    { q: "Q8. Hardest part?", opts: ["Long hours", "Low pay", "Attention to detail", "Finding tools"], correct: 2, trap: "Superlative: Identifies 'attention to detail' as hardest." },
+                    { q: "Q9. Bus frequency?", opts: ["Every 30 mins", "Hourly", "Daily", "Never"], correct: 1, trap: "Distractor: Ferry is 30 mins, Bus is hourly." }
+                ]
+            },
+            // 12: Speed Test 04 - Mixed Skills B
+            {
+                title: "ST04: Mixed Skills B",
+                script: [
+                    { speaker: 'Emma', text: "Scenario 1: The exam takes exactly 2 hours, which includes a 15-minute reading period." },
+                    { speaker: 'Andrew', text: "Scenario 2: The magician's performance was truly spellbinding." },
+                    { speaker: 'Emma', text: "Scenario 3: We intended to build a quiet retreat, but unexpectedly it became a bustling tourist trap." },
+                    { speaker: 'Andrew', text: "Scenario 4: First we tour the castle, then the museum, and lastly the botanical gardens." },
+                    { speaker: 'Emma', text: "Scenario 5: Make sure you stretch before the run, hydrate during the race, and rest properly after." },
+                    { speaker: 'Andrew', text: "Scenario 6: You must be over 18, but mainly you need a valid international passport." },
+                    { speaker: 'Emma', text: "Scenario 7: The annual arts and crafts festival is happening next week in the city square." },
+                    { speaker: 'Andrew', text: "Scenario 8: He was thoroughly exasperated by the constant train delays this morning." },
+                    { speaker: 'Emma', text: "Scenario 9: Flight 102 is boarding at gate 4... correction, please proceed to gate 14." }
+                ],
+                questions: [
+                    { q: "Q1. Active writing time?", opts: ["1 hr 45 min", "2 hours", "2 hr 15 min", "15 mins"], correct: 0, trap: "Math: 120 mins - 15 mins = 105 mins (1 hr 45 min)." },
+                    { q: "Q2. Synonym for spellbinding?", opts: ["Boring", "Captivating", "Confusing", "Fast"], correct: 1, trap: "Vocabulary: Spellbinding means fascinating/captivating." },
+                    { q: "Q3. Original purpose?", opts: ["Tourist trap", "Quiet retreat", "Amusement park", "Hotel"], correct: 1, trap: "Purpose vs Surprise: Quiet retreat was intended." },
+                    { q: "Q4. Last tour stop?", opts: ["Castle", "Museum", "Botanical gardens", "Gift shop"], correct: 2, trap: "Chronology: 'lastly the botanical gardens'." },
+                    { q: "Q5. Action BEFORE running?", opts: ["Stretch", "Hydrate", "Rest", "Eat"], correct: 0, trap: "Sequence: Stretch before, hydrate during." },
+                    { q: "Q6. Main requirement?", opts: ["Over 18", "Valid passport", "Ticket", "Money"], correct: 1, trap: "Mainly: 'mainly you need a valid passport'." },
+                    { q: "Q7. Festival frequency?", opts: ["Weekly", "Monthly", "Yearly", "Daily"], correct: 2, trap: "Frequency: 'annual' means yearly." },
+                    { q: "Q8. Emotion (exasperated)?", opts: ["Delighted", "Annoyed", "Calm", "Frightened"], correct: 1, trap: "Emotion match: Exasperated means deeply annoyed/frustrated." },
+                    { q: "Q9. Correct Gate?", opts: ["Gate 4", "Gate 10", "Gate 14", "Gate 24"], correct: 2, trap: "Correction: Gate 4 corrected to Gate 14." }
+                ]
+            }
+        ];
+
+        const tts = {
+            voices: { male: null, female: null },
+            lines: [],
+            currentIndex: 0,
+            isPlaying: false,
+            isPaused: false,
+
+            init() {
+                const loadVoices = () => {
+                    const all = window.speechSynthesis.getVoices();
+                    // Hunt for specific Microsoft high-quality voices
+                    this.voices.male = all.find(v => v.name.includes('Andrew') && v.name.includes('Online')) || all.find(v => v.name.includes('Male')) || all[0];
+                    this.voices.female = all.find(v => v.name.includes('Emma') && v.name.includes('Online')) || all.find(v => v.name.includes('Female')) || all[0];
+                };
+                loadVoices();
+                if (speechSynthesis.onvoiceschanged !== undefined) speechSynthesis.onvoiceschanged = loadVoices;
+            },
+            
+            play(script, progressCb, endCb) {
+                if (this.isPaused) {
+                    window.speechSynthesis.resume();
+                    this.isPaused = false;
+                    this.isPlaying = true;
+                    return;
+                }
+
+                this.stop();
+                this.lines = script;
+                this.currentIndex = 0;
+                this.isPlaying = true;
+                this.isPaused = false;
+
+                const speakNext = () => {
+                    if (!this.isPlaying && !this.isPaused) return;
+                    if (this.currentIndex >= this.lines.length) {
+                        this.isPlaying = false;
+                        if(progressCb) progressCb(100);
+                        if(endCb) endCb();
+                        return;
+                    }
+
+                    const line = this.lines[this.currentIndex];
+                    const utterance = new SpeechSynthesisUtterance(line.text);
+                    utterance.voice = line.speaker === 'Andrew' ? this.voices.male : this.voices.female;
+                    utterance.rate = 1.0;
+
+                    utterance.onstart = () => { if(progressCb) progressCb((this.currentIndex / this.lines.length) * 100); };
+                    
+                    utterance.onend = () => { 
+                        if (this.isPlaying) {
+                            this.currentIndex++; 
+                            speakNext(); 
+                        }
+                    };
+                    
+                    utterance.onerror = () => { 
+                        if (this.isPlaying) {
+                            this.currentIndex++; 
+                            speakNext(); 
+                        }
+                    };
+                    
+                    window.speechSynthesis.speak(utterance);
+                };
+                speakNext();
+            },
+
+            pause() {
+                if (this.isPlaying) {
+                    window.speechSynthesis.pause();
+                    this.isPaused = true;
+                    this.isPlaying = false;
+                }
+            },
+
+            stop() {
+                this.isPlaying = false;
+                this.isPaused = false;
+                window.speechSynthesis.cancel();
+            }
+        };
+
+        let currentSetIndex = -1;
+        const viewMenu = document.getElementById('view-menu');
+        const viewQuiz = document.getElementById('view-quiz');
+        const grid = document.getElementById('questions-grid');
+        
+        const btnHome = document.getElementById('btn-home');
+        const audioCtrls = document.getElementById('audio-controls');
+        const btnPlay = document.getElementById('btn-play');
+        const btnPause = document.getElementById('btn-pause');
+        const btnStop = document.getElementById('btn-stop');
+        const btnTranscript = document.getElementById('btn-transcript');
+
+        window.startListening = function(index) {
+            currentSetIndex = index;
+            const data = testData[index];
+            
+            viewMenu.classList.add('hidden');
+            viewQuiz.classList.remove('hidden');
+            btnHome.classList.remove('hidden');
+            audioCtrls.classList.remove('hidden');
+            btnTranscript.classList.remove('hidden');
+            
+            // Build Transcript
+            document.getElementById('transcript-content').innerHTML = data.script.map(line => 
+                `<p class="mb-2"><strong class="text-slate-900">${line.speaker}:</strong> ${line.text}</p>`
+            ).join('');
+            
+            // Dynamic Grid System (Eliminates margins, fits exactly to screen)
+            grid.innerHTML = '';
+            const qCount = data.questions.length;
+            
+            if (qCount === 9) {
+                // Speed Test 3x3 layout
+                grid.className = "grid grid-cols-3 grid-rows-3 gap-1 w-full h-full";
+            } else {
+                // 5 or 6 Qs: Single horizontal row flex layout
+                grid.className = "flex gap-1 w-full h-full";
+            }
+
+            data.questions.forEach((qData, qIndex) => {
+                const col = document.createElement('div');
+                const isGrid = qCount === 9;
+                
+                col.className = `flex flex-col bg-white border border-slate-300 rounded p-1 h-full fade-in shadow-sm ${isGrid ? '' : 'flex-1 min-w-0'}`;
+                
+                let optsHTML = qData.opts.map((opt, optIndex) => `
+                    <button id="btn-${qIndex}-${optIndex}" class="btn-option text-left w-full border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-800 font-bold rounded flex-1 flex items-center shadow-sm ${isGrid ? 'p-1 fluid-o-grid mb-[2px]' : 'p-2 fluid-o-row mb-1'}" onclick="checkAnswer(${qIndex}, ${optIndex})">
+                        ${opt}
+                    </button>
+                `).join('');
+
+                col.innerHTML = `
+                    <div class="font-black text-slate-900 ${isGrid ? 'mb-0.5 fluid-q-grid' : 'mb-1 fluid-q-row'}">${qData.q}</div>
+                    <div class="flex flex-col flex-grow justify-stretch">
+                        ${optsHTML}
+                    </div>
+                    <div id="feedback-${qIndex}" class="hidden mt-0.5 p-1 bg-rose-50 border border-rose-200 rounded font-bold text-rose-900 shadow-inner overflow-y-auto ${isGrid ? 'text-[0.65rem]' : 'text-sm'}">
+                        ${qData.trap}
+                    </div>
+                `;
+                grid.appendChild(col);
+            });
+
+            resetAudioUI();
+        };
+
+        window.checkAnswer = function(qIndex, selectedOptIndex) {
+            const data = testData[currentSetIndex];
+            const qData = data.questions[qIndex];
+            const isCorrect = selectedOptIndex === qData.correct;
+
+            qData.opts.forEach((_, optIndex) => {
+                const btn = document.getElementById(`btn-${qIndex}-${optIndex}`);
+                btn.classList.add('disabled-btn');
+                if (optIndex === qData.correct) {
+                    btn.classList.add('correct-ans');
+                } else if (optIndex === selectedOptIndex && !isCorrect) {
+                    btn.classList.add('wrong-ans');
+                }
+            });
+
+            const fb = document.getElementById(`feedback-${qIndex}`);
+            fb.classList.remove('hidden');
+            fb.classList.add('fade-in');
+        };
+
+        function resetAudioUI() {
+            tts.stop();
+            btnPlay.classList.remove('hidden');
+            btnPause.classList.add('hidden');
+        }
+
+        btnPlay.addEventListener('click', () => {
+            btnPlay.classList.add('hidden');
+            btnPause.classList.remove('hidden');
+            tts.play(testData[currentSetIndex].script, null, resetAudioUI);
+        });
+
+        btnPause.addEventListener('click', () => {
+            btnPause.classList.add('hidden');
+            btnPlay.classList.remove('hidden');
+            tts.pause();
+        });
+
+        btnStop.addEventListener('click', resetAudioUI);
+
+        window.toggleTranscript = () => document.getElementById('transcript-modal').classList.toggle('hidden');
+        window.toggleSkills = () => document.getElementById('skills-modal').classList.toggle('hidden');
+
+        btnHome.addEventListener('click', () => {
+            resetAudioUI();
+            viewQuiz.classList.add('hidden');
+            viewMenu.classList.remove('hidden');
+            btnHome.classList.add('hidden');
+            audioCtrls.classList.add('hidden');
+            btnTranscript.classList.add('hidden');
+        });
+
+        window.addEventListener('load', () => tts.init());
+    </script>
+</body>
+</html>
