@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grade 6 HKAT English Mastery Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap');
+        
+        :root {
+            font-size: 20px; 
+            --brand-sky: #38bdf8;
+            --brand-emerald: #34d399;
+            --brand-amber: #fbbf24;
+            --brand-rose: #fb7185;
+            --brand-indigo: #818cf8;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: #f8fafc;
+            color: #0f172a;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #fx-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 14px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 8px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 8px; border: 3px solid #f1f5f9; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        @keyframes popIn {
+            0% { transform: scale(0.95); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .animate-pop { animation: popIn 0.2s ease-out forwards; }
+        
+        /* 70/30 Split Grid Layout */
+        .split-grid { 
+            display: grid; 
+            grid-template-columns: 68% 32%; 
+            gap: 1.25rem; 
+            height: calc(100vh - 80px);
+            padding: 1rem;
+        }
+        
+        .passage-panel { 
+            background: #fffbef;
+            border: 6px solid #fde047; 
+            border-radius: 2rem; 
+            padding: 2rem; 
+            overflow-y: auto; 
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.05); 
+        }
+        .question-panel { 
+            background: #ffffff; 
+            border: 6px solid var(--brand-sky); 
+            border-radius: 2rem; 
+            padding: 1.25rem; 
+            display: flex; 
+            flex-direction: column; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05); 
+            overflow-y: auto; 
+        }
+
+        .passage-content {
+            font-size: 1.2rem;
+            line-height: 1.75;
+            color: #1e293b;
+        }
+        .passage-content h3 { font-size: 1.65rem; color: #0f172a; margin-bottom: 1rem; font-weight: 900; }
+        .passage-content h4 { font-size: 1.35rem; color: #4338ca; margin-top: 1.25rem; margin-bottom: 0.4rem; font-weight: 800; }
+        .passage-content p { margin-bottom: 1rem; }
+        
+        .notice-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.25rem;
+            margin-top: 1rem;
+        }
+        .notice-card {
+            background: #ffffff;
+            border: 3px solid #cbd5e1;
+            border-radius: 1.25rem;
+            padding: 1.25rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.03);
+        }
+        .notice-card h4 {
+            margin-top: 0;
+            color: #1e3a8a;
+            text-decoration: underline;
+            text-align: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .tab-pane { display: none; height: 100%; }
+        .tab-pane.active { display: block; }
+    </style>
+</head>
+<body>
+
+    <canvas id="fx-canvas"></canvas>
+
+    <!-- Compressed Sticky Header -->
+    <header class="bg-white shadow-md z-50 border-b-4 border-slate-200 shrink-0 h-[80px] flex items-center justify-between px-4">
+        
+        <!-- Navigation Dropdown & Arrows -->
+        <div class="flex items-center gap-3">
+            <select id="reading-selector" onchange="handleDropdownSwitch(this.value)" class="bg-slate-100 text-slate-800 px-4 py-2 rounded-2xl font-black border-4 border-slate-300 outline-none cursor-pointer text-xl hover:bg-slate-200 transition">
+                <option value="tab-quest10">🎫 1. R1: Cultural Tours (Set A - 16 Qs)</option>
+                <option value="tab-quest10b">❄️ 1. R1: Winter Camps (Set B - 5 Qs)</option>
+                <option value="tab-quest10c">🏕️ 1. R1: STEM Camps (Set C - 6 Qs)</option>
+                <option value="tab-quest20">🏮 2. R2: Paper Lanterns (Set A - 16 Qs)</option>
+                <option value="tab-quest20b">🪭 2. R2: Silk Fans (Set B - 5 Qs)</option>
+                <option value="tab-quest20c">⛴️ 2. R2: Star Ferry (Set C - 6 Qs)</option>
+                <option value="tab-quest30">📓 3. R3: Happy Memories (Set A - 17 Qs)</option>
+                <option value="tab-quest30b">🧁 3. R3: Grandma's Bakery (Set B - 5 Qs)</option>
+                <option value="tab-quest30c">🐶 3. R3: Volunteer Adventure (Set C - 7 Qs)</option>
+            </select>
+
+            <div class="flex items-center gap-2 bg-slate-100 p-2 rounded-2xl border-4 border-slate-300">
+                <button onclick="globalChangeQuestion(-1)" class="bg-white hover:bg-sky-100 text-sky-600 px-4 py-1 rounded-xl font-black text-2xl transition shadow-sm">◀</button>
+                <div id="global-counter" class="font-black text-xl text-slate-700 px-2 min-w-[90px] text-center">1 / 16</div>
+                <button onclick="globalChangeQuestion(1)" class="bg-white hover:bg-sky-100 text-sky-600 px-4 py-1 rounded-xl font-black text-2xl transition shadow-sm">▶</button>
+            </div>
+        </div>
+
+        <!-- Student Picker & Actions (Icons Only) -->
+        <div class="flex items-center gap-3">
+            <div class="bg-indigo-50 text-indigo-900 px-4 py-2 rounded-2xl flex items-center gap-3 border-4 border-indigo-200">
+                <span id="student-num" class="text-2xl font-black tracking-wide min-w-[110px] text-center">Ready</span>
+            </div>
+            <div class="bg-amber-50 text-amber-900 px-4 py-2 rounded-2xl flex items-center gap-2 border-4 border-amber-200">
+                <span id="picker-timer-val" class="text-2xl font-black">60s</span>
+            </div>
+            
+            <button onclick="pickRandomStudent()" class="bg-indigo-500 hover:bg-indigo-400 text-white border-b-4 border-indigo-700 active:border-b-0 active:translate-y-1 font-black w-14 h-14 rounded-2xl transition flex items-center justify-center text-3xl shadow-sm" title="Call Random Student">🎲</button>
+            <button onclick="triggerCorrectCelebration()" class="bg-emerald-500 hover:bg-emerald-400 text-white border-b-4 border-emerald-700 active:border-b-0 active:translate-y-1 font-black w-14 h-14 rounded-2xl transition flex items-center justify-center text-3xl shadow-sm" title="Correct Answer!">🎉</button>
+            <button onclick="triggerPeerAssist()" class="bg-amber-400 hover:bg-amber-300 text-amber-900 border-b-4 border-amber-600 active:border-b-0 active:translate-y-1 font-black w-14 h-14 rounded-2xl transition flex items-center justify-center text-3xl shadow-sm" title="Peer Assist Hint">💡</button>
+        </div>
+
+        <!-- Scoreboard -->
+        <div class="flex items-center gap-3">
+            <div class="bg-slate-100 px-5 py-2 rounded-2xl flex items-center gap-4 border-4 border-slate-300 text-xl font-black">
+                <div class="text-slate-700">⭐ <span id="pts-val" class="text-sky-600">0</span></div>
+                <div class="text-slate-300">|</div>
+                <div class="text-slate-700">🔥 <span id="streak-val" class="text-rose-500">0x</span></div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Floating Feedback overlay for Picker -->
+    <div id="picker-feedback" class="hidden fixed top-24 left-1/2 transform -translate-x-1/2 z-50 px-6 py-3 rounded-2xl text-xl font-black text-center shadow-2xl border-4 animate-pop"></div>
+
+    <!-- Main Workspace Area -->
+    <main class="w-full flex-grow relative">
+        
+        <!-- R1 SET A -->
+        <section id="tab-quest10" class="tab-pane active">
+            <div class="split-grid">
+                <div class="passage-panel custom-scroll">
+                    <div id="quest10-passage" class="passage-content"></div>
+                </div>
+                <div class="question-panel custom-scroll" style="border-color: #38bdf8;">
+                    <div id="Quest10-container" class="flex-grow flex flex-col"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- R1 SET B -->
+        <section id="tab-quest10b" class="tab-pane">
+            <div class="split-grid">
+                <div class="passage-panel custom-scroll">
+                    <div id="quest10b-passage" class="passage-content"></div>
+                </div>
+                <div class="question-panel custom-scroll" style="border-color: #818cf8;">
+                    <div id="Quest10b-container" class="flex-grow flex flex-col"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- R1 SET C -->
+        <section id="tab-quest10c" class="tab-pane">
+            <div class="split-grid">
+                <div class="passage-panel custom-scroll">
+                    <div id="quest10c-passage" class="passage-content"></div>
+                </div>
+                <div class="question-panel custom-scroll" style="border-color: #fbbf24;">
+                    <div id="Quest10c-container" class="flex-grow flex flex-col"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- R2 SET A -->
+        <section id="tab-quest20" class="tab-pane">
+            <div class="split-grid">
+                <div class="passage-panel custom-scroll">
+                    <div id="quest20-passage" class="passage-content"></div>
+                </div>
+                <div class="question-panel custom-scroll" style="border-color: #34d399;">
+                    <div id="Quest20-container" class="flex-grow flex flex-col"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- R2 SET B -->
+        <section id="tab-quest20b" class="tab-pane">
+            <div class="split-grid">
+                <div class="passage-panel custom-scroll">
+                    <div id="quest20b-passage" class="passage-content"></div>
+                </div>
+                <div class="question-panel custom-scroll" style="border-color: #fb7185;">
+                    <div id="Quest20b-container" class="flex-grow flex flex-col"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- R2 SET C -->
+        <section id="tab-quest20c" class="tab-pane">
+            <div class="split-grid">
+                <div class="passage-panel custom-scroll">
+                    <div id="quest20c-passage" class="passage-content"></div>
+                </div>
+                <div class="question-panel custom-scroll" style="border-color: #a78bfa;">
+                    <div id="Quest20c-container" class="flex-grow flex flex-col"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- R3 SET A -->
+        <section id="tab-quest30" class="tab-pane">
+            <div class="split-grid">
+                <div class="passage-panel custom-scroll">
+                    <div id="quest30-passage" class="passage-content"></div>
+                </div>
+                <div class="question-panel custom-scroll" style="border-color: #f472b6;">
+                    <div id="Quest30-container" class="flex-grow flex flex-col"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- R3 SET B -->
+        <section id="tab-quest30b" class="tab-pane">
+            <div class="split-grid">
+                <div class="passage-panel custom-scroll">
+                    <div id="quest30b-passage" class="passage-content"></div>
+                </div>
+                <div class="question-panel custom-scroll" style="border-color: #c084fc;">
+                    <div id="Quest30b-container" class="flex-grow flex flex-col"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- R3 SET C -->
+        <section id="tab-quest30c" class="tab-pane">
+            <div class="split-grid">
+                <div class="passage-panel custom-scroll">
+                    <div id="quest30c-passage" class="passage-content"></div>
+                </div>
+                <div class="question-panel custom-scroll" style="border-color: #38bdf8;">
+                    <div id="Quest30c-container" class="flex-grow flex flex-col"></div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        /* ==========================================================
+           1. AUDIO & PARTICLE FX (100% Offline)
+           ========================================================== */
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playTone(type) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const now = audioCtx.currentTime;
+
+            if (type === 'correct') {
+                [523.25, 659.25, 783.99, 1046.50].forEach((f, i) => {
+                    const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+                    o.type = 'triangle';
+                    o.frequency.setValueAtTime(f, now + i * 0.075);
+                    g.gain.setValueAtTime(0.15, now + i * 0.075);
+                    g.gain.exponentialRampToValueAtTime(0.001, now + i * 0.075 + 0.35);
+                    o.connect(g); g.connect(audioCtx.destination);
+                    o.start(now + i * 0.075); o.stop(now + i * 0.075 + 0.35);
+                });
+            } else if (type === 'wrong') {
+                const osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(185, now);
+                osc.frequency.exponentialRampToValueAtTime(110, now + 0.25);
+                gain.gain.setValueAtTime(0.12, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.start(now); osc.stop(now + 0.25);
+            } else if (type === 'tick') {
+                const osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(820, now);
+                gain.gain.setValueAtTime(0.04, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.start(now); osc.stop(now + 0.04);
+            }
+        }
+
+        const fxCanvas = document.getElementById('fx-canvas');
+        const fxCtx = fxCanvas.getContext('2d');
+        let particles = [], fxAnimId = null;
+
+        function resizeFxCanvas() { fxCanvas.width = window.innerWidth; fxCanvas.height = window.innerHeight; }
+        window.addEventListener('resize', resizeFxCanvas);
+
+        function triggerFX() {
+            resizeFxCanvas();
+            particles = [];
+            const colors = ['#38bdf8', '#34d399', '#fbbf24', '#fb7185', '#818cf8'];
+
+            for (let i = 0; i < 70; i++) {
+                particles.push({
+                    x: Math.random() * fxCanvas.width,
+                    y: Math.random() * fxCanvas.height * 0.4 - fxCanvas.height * 0.2,
+                    vx: (Math.random() - 0.5) * 4,
+                    vy: Math.random() * 4 + 3,
+                    size: Math.random() * 12 + 6,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    rot: Math.random() * 360,
+                    rotSpeed: (Math.random() - 0.5) * 8,
+                    type: 'confetti'
+                });
+            }
+
+            const bursts = [
+                { x: fxCanvas.width * 0.2, y: fxCanvas.height * 0.3 },
+                { x: fxCanvas.width * 0.8, y: fxCanvas.height * 0.3 },
+                { x: fxCanvas.width * 0.5, y: fxCanvas.height * 0.2 }
+            ];
+
+            bursts.forEach(b => {
+                for (let i = 0; i < 40; i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const spd = Math.random() * 8 + 3;
+                    particles.push({
+                        x: b.x, y: b.y,
+                        vx: Math.cos(angle) * spd, vy: Math.sin(angle) * spd,
+                        size: Math.random() * 4 + 3,
+                        color: colors[Math.floor(Math.random() * colors.length)],
+                        alpha: 1, decay: Math.random() * 0.02 + 0.015,
+                        type: 'firework'
+                    });
+                }
+            });
+
+            if (!fxAnimId) animateFX();
+        }
+
+        function animateFX() {
+            fxCtx.clearRect(0, 0, fxCanvas.width, fxCanvas.height);
+            let active = false;
+
+            particles.forEach(p => {
+                if (p.type === 'confetti') {
+                    p.x += p.vx; p.y += p.vy; p.rot += p.rotSpeed;
+                    fxCtx.save();
+                    fxCtx.translate(p.x, p.y); fxCtx.rotate((p.rot * Math.PI) / 180);
+                    fxCtx.fillStyle = p.color; fxCtx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+                    fxCtx.restore();
+                    if (p.y < fxCanvas.height) active = true;
+                } else if (p.type === 'firework') {
+                    p.x += p.vx; p.y += p.vy; p.vy += 0.05; p.alpha -= p.decay;
+                    if (p.alpha > 0) {
+                        active = true;
+                        fxCtx.save();
+                        fxCtx.globalAlpha = Math.max(0, p.alpha);
+                        fxCtx.fillStyle = p.color;
+                        fxCtx.beginPath(); fxCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2); fxCtx.fill();
+                        fxCtx.restore();
+                    }
+                }
+            });
+
+            if (active) fxAnimId = requestAnimationFrame(animateFX);
+            else { fxCtx.clearRect(0, 0, fxCanvas.width, fxCanvas.height); fxAnimId = null; }
+        }
+
+        /* ==========================================================
+           2. GAMIFICATION & STUDENT PICKER (WITH ALL NAMES)
+           ========================================================== */
+        let state = { points: 0, streak: 0, solved: {}, pickerInterval: null, timeLeft: 60 };
+
+        const studentNames = [
+            "Elsa", "Lily", "Florence", "Yao", "Miya", "Nadiia", "Amara", "Hitomi", 
+            "Alice", "Karina", "Winnie", "Bella", "Sonia", "Albee", "Abby", "Martin", 
+            "Noah", "Eric", "Eden", "Dominic", "Austin", "Charles", "Hoho", "Anders", 
+            "Jimmy", "Ming", "Jason", "Brendan", "Charlie", "Sky", "Ryan", "Ian", "Biscuit"
+        ];
+
+        function addPoints(pts) {
+            state.points += pts; state.streak++;
+            document.getElementById('pts-val').innerText = state.points;
+            document.getElementById('streak-val').innerText = state.streak + 'x';
+        }
+
+        function resetStreak() {
+            state.streak = 0;
+            document.getElementById('streak-val').innerText = '0x';
+        }
+
+        function pickRandomStudent() {
+            clearInterval(state.pickerInterval);
+            const badgeNum = document.getElementById('student-num');
+            const fb = document.getElementById('picker-feedback');
+            fb.classList.add('hidden');
+
+            let cycles = 0;
+            const cycleInterval = setInterval(() => {
+                badgeNum.innerText = studentNames[Math.floor(Math.random() * studentNames.length)];
+                playTone('tick');
+                cycles++;
+                if (cycles > 15) {
+                    clearInterval(cycleInterval);
+                    const finalStudent = studentNames[Math.floor(Math.random() * studentNames.length)];
+                    badgeNum.innerText = finalStudent;
+                    state.currentStudent = finalStudent;
+                    startPickerTimer();
+                }
+            }, 60);
+        }
+
+        function startPickerTimer() {
+            state.timeLeft = 60;
+            const timerEl = document.getElementById('picker-timer-val');
+            timerEl.innerText = state.timeLeft + 's';
+
+            state.pickerInterval = setInterval(() => {
+                state.timeLeft--;
+                timerEl.innerText = state.timeLeft + 's';
+                if (state.timeLeft <= 10 && state.timeLeft > 0) playTone('tick');
+                if (state.timeLeft <= 0) { clearInterval(state.pickerInterval); timerEl.innerText = 'Time!'; }
+            }, 1000);
+        }
+
+        function triggerCorrectCelebration() {
+            clearInterval(state.pickerInterval);
+            triggerFX(); playTone('correct'); addPoints(100);
+            const fb = document.getElementById('picker-feedback');
+            fb.classList.remove('hidden');
+            fb.className = "fixed top-24 left-1/2 transform -translate-x-1/2 z-50 px-6 py-3 rounded-2xl text-xl font-black text-center shadow-2xl border-4 bg-emerald-100 border-emerald-400 text-emerald-900 block animate-pop";
+            fb.innerHTML = `<strong>🌟 Brilliant, ${state.currentStudent || "Detective"}! (+100 Pts)</strong>`;
+            setTimeout(() => fb.classList.add('hidden'), 3000);
+        }
+
+        function triggerPeerAssist() {
+            const fb = document.getElementById('picker-feedback');
+            fb.classList.remove('hidden');
+            fb.className = "fixed top-24 left-1/2 transform -translate-x-1/2 z-50 px-6 py-3 rounded-2xl text-lg font-black text-center shadow-2xl border-4 bg-amber-100 border-amber-400 text-amber-900 block animate-pop";
+            fb.innerHTML = `<strong>💡 Peer Assist:</strong> ${state.currentStudent || "Student"} invites a partner to help!`;
+            setTimeout(() => fb.classList.add('hidden'), 3000);
+        }
+
+        /* ==========================================================
+           3. COMPLETE DATA ARRAYS (ALL 9 SETS FULLY RESTORED)
+           ========================================================== */
+        
+        // --- 1. R1 SET A: Summer Cultural Tours (10 Construct Qs + 6 Mock Paper 1 Qs = 16 Qs) ---
+        const quest10Data = [
+            { id: "r1q1", tag: "Skill 1: Synonym Recognition", stem: "Q1. In the French Food Tour notice, which multi-word expression means 'a complete multi-dish evening meal'?", correct: "C", options: [{letter:"A", text:"dessert cooking course", msg:"Incorrect. That is a cooking class, not a meal."}, {letter:"B", text:"world-class restaurant", msg:"Incorrect. That is the venue/place."}, {letter:"C", text:"full-course dinner", msg:"Exact match! 'Full-course dinner' means a complete multi-dish evening meal."}, {letter:"D", text:"French Food Tour", msg:"Incorrect. That is the overall program title."}], hint:"Look in the French Food Tour box for words describing a big meal at night." },
+            { id: "r1q2", tag: "Skill 2: Pronoun Reference", stem: "Q2. In the Italian Art Tour notice ('Remember to bring your own art supplies...'), who does 'your' refer to?", correct: "D", options: [{letter:"A", text:"Art teachers in Rome", msg:"Incorrect. Teachers are not the readers of this notice."}, {letter:"B", text:"Tour guides", msg:"Incorrect. Tour guides lead the trip."}, {letter:"C", text:"Famous painters", msg:"Incorrect. Famous paintings are viewed in galleries."}, {letter:"D", text:"P.6 student participants", msg:"Correct! 'Your' refers to the P.6 students reading the notice and joining the tour."}], hint:"Look at the main title of the notices: Who are these tours for?" },
+            { id: "r1q3", tag: "Skill 3: Scanning for Details", stem: "Q3. What specific item are participants required to bring by themselves on the Italian Art Tour?", correct: "B", options: [{letter:"A", text:"Classical music books", msg:"Incorrect. Music relates to the Austrian Tour."}, {letter:"B", text:"Art supplies and a camera", msg:"Direct detail match! Text states: 'Remember to bring your own art supplies and your camera.'"}, {letter:"C", text:"Movie costumes", msg:"Incorrect. Costumes relate to the American Movie Tour."}, {letter:"D", text:"Chef hats", msg:"Incorrect. Cooking relates to the French Food Tour."}], hint:"Scan the Italian Art Tour notice for the word 'Remember'." },
+            { id: "r1q4", tag: "Skill 4: Multi-Item Extraction", stem: "Q4. Alex needs a tour satisfying ALL 3 conditions: (1) Fee < $5,000, (2) Starts after 15th August, (3) NO society membership required. Which fits?", correct: "D", options: [{letter:"A", text:"Austrian Music Tour", msg:"Fails date (6th-10th Aug) and fee ($7,000)."}, {letter:"B", text:"American Movie Tour", msg:"Fails society rule (Film Society members only) and fee ($5,200)."}, {letter:"C", text:"French Food Tour", msg:"Fails date (3rd-8th Aug) and fee ($6,500)."}, {letter:"D", text:"Italian Art Tour", msg:"3/3 Matches! Fee is $4,800 (< $5,000), runs 20th-25th Aug, and has no club restriction."}], hint:"Check the Date, Fee, and Remarks of each tour against Alex's 3 rules." },
+            { id: "r1q5", tag: "Skill 5: Vocabulary in Context", stem: "Q5. Fill in the blank with the exact word from the text: 'Members of the school choir receive a $500 __________ off the tour price.'", correct: "C", options: [{letter:"A", text:"workshop", msg:"Incorrect. Workshop is a class in July."}, {letter:"B", text:"performance", msg:"Incorrect. Performance is at the Vienna Opera House."}, {letter:"C", text:"discount", msg:"Exact word from text! '$500 discount for School Choir members'."}, {letter:"D", text:"tasting", msg:"Incorrect. Tasting is in the French Food Tour."}], hint:"Look next to '$500' in the Austrian Music Tour Fee line." },
+            { id: "r1q6", tag: "Skill 6: Writer's Purpose & Inference", stem: "Q6. Why did the organizers state 'Film Society members only' in the American Movie Tour remarks?", correct: "B", options: [{letter:"A", text:"To encourage all P.6 students to watch movies at home.", msg:"Incorrect. It is about tour eligibility."}, {letter:"B", text:"To restrict places to students with a demonstrated interest in film studies.", msg:"Logical inference! It reserves spots for Film Society members."}, {letter:"C", text:"To give a $500 discount to non-members.", msg:"Incorrect. Non-members cannot join at all."}, {letter:"D", text:"Because Hollywood colleges do not allow students.", msg:"Contradicts the text: participants attend a course at a community college in Hollywood."}], hint:"Think about why a school club tour restricts who can sign up." },
+            { id: "r1q7", tag: "Skill 7: Abstract Concept Matching", stem: "Q7. Match the abstract concept 'Financial Concession' to its concrete word used in the notices.", correct: "C", options: [{letter:"A", text:"Full-course", msg:"Describes a meal, not money."}, {letter:"B", text:"Outstanding", msg:"Describes results, not money."}, {letter:"C", text:"Discount", msg:"Exact match! A discount is a financial concession / price reduction."}, {letter:"D", text:"Unique", msg:"Describes postcards, not money."}], hint:"Which word in the Austrian Music Tour relates to saving money?" },
+            { id: "r1q8", tag: "Skill 8: Information Transfer", stem: "Q8. Complete the note card: 'French Food Tour -> Main Meal Highlight: A full-course __________ at a world-class restaurant.'", correct: "B", options: [{letter:"A", text:"lunch", msg:"Incorrect. The text does not say lunch."}, {letter:"B", text:"dinner", msg:"Exact text transfer! 'enjoy a full-course dinner at a world-class restaurant'."}, {letter:"C", text:"breakfast", msg:"Incorrect. Not mentioned in the text."}, {letter:"D", text:"snack", msg:"Incorrect. It is a full-course dinner."}], hint:"Find the phrase 'full-course' in the French Food Tour box." },
+            { id: "r1q9", tag: "Skill 9: Definition Matching", stem: "Q9. Which word in the American Movie Tour matches: 'Portable objects used by actors on the set of a play or movie'?", correct: "C", options: [{letter:"A", text:"Costumes", msg:"Costumes are clothes worn by actors, not objects held/used on set."}, {letter:"B", text:"Scripts", msg:"Scripts are the written stories/dialogues."}, {letter:"C", text:"Props", msg:"Exact definition match! 'make costumes and props that people use in plays and movies'."}, {letter:"D", text:"Scenes", msg:"Scenes are parts of a movie or backstage areas."}], hint:"Look at the sentence about what theatre workers will show you how to make." },
+            { id: "r1q10", tag: "Skill 10: True / False / Not Given", stem: "Q10. Evaluate this statement: 'The Italian Art Tour workshop is taught by a famous painter from Rome.'", correct: "C", options: [{letter:"A", text:"TRUE", msg:"Incorrect. The text mentions a famous chef in Paris, not a famous painter in Rome."}, {letter:"B", text:"FALSE", msg:"Incorrect. The text does not say who teaches the Rome workshop."}, {letter:"C", text:"NOT GIVEN", msg:"Correct! The notice mentions an outdoor painting workshop in Rome, but never states who teaches it."}], hint:"Does the Italian Art Tour box mention who teaches the outdoor workshop?" },
+            { id: "q17", tag: "Mock Paper 1: Q17 (Analysing)", stem: "Q17. Which of the following is TRUE about the Austrian Music Tour?", correct: "B", options: [{letter:"A", text:"The tour will last for four days.", msg:"Trap! 6th to 10th August is 5 days (6, 7, 8, 9, 10), not 4 days."}, {letter:"B", text:"Participants will learn the history of classical music.", msg:"Correct! Text states: 'know more about how classical music was created'."}, {letter:"C", text:"Participants will learn about opera manners in Vienna.", msg:"Trap! The opera manners workshop is held in July before the August trip."}, {letter:"D", text:"School Choir members need to pay $7,500 for the tour.", msg:"Trap! Discount means subtraction: $7,000 - $500 = $6,500."}], hint:"Test every option carefully against the Austrian Music Tour box." },
+            { id: "q18", tag: "Mock Paper 1: Q18 (Extracting Detail)", stem: "Q18. In the American Movie Tour, ____________.", correct: "A", options: [{letter:"A", text:"participants will make props", msg:"Correct! Text states: 'Theatre workers will show you how to make costumes and props'."}, {letter:"B", text:"participants will practise magic in a theatre", msg:"Trap! 'see where the magic happens' is an idiom for movie-making."}, {letter:"C", text:"a discount will be given to Film Society members", msg:"Trap! Membership is required to join, no discount is mentioned."}, {letter:"D", text:"tutors of a community college will teach costume making", msg:"Trap! Theatre workers teach costume making; the college is for script writing."}], hint:"Who teaches what in the American Movie Tour?" },
+            { id: "q19", tag: "Mock Paper 1: Q19 (Extracting Detail)", stem: "Q19. In the French Food Tour, all participants will ____________.", correct: "B", options: [{letter:"A", text:"have an outstanding result", msg:"Trap! Only 'Those participants who have outstanding results' get the extra tasting."}, {letter:"B", text:"eat a meal in a world-class restaurant", msg:"Correct! 'You will get to enjoy a full-course dinner at a world-class restaurant.'"}, {letter:"C", text:"take part in a cooking course as a chef", msg:"Trap! It is taught BY a famous chef; students are participants."}, {letter:"D", text:"taste new desserts in a world-class restaurant", msg:"Trap! Only participants with outstanding results are invited to the dessert tasting."}], hint:"Pay attention to the word 'ALL' in the question stem!" },
+            { id: "q20", tag: "Mock Paper 1: Q20 (Making Inferences)", stem: "Q20. What will participants need to do before going to Rome?", correct: "D", options: [{letter:"A", text:"visit a gallery", msg:"They do this ON the tour in Rome."}, {letter:"B", text:"write a postcard", msg:"They create postcards DURING the workshop in Rome."}, {letter:"C", text:"take photographs", msg:"They do this DURING the workshop in Rome."}, {letter:"D", text:"pack art supplies", msg:"Correct! 'Remember to bring your own art supplies and your camera' means packing them before leaving."}], hint:"What must you prepare BEFORE you travel to Italy?" },
+            { id: "q21", tag: "Mock Paper 1: Q21 (Constraint Matching)", stem: "Q21. Wilson's friend Joey is not free before 10th August. She is not a member of any school society. Which tour can she join?", correct: "D", options: [{letter:"A", text:"Austrian Music Tour", msg:"Runs 6th-10th Aug (Joey is not free before 10th Aug)."}, {letter:"B", text:"American Movie Tour", msg:"Runs 17th-21st Aug, but requires Film Society membership."}, {letter:"C", text:"French Food Tour", msg:"Runs 3rd-8th Aug (Joey is not free)."}, {letter:"D", text:"Italian Art Tour", msg:"Correct! Runs 20th-25th August and requires no society membership."}], hint:"Eliminate tours before 10th August, then check society rules." },
+            { id: "q22", tag: "Mock Paper 1: Q22 (Summary Cloze)", stem: "Q22. Wilson's message: 'Both the American Movie Tour and French Food Tour provide a (i) ________ which lets me learn something new. If I choose the French Food Tour, we need to pay a higher (ii) ________.'", correct: "A", options: [{letter:"A", text:"(i) course  /  (ii) fee", msg:"Correct! Both mention a 'course' (script writing course / cooking course) and French Food has a higher 'fee' ($6,500 vs $5,200)."}, {letter:"B", text:"(i) workshop  /  (ii) price", msg:"Trap! Neither the Movie nor Food tour uses the word 'workshop'."}, {letter:"C", text:"(i) class  /  (ii) money", msg:"Trap! 'a higher money' is grammatically incorrect."}, {letter:"D", text:"(i) dinner  /  (ii) discount", msg:"Trap! Movie tour has no dinner, and neither has a discount."}], hint:"Remember Skill 8: ONE word only per blank, extracted directly from the text!" }
+        ];
+
+        // --- 2. R1 SET B: Winter Adventure Camps (5 Transfer Questions) ---
+        const quest10bData = [
+            { id: "b1q1", tag: "Skill 1: Synonym Recognition", stem: "Q1. In the Hokkaido Ski Camp notice, which phrase means 'winter sports equipment worn on feet'?", correct: "C", options: [{letter:"A", text:"snowy mountains", msg:"That is a natural location."}, {letter:"B", text:"warm hot chocolate", msg:"That is a drink."}, {letter:"C", text:"snowboards and skis", msg:"Correct! Snowboards and skis are winter sports gear."}, {letter:"D", text:"wooden ski lodge", msg:"That is a building."}], hint:"What gear do you need to bring or rent for skiing?" },
+            { id: "b1q2", tag: "Skill 1: Calculating", stem: "Q2. How much does a Sports Club member need to pay for the Hokkaido Ski Camp?", correct: "B", options: [{letter:"A", text:"$8,200", msg:"Trap! That is the full fee before the discount."}, {letter:"B", text:"$7,600", msg:"Correct! $8,200 - $600 discount = $7,600."}, {letter:"C", text:"$8,800", msg:"Trap! Subtract the discount, do not add it."}, {letter:"D", text:"$5,500", msg:"Trap! That is the Taipei Science Camp fee."}], hint:"Calculate: $8,200 minus the $600 Sports Club discount." },
+            { id: "b1q3", tag: "Skill 5: Analysing", stem: "Q3. Which of the following is TRUE about the Harbin Ice Sculpture Tour?", correct: "D", options: [{letter:"A", text:"It lasts for seven days.", msg:"Trap! 22nd to 26th December is 5 days."}, {letter:"B", text:"It is only for Visual Arts Club members.", msg:"Trap! Anyone can join; Arts Club members just get a free carving kit."}, {letter:"C", text:"Participants must bring their own ice blocks.", msg:"Trap! Ice blocks and tools are provided."}, {letter:"D", text:"Participants will watch an evening ice lantern show.", msg:"Correct! Explicitly stated in the Harbin notice."}], hint:"Check the Harbin Ice Sculpture Tour box line by line." },
+            { id: "b1q4", tag: "Skill 6: Constraint Matching", stem: "Q4. Leo is only free AFTER 20th December and has a budget under $6,000. Which camp can he join?", correct: "B", options: [{letter:"A", text:"Hokkaido Ski Camp", msg:"Runs 15th-19th Dec and costs $8,200."}, {letter:"B", text:"Taipei Coding & Robotics Camp", msg:"Correct! Runs 21st-24th Dec (after 20th Dec) and costs $5,500 (< $6,000)."}, {letter:"C", text:"Harbin Ice Sculpture Tour", msg:"Costs $6,400, which is over his $6,000 budget."}, {letter:"D", text:"Singapore Eco-Safari Camp", msg:"Runs 12th-16th Dec (before 20th Dec)."}], hint:"Check both the Dates (after 20th Dec) and the Fee (< $6,000)." },
+            { id: "b1q5", tag: "Skill 6: Making Inferences", stem: "Q5. What must participants prepare before going on the Harbin Ice Sculpture Tour?", correct: "A", options: [{letter:"A", text:"Pack thermal gloves and a thick down jacket", msg:"Correct! The remarks state 'Remember to bring your own thermal gloves and thick down jacket'."}, {letter:"B", text:"Buy carving chisels", msg:"Tools are provided on-site."}, {letter:"C", text:"Pass a skiing test", msg:"That is for the Hokkaido camp."}, {letter:"D", text:"Bring a laptop computer", msg:"That is for the Taipei Coding camp."}], hint:"Look at the 'Remarks' line in the Harbin Ice Sculpture Tour." }
+        ];
+
+        // --- 3. R1 SET C: P.6 STEM & Innovation Summer Camps (Mock Paper 2: Q17–Q22) ---
+        const quest10cData = [
+            { id: "c1q17", tag: "Skill 5: Analysing", stem: "Q17. Which of the following is TRUE about the Environmental Green Tech Camp?", correct: "C", options: [{letter:"A", text:"The camp lasts for five days.", msg:"Trap! Aug 12th–15th is 4 days (12, 13, 14, 15)."}, {letter:"B", text:"Participants must bring their own solar panels.", msg:"Trap! Remarks state all building materials are provided free on-site."}, {letter:"C", text:"Participants will build and race a mini solar car.", msg:"Correct! 'construct a mini solar car and test it in a race'."}, {letter:"D", text:"Only Science Club members can join.", msg:"Trap! Text states 'Open to all P.6 students'."}], hint:"Read the Environmental Green Tech Camp box carefully." },
+            { id: "c1q18", tag: "Skill 6: Extracting Detail", stem: "Q18. In the Robotics & AI Academy, participants will ____________.", correct: "B", options: [{letter:"A", text:"build rockets", msg:"Trap! That is in the Aero-Space Rocketry Camp."}, {letter:"B", text:"receive free daily lunches at a university cafeteria", msg:"Correct! Text states: 'Enjoy a full-course lunch at the campus cafeteria daily.'"}, {letter:"C", text:"test solar cars", msg:"Trap! That is in the Green Tech Camp."}, {letter:"D", text:"collect ocean water samples", msg:"Trap! That is in the Marine Bio-Explorer Expedition."}], hint:"Scan the Robotics & AI Academy description." },
+            { id: "c1q19", tag: "Skill 6: Making Inferences", stem: "Q19. What must participants do before joining the Marine Bio-Explorer Expedition?", correct: "B", options: [{letter:"A", text:"Purchase a microscope", msg:"Trap! Microscopes are provided for studying sea creatures."}, {letter:"B", text:"Pack waterproof boots and a camera", msg:"Correct! 'Remember to bring your own waterproof boots and camera.'"}, {letter:"C", text:"Win a photography competition", msg:"Trap! They create underwater photography during the camp."}, {letter:"D", text:"Take a swimming exam", msg:"Trap! Not mentioned in the notice."}], hint:"Check the 'Remarks' section of the Marine Bio-Explorer Expedition." },
+            { id: "c1q20", tag: "Skill 5: Constraint Matching", stem: "Q20. Wilson's friend Sarah is free AFTER 10th August. She is NOT a member of any school club and has a budget under $5,000. Which camp can she join?", correct: "C", options: [{letter:"A", text:"Aero-Space Rocketry Camp", msg:"Fails date (4th-8th Aug), club rule (Science Club only), and budget ($6,800)."}, {letter:"B", text:"Robotics & AI Academy", msg:"Fails date (2nd-6th Aug) and budget ($8,000)."}, {letter:"C", text:"Environmental Green Tech Camp", msg:"Correct! Runs 12th-15th Aug, open to all P.6 students, and costs $4,500 (< $5,000)."}, {letter:"D", text:"Marine Bio-Explorer Expedition", msg:"Fails budget ($5,200 is over $5,000)."}], hint:"Test Sarah's 3 constraints against all four camps." },
+            { id: "c1q21", tag: "Skill 1: Calculating", stem: "Q21. In the Aero-Space Rocketry Camp, Science Club members need to pay ____________ for the fee.", correct: "B", options: [{letter:"A", text:"$6,800", msg:"Trap! That is the fee before subtracting the $400 discount."}, {letter:"B", text:"$6,400", msg:"Correct! $6,800 - $400 discount = $6,400."}, {letter:"C", text:"$7,200", msg:"Trap! You added $400 instead of subtracting it."}, {letter:"D", text:"$4,500", msg:"Trap! That is the Green Tech Camp fee."}], hint:"Do the subtraction: $6,800 minus $400." },
+            { id: "c1q22", tag: "Skill 8: Summary Cloze", stem: "Q22. Complete Wilson's message (ONE word per blank): 'The Robotics Academy offers a free daily (i) ________ at the campus cafeteria. However, the Marine expedition (ii) ________ is much lower.'", correct: "A", options: [{letter:"A", text:"(i) lunch  /  (ii) fee", msg:"Correct! 'full-course lunch' and 'Fee: $5,200' (lower than $8,000)."}, {letter:"B", text:"(i) meal  /  (ii) price", msg:"Trap! The exact words in the notices are 'lunch' and 'fee'."}, {letter:"C", text:"(i) food  /  (ii) discount", msg:"Trap! Marine expedition has no discount."}, {letter:"D", text:"(i) certificate  /  (ii) cost", msg:"Trap! You don't eat a certificate at a cafeteria!"}], hint:"Find the exact single words used in the Robotics and Marine notices." }
+        ];
+
+        // --- 4. R2 SET A: The History of Paper Lanterns (10 Construct Qs + 6 Mock Paper 1 Qs = 16 Qs) ---
+        const quest20Data = [
+            { id: "r2q1", tag: "Skill 1: Synonym Recognition", stem: "Q1. In Paragraph (ii), which phrase means 'making an income by doing a job'?", correct: "B", options: [{letter:"A", text:"learnt how to make", msg:"Incorrect. That refers to learning a skill from his father."}, {letter:"B", text:"for a living", msg:"Exact Match! 'Li makes and sells paper lanterns for a living' means earning money as his job."}, {letter:"C", text:"ran while pulling", msg:"Incorrect. That describes how he played with the rabbit lantern."}, {letter:"D", text:"not the same", msg:"Incorrect. That shows contrast."}], hint:"Look at the last sentence of Paragraph (ii)." },
+            { id: "r2q2", tag: "Skill 2: Pronoun Reference", stem: "Q2. In Paragraph (ii), what does the pronoun 'it' refer to in 'adding four wheels to it'?", correct: "C", options: [{letter:"A", text:"Shanghai", msg:"Incorrect. Shanghai is a city."}, {letter:"B", text:"his father", msg:"Incorrect. His father is a person."}, {letter:"C", text:"the unusual rabbit paper lantern", msg:"Correct! His father made him an unusual rabbit paper lantern and modified 'it' by adding four wheels."}, {letter:"D", text:"a living", msg:"Incorrect. A living means a job/income."}], hint:"Read the sentence right before 'adding four wheels to it'." },
+            { id: "r2q3", tag: "Skill 3: Scanning for Details", stem: "Q3. What natural materials were used to construct paper lanterns during the Han Dynasty?", correct: "B", options: [{letter:"A", text:"Plastic and little light bulbs", msg:"Trap! Those are used in modern factory lanterns (Paragraph iii)."}, {letter:"B", text:"Rice paper and bamboo", msg:"Direct match! Paragraph (i) states: 'They made paper lanterns with rice paper and bamboo'."}, {letter:"C", text:"Silk and metal wire", msg:"Incorrect. Not mentioned in the article."}, {letter:"D", text:"Glass and wood", msg:"Incorrect. Not mentioned in the article."}], hint:"Scan Paragraph (i) for what people made lanterns with." },
+            { id: "r2q4", tag: "Skill 4: Multi-Item Extraction", stem: "Q4. Which country's lantern festival meets ALL 3 criteria: (1) Takes place in November, (2) Involves rivers and lakes, (3) Sends wishes and blessings?", correct: "D", options: [{letter:"A", text:"China", msg:"Takes place at Chinese New Year and involves solving riddles."}, {letter:"B", text:"The Philippines", msg:"Takes place two weeks before Christmas and involves giant lanterns."}, {letter:"C", text:"Vietnam", msg:"Takes place in Hoi An where city lights turn off at 8 p.m."}, {letter:"D", text:"Thailand", msg:"3/3 Matches! Every November in Thailand, floating lanterns on rivers/lakes to make wishes and send blessings."}], hint:"Check the last three sentences of Paragraph (iv)." },
+            { id: "r2q5", tag: "Skill 5: Vocabulary in Context", stem: "Q5. Complete the sentence using the exact word from Paragraph (ii): 'The skilled __________ created a beautiful handmade lantern for the festival.'", correct: "A", options: [{letter:"A", text:"craftsman", msg:"Exact noun from Paragraph (ii)! 'Li Jianguo is a paper lantern craftsman'."}, {letter:"B", text:"riddle", msg:"Incorrect. A riddle is a word puzzle."}, {letter:"C", text:"symbol", msg:"Incorrect. A symbol is an emblem."}, {letter:"D", text:"dynasty", msg:"Incorrect. A dynasty is a historical period."}], hint:"Look at the first sentence of Paragraph (ii) describing Li Jianguo's job." },
+            { id: "r2q6", tag: "Skill 6: Inference & Purpose", stem: "Q6. Why did Li Jianguo's father add four wheels to the rabbit lantern when Li was a boy?", correct: "B", options: [{letter:"A", text:"To make it float on rivers and lakes.", msg:"Incorrect. Floating lanterns are in Thailand."}, {letter:"B", text:"So young Li could pull it along behind him like a toy while running.", msg:"Logical inference! 'modified it by adding four wheels to it. Li would run while pulling the rabbit lantern behind him.'"}, {letter:"C", text:"To win the Giant Lantern Festival competition.", msg:"Incorrect. That is in the Philippines."}, {letter:"D", text:"Because candles were too heavy to carry.", msg:"Incorrect. Not supported by the text."}], hint:"What did young Li do with the rabbit lantern right after his father added wheels?" },
+            { id: "r2q7", tag: "Skill 7: Abstract Concept Matching", stem: "Q7. Match the abstract concept 'Cultural Emblems of Well-being' to its exact phrase in Paragraph (iii).", correct: "B", options: [{letter:"A", text:"cartoon character lantern", msg:"Refers to modern plastic lanterns."}, {letter:"B", text:"symbols of luck and health", msg:"Exact match! 'Animals that are symbols of luck and health such as rabbits, dragons and goldfish'."}, {letter:"C", text:"made in factories", msg:"Refers to mass production."}, {letter:"D", text:"starfruit", msg:"Refers to a fruit shape."}], hint:"Look in Paragraph (iii) for why rabbits, dragons, and goldfish are chosen." },
+            { id: "r2q8", tag: "Skill 8: Information Transfer", stem: "Q8. Complete the note card using ONE word from Paragraph (iv): 'Hoi An Festival (Vietnam): All city lights are turned off at 8 p.m. Streets are lit up only by __________.'", correct: "A", options: [{letter:"A", text:"lanterns", msg:"Exact word transfer! 'The streets are lit up only by lanterns.'"}, {letter:"B", text:"candles", msg:"Trap! The exact word in Paragraph (iv) is 'lanterns'."}, {letter:"C", text:"fireflies", msg:"Trap! Fireflies are in Paragraph (i)."}, {letter:"D", text:"riddles", msg:"Trap! Riddles are written on paper in China."}], hint:"Scan Paragraph (iv) for the sentence about Vietnam." },
+            { id: "r2q9", tag: "Skill 9: Definition Matching", stem: "Q9. Which word in Paragraph (iv) matches: 'Puzzling questions or word games written on paper for people to solve'?", correct: "B", options: [{letter:"A", text:"Blessings", msg:"Blessings are good wishes."}, {letter:"B", text:"Riddles", msg:"Exact match! 'tie pieces of paper with riddles written on them... gather to solve the riddles.'"}, {letter:"C", text:"Villages", msg:"Villages are small towns."}, {letter:"D", text:"Dynasty", msg:"Dynasty is a ruling family era."}], hint:"What do people in China tie to paper lanterns and gather to solve?" },
+            { id: "r2q10", tag: "Skill 10: True / False / Not Given", stem: "Q10. Evaluate this statement: 'Li Jianguo won first prize in the Shanghai Lantern Making Competition in 2022.'", correct: "C", options: [{letter:"A", text:"TRUE", msg:"Incorrect. No Shanghai competition is mentioned."}, {letter:"B", text:"FALSE", msg:"Incorrect. The text does not say he lost or never entered."}, {letter:"C", text:"NOT GIVEN", msg:"Correct! Paragraph (ii) says Li lives in Shanghai and makes lanterns for a living, but competition prizes are never mentioned."}], hint:"Check Paragraph (ii): Does it mention any competition in Shanghai?" },
+            { id: "q23", tag: "Mock Paper 1: Q23 (Analysing)", stem: "Q23. Which of the following is TRUE according to paragraph (i)?", correct: "B", options: [{letter:"A", text:"Paper lanterns were invented in autumn.", msg:"Trap! People play with them during Mid-Autumn Festival, but it doesn't say they were invented in autumn."}, {letter:"B", text:"Bamboo was needed to make paper lanterns.", msg:"Correct! 'They made paper lanterns with rice paper and bamboo'."}, {letter:"C", text:"People during the Han Dynasty played with lanterns.", msg:"Trap! 'At that time, people used lanterns for lighting' (not for playing)."}, {letter:"D", text:"People during the Han Dynasty were good at catching fireflies.", msg:"Trap! Some people put fireflies in them, but it never says they were good at catching them."}], hint:"Check every detail in Paragraph (i) against the 4 choices." },
+            { id: "q24", tag: "Mock Paper 1: Q24 (Guessing Meaning)", stem: "Q24. What does 'modified' mean in paragraph (ii)?", correct: "D", options: [{letter:"A", text:"made", msg:"Incorrect. He already 'made' it in the previous sentence."}, {letter:"B", text:"sold", msg:"Incorrect. He did not sell his son's toy lantern."}, {letter:"C", text:"learnt", msg:"Incorrect. Does not fit 'by adding four wheels'."}, {letter:"D", text:"changed", msg:"Correct! 'It was not the same as other lanterns because he modified [changed] it by adding four wheels to it.'"}], hint:"If you add four wheels to a normal lantern so it is 'not the same', what have you done to it?" },
+            { id: "q25", tag: "Mock Paper 1: Q25 (Visualising / Analysing)", stem: "Q25. According to paragraph (iii), which is NOT a traditional paper lantern?", correct: "C", options: [{letter:"A", text:"Starfruit paper lantern", msg:"Traditional ('round or shaped like a starfruit')."}, {letter:"B", text:"Round paper lantern", msg:"Traditional ('Traditionally, the paper lanterns are round')."}, {letter:"C", text:"Plastic airplane cartoon lantern with wheels", msg:"Correct! Paragraph (iii) states modern factory lanterns are made of plastic with light bulbs."}, {letter:"D", text:"Goldfish paper lantern", msg:"Traditional ('rabbits, dragons and goldfish are also some classic designs')."}], hint:"Look for the modern factory-made lantern in Paragraph (iii)." },
+            { id: "q26", tag: "Mock Paper 1: Q26 (Analysing)", stem: "Q26. Which is TRUE about the lantern festivals in different countries?", correct: "A", options: [{letter:"A", text:"In the Philippines, the lanterns are huge.", msg:"Correct! They celebrate a 'Giant Lantern Festival' and compete to make the 'biggest lantern'."}, {letter:"B", text:"In Vietnam, the lanterns are lit all day long.", msg:"Trap! City lights turn off at 8 p.m. in the evening, not all day long."}, {letter:"C", text:"In Thailand, people sink lanterns into the lakes.", msg:"Trap! They put 'floating lanterns on the water', not sink them."}, {letter:"D", text:"In China, people guess the riddles on the paper lanterns every two years.", msg:"Trap! It happens 'every Chinese New Year' (every year)."}], hint:"Compare each country in Paragraph (iv) carefully." },
+            { id: "q27", tag: "Mock Paper 1: Q27 (Main Idea / Purpose)", stem: "Q27. What is the main purpose of the article?", correct: "A", options: [{letter:"A", text:"to present facts about paper lanterns", msg:"Correct! The article covers history, a craftsman, designs, and global festivals."}, {letter:"B", text:"to introduce the development of paper lanterns", msg:"Trap! Too narrow (mostly Paragraphs i and iii)."}, {letter:"C", text:"to share a story about a paper lantern maker", msg:"Trap! Only Paragraph (ii) is about Li Jianguo."}, {letter:"D", text:"to ask readers to celebrate lantern-related festivals", msg:"Trap! Paragraph (iv) describes festivals factually; it doesn't persuade readers to celebrate."}], hint:"Which option covers ALL FOUR paragraphs of the article?" },
+            { id: "q28", tag: "Mock Paper 1: Q28 (Matching Headings)", stem: "Q28. Match the headings to Paragraphs (i) to (iv): A. Global Lanterns | B. A Chinese Craft | C. Paper Lantern Designs | D. Growing Up with Paper Lanterns", correct: "B", options: [{letter:"A", text:"(i) A  ->  (ii) D  ->  (iii) C  ->  (iv) B", msg:"Trap! Paragraph (i) is Chinese invention, and (iv) is Global Lanterns."}, {letter:"B", text:"(i) B  ->  (ii) D  ->  (iii) C  ->  (iv) A", msg:"Correct! (i) B: A Chinese Craft, (ii) D: Growing Up with Paper Lanterns, (iii) C: Paper Lantern Designs, (iv) A: Global Lanterns."}, {letter:"C", text:"(i) B  ->  (ii) C  ->  (iii) D  ->  (iv) A", msg:"Trap! Paragraph (ii) is about Li Jianguo growing up; (iii) is about designs."}, {letter:"D", text:"(i) D  ->  (ii) B  ->  (iii) C  ->  (iv) A", msg:"Trap! Check Paragraphs (i) and (ii) again."}], hint:"Find the main idea of each paragraph from (i) to (iv)." }
+        ];
+
+        // --- 5. R2 SET B: The Art of Chinese Silk Fans (5 Transfer Questions) ---
+        const quest20bData = [
+            { id: "b2q1", tag: "Skill 5: Analysing", stem: "Q1. According to Paragraph (i), which of the following is TRUE about ancient silk fans?", correct: "B", options: [{letter:"A", text:"They were first made of plastic and paper.", msg:"Trap! They were made of woven silk stretched over bamboo frames."}, {letter:"B", text:"They were used by royal families during the Zhou Dynasty.", msg:"Correct! Explicitly stated in Paragraph (i)."}, {letter:"C", text:"They were only used in winter.", msg:"Trap! They were used to cool down in summer and in royal ceremonies."}, {letter:"D", text:"They were invented in Europe.", msg:"Trap! They were invented in China."}], hint:"Check the historical facts in Paragraph (i)." },
+            { id: "b2q2", tag: "Skill 4: Guessing Meaning", stem: "Q2. In Paragraph (ii), Master Wang 'preserved' the traditional craft. What does 'preserved' mean?", correct: "C", options: [{letter:"A", text:"destroyed", msg:"Opposite meaning."}, {letter:"B", text:"forgot", msg:"Opposite meaning."}, {letter:"C", text:"kept alive and protected", msg:"Correct! He taught young apprentices so the ancient skill would not disappear."}, {letter:"D", text:"sold cheaply", msg:"Not related to protecting a tradition."}], hint:"He taught young students so the tradition wouldn't be lost." },
+            { id: "b2q3", tag: "Skill 6: Extracting Detail", stem: "Q3. Who taught Master Wang how to paint delicate birds on silk fans?", correct: "B", options: [{letter:"A", text:"A university professor", msg:"Not mentioned."}, {letter:"B", text:"His grandfather in Suzhou", msg:"Correct! Stated in Paragraph (ii)."}, {letter:"C", text:"A factory machine", msg:"He paints them by hand."}, {letter:"D", text:"A tourist from Spain", msg:"Spain is mentioned in Paragraph (iv)."}], hint:"Scan Paragraph (ii) for Master Wang's childhood." },
+            { id: "b2q4", tag: "Skill 5: Analysing", stem: "Q4. Which is NOT a traditional silk fan motif mentioned in Paragraph (iii)?", correct: "D", options: [{letter:"A", text:"Peony flowers", msg:"Traditional symbol of wealth."}, {letter:"B", text:"Cranes", msg:"Traditional symbol of long life."}, {letter:"C", text:"Calligraphy poems", msg:"Traditional scholarly art."}, {letter:"D", text:"Battery-powered plastic blades", msg:"Correct! That is a modern electric mini-fan made in factories."}], hint:"Distinguish traditional hand-painted silk fans from modern factory items." },
+            { id: "b2q5", tag: "Skill 7: Matching Headings", stem: "Q5. Which heading best matches Paragraph (iv) about Japan's dancing fans and Spain's flamenco fans?", correct: "A", options: [{letter:"A", text:"Fans Around the World", msg:"Correct! Paragraph (iv) explores how different countries use fans in cultural dances."}, {letter:"B", text:"How to Cut Bamboo", msg:"Too narrow."}, {letter:"C", text:"Master Wang's Workshop", msg:"Matches Paragraph (ii)."}, {letter:"D", text:"Zhou Dynasty Emperors", msg:"Matches Paragraph (i)."}], hint:"What do Japan and Spain have in common in Paragraph (iv)?" }
+        ];
+
+        // --- 6. R2 SET C: The Legend of Hong Kong's Star Ferry (Mock Paper 2: Q23–Q28) ---
+        const quest20cData = [
+            { id: "c2q23", tag: "Skill 5: Analysing", stem: "Q23. Which of the following is TRUE according to Paragraph (i)?", correct: "C", options: [{letter:"A", text:"The Star Ferry was founded in the 20th century.", msg:"Trap! 1888 is in the 19th century."}, {letter:"B", text:"The first ferry was powered by electricity.", msg:"Trap! It was a 'steam-powered boat'."}, {letter:"C", text:"The original ferry service began in 1888 with one boat.", msg:"Correct! 'In 1888... started the service with a single steam-powered boat called the Mistletoe.'"}, {letter:"D", text:"It took 10 minutes to cross the harbour in 1888.", msg:"Trap! 'At that time, it took over forty minutes to cross the harbour'."}], hint:"Check the facts in Paragraph (i) carefully." },
+            { id: "c2q24", tag: "Skill 4: Guessing Meaning", stem: "Q24. In Paragraph (ii), what does 'unique' mean?", correct: "B", options: [{letter:"A", text:"Common", msg:"Opposite meaning."}, {letter:"B", text:"Special and one-of-a-kind", msg:"Correct! Its famous green-and-white double-ended design is distinctive and one-of-a-kind."}, {letter:"C", text:"Cheap", msg:"Price is not discussed in Paragraph (ii)."}, {letter:"D", text:"Dangerous", msg:"Not supported by the text."}], hint:"The fleet became 'famous' for this distinct green-and-white design." },
+            { id: "c2q25", tag: "Skill 6: Extracting Detail", stem: "Q25. According to Paragraph (ii), why were double-ended hulls used on the ferries?", correct: "B", options: [{letter:"A", text:"To make the boat move faster than MTR trains.", msg:"MTR trains are in Paragraph (iii) and are faster."}, {letter:"B", text:"To allow the ferry to change direction without turning around.", msg:"Correct! 'allowed the ferry to change direction instantly without turning around in the busy water channel.'"}, {letter:"C", text:"To carry more solar panels on top.", msg:"Solar-hybrid engines are in Paragraph (iii)."}, {letter:"D", text:"To catch more ocean breeze.", msg:"Harbour breeze is in Paragraph (iii)."}], hint:"Read the last sentence of Paragraph (ii)." },
+            { id: "c2q26", tag: "Skill 5: Analysing", stem: "Q26. Which statement about modern Star Ferries is TRUE according to Paragraph (iii)?", correct: "C", options: [{letter:"A", text:"All ferries still use 100% diesel fuel.", msg:"Trap! That was 'Traditionally' in the past."}, {letter:"B", text:"MTR trains are slower than the Star Ferry.", msg:"Trap! Text says 'modern cross-harbour MTR trains are much faster'."}, {letter:"C", text:"Some ferries have been upgraded to solar-hybrid engines.", msg:"Correct! 'the company has upgraded its vessels to solar-hybrid engines to reduce ocean air pollution.'"}, {letter:"D", text:"Local residents have stopped taking the ferry.", msg:"Trap! 'many local residents and overseas tourists still prefer taking the ferry'."}], hint:"Check Paragraph (iii) for recent environmental upgrades." },
+            { id: "c2q27", tag: "Skill 6: Author Purpose", stem: "Q27. What is the main purpose of the article?", correct: "B", options: [{letter:"A", text:"To persuade readers to buy a solar boat.", msg:"Not an advertisement to buy boats."}, {letter:"B", text:"To present historical and cultural facts about the Star Ferry.", msg:"Correct! Covers 1888 origins, hull engineering, eco-upgrades, and global cultural status."}, {letter:"C", text:"To compare MTR ticket prices.", msg:"Ticket prices are never mentioned."}, {letter:"D", text:"To advertise a night laser show.", msg:"Symphony of Lights is only one detail in Paragraph (iv)."}], hint:"What does the whole article teach the reader?" },
+            { id: "c2q28", tag: "Skill 7: Matching Headings", stem: "Q28. Match the headings to Paragraphs (i)–(iv): A. Global Fame and Evening Views | B. Modern Upgrades and Harbour Charm | C. Early Origins in 1888 | D. Distinctive Boat Engineering", correct: "C", options: [{letter:"A", text:"(i) A  ->  (ii) B  ->  (iii) C  ->  (iv) D", msg:"Incorrect order. Paragraph (i) is about 1888."}, {letter:"B", text:"(i) C  ->  (ii) B  ->  (iii) D  ->  (iv) A", msg:"Trap! Check Paragraphs (ii) and (iii)."}, {letter:"C", text:"(i) C  ->  (ii) D  ->  (iii) B  ->  (iv) A", msg:"Correct! (i) C: Early Origins in 1888, (ii) D: Distinctive Boat Engineering, (iii) B: Modern Upgrades, (iv) A: Global Fame."}, {letter:"D", text:"(i) D  ->  (ii) C  ->  (iii) B  ->  (iv) A", msg:"Trap! Paragraph (i) is C."}], hint:"Match each paragraph's topic sentence to the right heading." }
+        ];
+
+        // --- 7. R3 SET A: My Happy Memories by Liam Wong (10 Construct Qs + 7 Mock Paper 1 Qs = 17 Qs) ---
+        const quest30Data = [
+            { id: "r3q1", tag: "Skill 1: Synonym Recognition", stem: "Q1. In Paragraph 3, which phrase means 'decorative or high-quality imported paper goods'?", correct: "B", options: [{letter:"A", text:"free pencils", msg:"Incorrect. Those were opening-day gifts in Paragraph 2."}, {letter:"B", text:"fancy stationery", msg:"Exact Match! 'fancy stationery imported from other countries like Germany and Japan'."}, {letter:"C", text:"low price", msg:"Incorrect. That describes affordability."}, {letter:"D", text:"cute stickers", msg:"Incorrect. Stickers were given to cheer students up."}], hint:"Look in Paragraph 3 for what he imported from Germany and Japan." },
+            { id: "r3q2", tag: "Skill 2: Pronoun Reference", stem: "Q2. In Paragraph 3 ('I gave them cute stickers to cheer them up'), who does 'them' refer to?", correct: "C", options: [{letter:"A", text:"Owners of nearby shops", msg:"Incorrect. Shop owners visited in Paragraph 4."}, {letter:"B", text:"Librarians in Sha Tin", msg:"Incorrect. He worked as a librarian in Paragraph 2."}, {letter:"C", text:"Student customers who were in a bad mood", msg:"Correct! 'students loved hanging out here after school... When they were in a bad mood, I gave them cute stickers'."}, {letter:"D", text:"Old ladies in Sha Tin", msg:"Incorrect. That was the store owner in Paragraph 1."}], hint:"Read the two sentences before 'I gave them cute stickers' in Paragraph 3." },
+            { id: "r3q3", tag: "Skill 3: Scanning for Details", stem: "Q3. What extra services did Liam provide in his Tai Po store besides selling stationery?", correct: "B", options: [{letter:"A", text:"Book lending and reading", msg:"Incorrect. That was his previous job as a librarian."}, {letter:"B", text:"Faxing and photocopying services", msg:"Direct match! Paragraph 2 states: 'I also provided faxing and photocopying services.'"}, {letter:"C", text:"Online shopping delivery", msg:"Incorrect. Online shopping hurt his business later in 2019."}, {letter:"D", text:"Scrapbook making classes", msg:"Incorrect. Students gave him a scrapbook in Paragraph 4."}], hint:"Scan the last sentence of Paragraph 2." },
+            { id: "r3q4", tag: "Skill 4: Multi-Item Extraction", stem: "Q4. Which stage of Liam's life meets ALL 3 criteria: (1) Started in 1977, (2) Lasted for four years, (3) Saved up all his salary?", correct: "B", options: [{letter:"A", text:"Primary school boy in Sha Tin", msg:"Happened in the 1960s."}, {letter:"B", text:"Working as a librarian", msg:"3/3 Matches! 'I graduated from secondary school in 1977. After that, I worked as a librarian for four years and saved up all my salary.'"}, {letter:"C", text:"Running the Tai Po stationery store", msg:"Lasted from around 1981 to 2019."}, {letter:"D", text:"Living in Australia", msg:"Happened after closing the store in 2019."}], hint:"Check the first two sentences of Paragraph 2." },
+            { id: "r3q5", tag: "Skill 5: Vocabulary in Context", stem: "Q5. Fill in the blank with the exact word from Paragraph 4: 'The rent became __________ when the business was not doing well.'", correct: "A", options: [{letter:"A", text:"unaffordable", msg:"Exact word from Paragraph 4! 'Unaffordable' means too expensive to pay."}, {letter:"B", text:"prospered", msg:"Incorrect. Prospered means succeeded (Paragraph 3)."}, {letter:"C", text:"cheerful", msg:"Incorrect. Cheerful means happy (Paragraph 1)."}, {letter:"D", text:"patiently", msg:"Incorrect. Patiently is an adverb (Paragraph 3)."}], hint:"Look at the third sentence of Paragraph 4." },
+            { id: "r3q6", tag: "Skill 6: Inference & Purpose", stem: "Q6. Why did the grown-up student customers make a handmade scrapbook for Liam when his store closed?", correct: "B", options: [{letter:"A", text:"To sell it in his store for a low price.", msg:"Incorrect. It was a farewell gift."}, {letter:"B", text:"To thank him and help him remember the happy memories they shared.", msg:"Logical inference! He listened to them patiently and cheered them up when they were young."}, {letter:"C", text:"Because they wanted free pencils.", msg:"Incorrect. They were already grown up."}, {letter:"D", text:"To advertise online shopping.", msg:"Incorrect."}], hint:"Think about how Liam treated the students in Paragraph 3 and how he feels looking at the scrapbook in Paragraph 4." },
+            { id: "r3q7", tag: "Skill 7: Abstract Concept Matching", stem: "Q7. Match the abstract concept 'Commercial Decline' to its exact phrase in Paragraph 4.", correct: "C", options: [{letter:"A", text:"gave away free pencils", msg:"Refers to opening-day promotion."}, {letter:"B", text:"business prospered", msg:"Means commercial success/growth."}, {letter:"C", text:"business was not doing well", msg:"Exact match! 'when the business was not doing well' = commercial decline."}, {letter:"D", text:"moved to Australia", msg:"Refers to relocation."}], hint:"Look in Paragraph 4 for the phrase describing poor store sales." },
+            { id: "r3q8", tag: "Skill 8: Information Transfer", stem: "Q8. Complete the note card using ONE word from Paragraph 4: 'Liam's Retirement: Closed store in 2019 and moved to __________.'", correct: "B", options: [{letter:"A", text:"Sha Tin", msg:"Where he went to primary school in the 1960s."}, {letter:"B", text:"Australia", msg:"Exact word transfer! 'Now that I have moved to Australia...'"}, {letter:"C", text:"Japan", msg:"Where he imported fancy stationery from."}, {letter:"D", text:"Tai Po", msg:"Where his stationery store was located."}], hint:"Scan the last sentence of Paragraph 4." },
+            { id: "r3q9", tag: "Skill 9: Definition Matching", stem: "Q9. Which word in Paragraph 4 matches: 'A book with blank pages for sticking photos, notes, and memories into'?", correct: "B", options: [{letter:"A", text:"Stationery", msg:"General term for paper, pens, and office goods."}, {letter:"B", text:"Scrapbook", msg:"Exact match! 'gave me a handmade scrapbook as a farewell gift'."}, {letter:"C", text:"Salary", msg:"Money earned from working."}, {letter:"D", text:"Estate", msg:"A housing area."}], hint:"What farewell gift did the grown-up students give Liam?" },
+            { id: "r3q10", tag: "Skill 10: True / False / Not Given", stem: "Q10. Evaluate this statement: 'Liam opened a new stationery shop in Sydney after moving to Australia.'", correct: "C", options: [{letter:"A", text:"TRUE", msg:"Incorrect. The text never says this."}, {letter:"B", text:"FALSE", msg:"Incorrect. The text doesn't explicitly state what he does besides looking at his scrapbook."}, {letter:"C", text:"NOT GIVEN", msg:"Correct! The text says he moved to Australia and looks at the scrapbook, but says nothing about Sydney or a new shop."}], hint:"Read the final sentence of Paragraph 4 carefully." },
+            { id: "q29", tag: "Mock Paper 1: Q29 (Referencing)", stem: "Q29. In paragraph 2, what does 'goal' refer to?", correct: "B", options: [{letter:"A", text:"earning money", msg:"Trap! Saving his salary was how he reached his goal, not the goal itself."}, {letter:"B", text:"opening his own store", msg:"Correct! Paragraph 1 ends with 'my dream of owning my own store', and Paragraph 2 says 'Finally, I reached my goal and rented a store'."}, {letter:"C", text:"taking care of sick people", msg:"Trap! He helped the sick store owner take care of her store."}, {letter:"D", text:"graduating from secondary school", msg:"Trap! He graduated in 1977 before working toward his goal."}], hint:"Look back at the last sentence of Paragraph 1 and connect it to 'reached my goal' in Paragraph 2." },
+            { id: "q30", tag: "Mock Paper 1: Q30 (Connecting Ideas)", stem: "Q30. Liam's store became popular mainly because he __________.", correct: "D", options: [{letter:"A", text:"gave free pencils to children", msg:"Trap! He did that on opening day, but it wasn't the main reason for popularity."}, {letter:"B", text:"sold stationery at a low price", msg:"Trap! Mentioned AFTER the 'because' sentence."}, {letter:"C", text:"provided photocopying service", msg:"Trap! An extra detail at the end of Paragraph 2."}, {letter:"D", text:"had the only store selling stationery", msg:"Correct! 'my store became popular in the neighbourhood because there was no other stationery store in the area.'"}], hint:"Find the connective word 'because' in Paragraph 2!" },
+            { id: "q31", tag: "Mock Paper 1: Q31 (Guessing Meaning)", stem: "Q31. In paragraph 3, 'prospered' means __________.", correct: "C", options: [{letter:"A", text:"relocated", msg:"Incorrect. He stayed in the same store."}, {letter:"B", text:"did badly", msg:"Opposite meaning! It did badly in 2019, not the 1980s."}, {letter:"C", text:"succeeded", msg:"Correct! 'My business prospered during the 1980s. More and more people started to shop there...'"}, {letter:"D", text:"closed down", msg:"Opposite meaning! He closed down in 2019."}], hint:"Read the sentence right after 'My business prospered during the 1980s'." },
+            { id: "q32", tag: "Mock Paper 1: Q32 (Making Inferences)", stem: "Q32. From paragraph 3, students loved to go to Liam's store mainly because __________.", correct: "C", options: [{letter:"A", text:"he was chatty", msg:"Trap! It says THEY told him things and he 'would listen patiently'."}, {letter:"B", text:"his store was fancy", msg:"Trap! He sold fancy stationery, but that's not why they hung out to talk to him."}, {letter:"C", text:"he was nice to them", msg:"Correct! Listening patiently and giving cute stickers to cheer them up shows he was kind and caring."}, {letter:"D", text:"his stickers were cute", msg:"Trap! He only gave stickers when they were in a bad mood to cheer them up."}], hint:"How did Liam treat the students when they talked to him or felt sad?" },
+            { id: "q33", tag: "Mock Paper 1: Q33 (Negative Stem)", stem: "Q33. Which of the following is NOT a reason why Liam closed his store?", correct: "D", options: [{letter:"A", text:"He was getting weaker.", msg:"True reason: 'my body was not strong enough to work long hours'."}, {letter:"B", text:"People used less stationery.", msg:"True reason: 'using electronic devices to study, so they do not buy stationery... as much'."}, {letter:"C", text:"People liked to shop online.", msg:"True reason: 'People prefer online shopping'."}, {letter:"D", text:"He planned to move to Australia.", msg:"Correct! Moving to Australia happened AFTER closing the store, not as a reason for closing it."}], hint:"Watch out for 'NOT'! Find the 3 reasons before 'Therefore, I decided to close down the store'." },
+            { id: "q34", tag: "Mock Paper 1: Q34 (Extracting Detail)", stem: "Q34. In paragraph 4, Liam was surprised because he __________.", correct: "A", options: [{letter:"A", text:"received a gift", msg:"Correct! 'I was so surprised when they gave me a handmade scrapbook as a farewell gift!'"}, {letter:"B", text:"visited many nearby shops", msg:"Trap! Owners of nearby shops came to visit HIM."}, {letter:"C", text:"posted news about his store online", msg:"Trap! He posted the news himself."}, {letter:"D", text:"saw how much the students had grown", msg:"Trap! He noticed they grew up, but the sentence says 'I was so surprised when they gave me a handmade scrapbook'."}], hint:"Find the exact words 'I was so surprised when...' in Paragraph 4." },
+            { id: "q35", tag: "Mock Paper 1: Q35 (Sequencing)", stem: "Q35. Put the events in the correct chronological order: A. Liam worked in a library | B. Liam moved to Australia | C. Liam started his own business | D. Liam ordered stationery from Japan", correct: "C", options: [{letter:"A", text:"A  ->  D  ->  C  ->  B", msg:"Trap! He couldn't order stationery from Japan (D) before starting his business (C)!"}, {letter:"B", text:"C  ->  A  ->  D  ->  B", msg:"Trap! He worked in a library (A) to save money BEFORE starting his business (C)."}, {letter:"C", text:"A  ->  C  ->  D  ->  B", msg:"Correct! A (Librarian 1977) -> C (Opened store in Tai Po) -> D (Imported stationery from Japan in 1980s) -> B (Moved to Australia)."}, {letter:"D", text:"A  ->  C  ->  B  ->  D", msg:"Trap! Moving to Australia (B) happened last."}], hint:"Trace Liam's timeline from Paragraph 2 to Paragraph 4." }
+        ];
+
+        // --- 8. R3 SET B: Grandma's Sunshine Bakery (5 Transfer Questions) ---
+        const quest30bData = [
+            { id: "b3q1", tag: "Skill 2: Referencing", stem: "Q1. In Paragraph 2, what does 'dream' refer to?", correct: "B", options: [{letter:"A", text:"Working in a hotel kitchen", msg:"That was how she saved money."}, {letter:"B", text:"Opening her own neighbourhood bakery", msg:"Correct! Paragraph 1 ends with her dream of baking warm bread for her own neighbourhood shop."}, {letter:"C", text:"Moving to Canada", msg:"That happened at the very end of the blog."}, {letter:"D", text:"Buying a television", msg:"Not mentioned."}], hint:"Look at the end of Paragraph 1 to find her childhood dream." },
+            { id: "b3q2", tag: "Skill 1: Connecting Ideas", stem: "Q2. Why did Sarah's bakery become famous in Wan Chai?", correct: "A", options: [{letter:"A", text:"She baked fresh pineapple buns with secret butter recipes every morning.", msg:"Correct! Directly stated after 'because' in Paragraph 2."}, {letter:"B", text:"She sold computers.", msg:"It was a bakery."}, {letter:"C", text:"She charged high prices.", msg:"Her buns were affordable."}, {letter:"D", text:"She closed early.", msg:"She opened at 6 a.m."}], hint:"Find 'because' in Paragraph 2." },
+            { id: "b3q3", tag: "Skill 6: Making Inferences", stem: "Q3. Why did primary school children love visiting Sarah after school?", correct: "C", options: [{letter:"A", text:"She helped them do math homework.", msg:"Not mentioned."}, {letter:"B", text:"She was strict with them.", msg:"Opposite: she was warm and generous."}, {letter:"C", text:"She was kind and gave them warm egg tarts when they were hungry.", msg:"Correct! Shows her kindness and care."}, {letter:"D", text:"She taught them how to drive.", msg:"Unrelated."}], hint:"Look at how Sarah treated the children in Paragraph 3." },
+            { id: "b3q4", tag: "Skill 5: Negative Stem", stem: "Q4. Which of the following is NOT a reason why Sarah closed Sunshine Bakery?", correct: "D", options: [{letter:"A", text:"The landlord doubled the monthly rent.", msg:"True reason stated in Paragraph 4."}, {letter:"B", text:"Large supermarket chains took away customers.", msg:"True reason stated in Paragraph 4."}, {letter:"C", text:"Her knees hurt from standing all day.", msg:"True reason stated in Paragraph 4."}, {letter:"D", text:"She disliked baking pineapple buns.", msg:"Correct! She loved baking; she closed due to rent, supermarkets, and knee pain."}], hint:"Find the 3 reasons in Paragraph 4 before she decided to retire." },
+            { id: "b3q5", tag: "Skill 3: Sequencing", stem: "Q5. Put Sarah's life events in chronological order: A. Opened Sunshine Bakery | B. Trained as an apprentice baker | C. Received a painted recipe book from neighbours | D. Helped her mother bake cookies as a girl", correct: "B", options: [{letter:"A", text:"B -> D -> A -> C", msg:"Trap! Childhood (D) comes before apprentice training (B)."}, {letter:"B", text:"D -> B -> A -> C", msg:"Correct! Childhood (D) -> Apprentice (B) -> Opened Bakery (A) -> Farewell gift (C)."}, {letter:"C", text:"D -> A -> B -> C", msg:"Trap! She trained as an apprentice (B) before opening her shop (A)."}, {letter:"D", text:"A -> B -> C -> D", msg:"Wrong order."}], hint:"Start with when she was a little girl (D)." }
+        ];
+
+        // --- 9. R3 SET C: My Volunteer Adventure by Marcus Ho (Mock Paper 2: Q29–Q35) ---
+        const quest30cData = [
+            { id: "c3q29", tag: "Skill 2: Referencing", stem: "Q29. In Paragraph 2, what does 'goal' refer to?", correct: "B", options: [{letter:"A", text:"Saving pocket money", msg:"A detail in Paragraph 2, not the goal from Paragraph 1."}, {letter:"B", text:"Becoming an active shelter volunteer", msg:"Correct! Paragraph 1 ends with 'set my goal to become an active volunteer as soon as I turned twelve'."}, {letter:"C", text:"Waking up at 7:00 a.m.", msg:"His Saturday routine."}, {letter:"D", text:"Moving to Sha Tin", msg:"The shelter was in Sha Tin."}], hint:"Look back at the last sentence of Paragraph 1." },
+            { id: "c3q30", tag: "Skill 1: Connecting Ideas", stem: "Q30. The animal shelter became popular in the district mainly because __________.", correct: "C", options: [{letter:"A", text:"Marcus bought salmon snacks", msg:"That was in Paragraph 3 for Buster."}, {letter:"B", text:"it was located in Sha Tin", msg:"Location is in Paragraph 1, not the reason for popularity."}, {letter:"C", text:"the staff treated all animals with immense care", msg:"Correct! 'The shelter became very popular in our district because the staff treated all animals with immense care.'"}, {letter:"D", text:"Marcus woke up early on Saturdays", msg:"Not the reason the shelter was popular."}], hint:"Find 'because' in the last sentence of Paragraph 2." },
+            { id: "c3q31", tag: "Skill 4: Guessing Meaning", stem: "Q31. In Paragraph 3, 'anxious' means __________.", correct: "B", options: [{letter:"A", text:"hungry", msg:"Snacks were used to comfort him when nervous."}, {letter:"B", text:"worried and fearful", msg:"Correct! Clue: 'He was extremely anxious and would hide under a bench whenever people approached.'"}, {letter:"C", text:"playful", msg:"Opposite meaning."}, {letter:"D", text:"noisy", msg:"He hid quietly under a bench."}], hint:"If a dog hides under a bench whenever people come near, how does it feel?" },
+            { id: "c3q32", tag: "Skill 6: Making Inferences", stem: "Q32. From Paragraph 3, Buster learned to trust Marcus mainly because Marcus __________.", correct: "B", options: [{letter:"A", text:"cleaned his cage quickly", msg:"Cages were mentioned in Paragraph 2."}, {letter:"B", text:"spoke softly and showed patient kindness", msg:"Correct! 'I sat near him quietly every week and spoke in a soft voice... offered him salmon snacks to comfort him.'"}, {letter:"C", text:"took him to secondary school", msg:"Never happened."}, {letter:"D", text:"adopted him", msg:"A friendly family adopted Buster in Paragraph 4."}], hint:"How did Marcus behave around Buster in Paragraph 3?" },
+            { id: "c3q33", tag: "Skill 5: Negative Stem", stem: "Q33. Which of the following is NOT a reason why Marcus felt happy when Buster left?", correct: "D", options: [{letter:"A", text:"Buster found a loving, warm home.", msg:"True: 'overjoyed that he found a warm home'."}, {letter:"B", text:"Buster was adopted by a friendly family.", msg:"True: 'a friendly family came to the shelter and adopted Buster'."}, {letter:"C", text:"Marcus received a volunteer badge.", msg:"True: 'awarded me a dedicated volunteer badge'."}, {letter:"D", text:"Marcus wanted to stop volunteering forever.", msg:"Correct! He cherishes his badge and heartwarming memories; he never wanted to stop forever."}], hint:"Which option is completely false according to Paragraph 4?" },
+            { id: "c3q34", tag: "Skill 6: Extracting Detail", stem: "Q34. In Paragraph 4, Marcus was emotional when Buster was adopted because __________.", correct: "A", options: [{letter:"A", text:"he had built a deep bond with the dog", msg:"Correct! He spent his second year patiently building Buster's trust every week."}, {letter:"B", text:"the shelter manager lost his badge", msg:"The manager awarded him the badge."}, {letter:"C", text:"Buster ran away", msg:"Buster was adopted by a family."}, {letter:"D", text:"he failed his exam", msg:"Not mentioned."}], hint:"Why did Marcus shed tears even though he was happy Buster found a home?" },
+            { id: "c3q35", tag: "Skill 3: Sequencing", stem: "Q35. Re-order the events in Marcus's life chronologically: A. Helped Buster build trust with salmon snacks | B. Visited Sha Tin shelter in Primary 4 | C. Buster was adopted | D. Started volunteering in 2022", correct: "B", options: [{letter:"A", text:"B  ->  C  ->  A  ->  D", msg:"Trap! Adoption (C) happened last."}, {letter:"B", text:"B  ->  D  ->  A  ->  C", msg:"Correct! B (Primary 4 visit) -> D (Started volunteering in 2022) -> A (Second year with Buster) -> C (Adopted last month)."}, {letter:"C", text:"D  ->  B  ->  A  ->  C", msg:"Trap! Visiting in Primary 4 (B) happened before volunteering at age 12 (D)."}, {letter:"D", text:"A  ->  B  ->  D  ->  C", msg:"Trap! Check the first event."}], hint:"Follow the paragraphs in order from Primary 4 to last month." }
+        ];
+
+        /* ==========================================================
+           4. RENDER & NAVIGATION LOGIC
+           ========================================================== */
+        let qState = { Quest10Idx: 0, Quest10bIdx: 0, Quest10cIdx: 0, Quest20Idx: 0, Quest20bIdx: 0, Quest20cIdx: 0, Quest30Idx: 0, Quest30bIdx: 0, Quest30cIdx: 0 };
+        const dataMap = { 
+            'Quest10': quest10Data, 'Quest10b': quest10bData, 'Quest10c': quest10cData,
+            'Quest20': quest20Data, 'Quest20b': quest20bData, 'Quest20c': quest20cData,
+            'Quest30': quest30Data, 'Quest30b': quest30bData, 'Quest30c': quest30cData
+        };
+        let currentQuestKey = 'Quest10';
+
+        function handleDropdownSwitch(tabId) {
+            const map = {
+                'tab-quest10': 'Quest10', 'tab-quest10b': 'Quest10b', 'tab-quest10c': 'Quest10c',
+                'tab-quest20': 'Quest20', 'tab-quest20b': 'Quest20b', 'tab-quest20c': 'Quest20c',
+                'tab-quest30': 'Quest30', 'tab-quest30b': 'Quest30b', 'tab-quest30c': 'Quest30c'
+            };
+            currentQuestKey = map[tabId];
+            
+            document.querySelectorAll('.tab-pane').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            
+            renderQuestSlide(currentQuestKey);
+        }
+
+        function globalChangeQuestion(dir) {
+            const dataArray = dataMap[currentQuestKey];
+            let newIdx = qState[currentQuestKey + 'Idx'] + dir;
+            if (newIdx >= 0 && newIdx < dataArray.length) {
+                qState[currentQuestKey + 'Idx'] = newIdx;
+                renderQuestSlide(currentQuestKey);
+            }
+        }
+
+        function renderQuestSlide(questKey) {
+            const dataArray = dataMap[questKey];
+            const idx = qState[questKey + 'Idx'];
+            const q = dataArray[idx];
+
+            const html = `
+                <div class="animate-pop flex-grow flex flex-col h-full">
+                    <div class="flex justify-between items-center mb-2">
+                        <div class="bg-sky-100 text-sky-800 px-3 py-1 rounded-xl text-xs font-black uppercase tracking-wide border-2 border-sky-300">${q.tag}</div>
+                        <button onclick="document.getElementById('hint-${q.id}').classList.toggle('hidden')" class="bg-amber-100 text-amber-900 border-2 border-amber-300 px-3 py-1 rounded-xl font-black text-xs hover:bg-amber-200 transition">💡 Hint</button>
+                    </div>
+                    <div id="hint-${q.id}" class="hidden mb-2 bg-amber-50 border-l-4 border-amber-400 p-2.5 rounded-r-xl text-amber-900 font-bold text-sm">
+                        ${q.hint}
+                    </div>
+                    <h3 class="font-black text-[1.15rem] text-slate-800 mb-3 leading-snug shrink-0">${q.stem}</h3>
+                    <div class="space-y-2 flex-grow overflow-y-auto pr-1 custom-scroll">
+                        ${q.options.map(opt => `
+                            <button onclick="handleSingleAnswer('${q.id}', ${opt.letter === q.correct}, \`${opt.msg.replace(/`/g, "'")}\`)"
+                                    class="w-full text-left p-3 rounded-2xl border-4 border-slate-200 hover:border-sky-400 hover:bg-sky-50 text-[1.05rem] font-bold flex items-center gap-3 transition group">
+                                <span class="w-10 h-10 rounded-full bg-slate-200 text-slate-600 group-hover:bg-sky-500 group-hover:text-white font-black flex items-center justify-center shrink-0 text-lg transition">${opt.letter}</span>
+                                <span class="text-slate-700 group-hover:text-sky-900 leading-tight">${opt.text}</span>
+                            </button>
+                        `).join('')}
+                    </div>
+                    <div id="fb-${q.id}" class="hidden mt-3 p-3 rounded-2xl text-[0.95rem] font-black border-4 shrink-0"></div>
+                </div>
+            `;
+            
+            document.getElementById(questKey + '-container').innerHTML = html;
+            document.getElementById('global-counter').innerText = `${idx + 1} / ${dataArray.length}`;
+        }
+
+        function handleSingleAnswer(qId, isCorrect, message) {
+            const fbEl = document.getElementById('fb-' + qId);
+            if (isCorrect) {
+                playTone('correct');
+                triggerFX();
+                if (!state.solved[qId]) { state.solved[qId] = true; addPoints(100); }
+                fbEl.className = "mt-3 p-3 rounded-2xl text-[0.95rem] bg-emerald-100 border-[4px] border-emerald-400 text-emerald-900 block animate-pop";
+                fbEl.innerHTML = `🌟 <strong>Correct! (+100 Pts)</strong> ${message}`;
+            } else {
+                playTone('wrong'); resetStreak();
+                fbEl.className = "mt-3 p-3 rounded-2xl text-[0.95rem] bg-rose-100 border-[4px] border-rose-400 text-rose-900 block animate-pop";
+                fbEl.innerHTML = `⚠️ <strong>Distractor Trap:</strong> ${message}`;
+            }
+        }
+
+        /* ==========================================================
+           5. FULL UNABRIDGED PASSAGE INJECTION (ALL 9 READINGS)
+           ========================================================== */
+        const passages = {
+            r1: `<h3>Summer Cultural Tours for P.6 Students</h3>
+                 <p class="text-slate-600 font-bold mb-2">Wilson is reading some notices about summer cultural tours. Read them carefully, choose the best answers for Questions 17–21 and complete Question 22.</p>
+                 <div class="notice-grid">
+                     <div class="notice-card">
+                         <h4>Austrian Music Tour</h4>
+                         <p>From visiting the sites where famous composers lived and worked, you can know more about how classical music was created. You can watch a performance at the Vienna Opera House and enjoy the wonder of music!</p>
+                         <p><strong>Date:</strong> 6<sup>th</sup> – 10<sup>th</sup> August, 20XX<br>
+                         <strong>Fee:</strong> $7,000 ($500 discount for School Choir members)<br>
+                         <strong>Remarks:</strong> A three-hour workshop is included in July to teach you opera manners.</p>
+                     </div>
+                     <div class="notice-card">
+                         <h4>American Movie Tour</h4>
+                         <p>Are you a movie lover? This tour is for you! You will attend a script writing course at a community college in Hollywood. Theatre workers will show you how to make costumes and props that people use in plays and movies. It is a great chance to get behind the scenes and see where the magic happens!</p>
+                         <p><strong>Date:</strong> 17<sup>th</sup> – 21<sup>st</sup> August, 20XX<br>
+                         <strong>Fee:</strong> $5,200<br>
+                         <strong>Remarks:</strong> Film Society members only</p>
+                     </div>
+                     <div class="notice-card">
+                         <h4>French Food Tour</h4>
+                         <p>Have you dreamt of opening your own bakery or restaurant? Join this tour to Paris! You will get to enjoy a full-course dinner at a world-class restaurant. You can also participate in a dessert cooking course taught by a famous chef. Those participants who have outstanding results will be invited to a tasting to try the new desserts of the restaurant!</p>
+                         <p><strong>Date:</strong> 3<sup>rd</sup> – 8<sup>th</sup> August, 20XX<br>
+                         <strong>Fee:</strong> $6,500</p>
+                     </div>
+                     <div class="notice-card">
+                         <h4>Italian Art Tour</h4>
+                         <p>We can find many famous paintings and buildings in Italy. On this tour, you will visit the Colosseum, an art museum and a gallery in Rome. Remember to bring your own art supplies and your camera. The tour includes an outdoor painting and photography workshop at a plaza in Rome. It allows you to create unique postcards which you can send to your friends and family!</p>
+                         <p><strong>Date:</strong> 20<sup>th</sup> – 25<sup>th</sup> August, 20XX<br>
+                         <strong>Fee:</strong> $4,800</p>
+                     </div>
+                 </div>`,
+
+            r1b: `<h3>Winter Adventure Camps for P.6 Students (Set B)</h3>
+                  <div class="notice-grid">
+                      <div class="notice-card">
+                          <h4>Hokkaido Ski & Snow Camp</h4>
+                          <p>Experience the snowy mountains of Japan! Professional instructors will teach you how to use snowboards and skis safely on beginner slopes. Every evening, you can relax at the wooden ski lodge and enjoy warm hot chocolate with your teammates.</p>
+                          <p><strong>Date:</strong> 15<sup>th</sup> – 19<sup>th</sup> December, 20XX<br>
+                          <strong>Fee:</strong> $8,200 ($600 discount for Sports Club members)<br>
+                          <strong>Remarks:</strong> A two-hour safety briefing will be held in November.</p>
+                      </div>
+                      <div class="notice-card">
+                          <h4>Taipei Coding & Robotics Camp</h4>
+                          <p>Do you love technology? Join this camp in Taipei! You will attend a game design course at a science park and build a mini rescue robot. Open to all P.6 students without prior coding experience.</p>
+                          <p><strong>Date:</strong> 21<sup>st</sup> – 24<sup>th</sup> December, 20XX<br>
+                          <strong>Fee:</strong> $5,500<br>
+                          <strong>Remarks:</strong> All laptop computers are provided on-site.</p>
+                      </div>
+                      <div class="notice-card">
+                          <h4>Harbin Ice Sculpture Tour</h4>
+                          <p>Visit the famous Ice and Snow World! Master carvers will show you how to shape crystal-clear ice blocks using special tools. In the evening, you will watch a dazzling ice lantern show. Visual Arts Club members will receive a free souvenir carving kit!</p>
+                          <p><strong>Date:</strong> 22<sup>nd</sup> – 26<sup>th</sup> December, 20XX<br>
+                          <strong>Fee:</strong> $6,400<br>
+                          <strong>Remarks:</strong> Remember to bring your own thermal gloves and thick down jacket.</p>
+                      </div>
+                      <div class="notice-card">
+                          <h4>Singapore Eco-Safari Camp</h4>
+                          <p>Explore tropical rainforests and night wildlife parks! You will learn about endangered animals from zookeepers and design a conservation poster.</p>
+                          <p><strong>Date:</strong> 12<sup>th</sup> – 16<sup>th</sup> December, 20XX<br>
+                          <strong>Fee:</strong> $4,900<br>
+                          <strong>Remarks:</strong> Nature Society members only</p>
+                      </div>
+                  </div>`,
+
+            r1c: `<h3>P.6 STEM & Innovation Summer Camps (Mock Paper 2)</h3>
+                  <p class="text-slate-600 font-bold mb-2">Wilson is reading some notices about summer STEM camps. Read them carefully, choose the best answers for Questions 17–21, and complete Question 22.</p>
+                  <div class="notice-grid">
+                      <div class="notice-card">
+                          <h4>Aero-Space Rocketry Camp</h4>
+                          <p>Learn how real space rockets are designed and built! You will build your own model rocket and launch it in an outdoor field. Includes a 2-hour astronomy planetarium workshop in July.</p>
+                          <p><strong>Date:</strong> 4<sup>th</sup> – 8<sup>th</sup> August, 20XX<br>
+                          <strong>Fee:</strong> $6,800 ($400 discount for Science Club members)<br>
+                          <strong>Remarks:</strong> Open ONLY to Science Club members</p>
+                      </div>
+                      <div class="notice-card">
+                          <h4>Environmental Green Tech Camp</h4>
+                          <p>Discover how solar power and wind energy work! Participants will construct a mini solar car and test it in a race. Open to all P.6 students (no experience needed).</p>
+                          <p><strong>Date:</strong> 12<sup>th</sup> – 15<sup>th</sup> August, 20XX<br>
+                          <strong>Fee:</strong> $4,500<br>
+                          <strong>Remarks:</strong> All building materials are provided free on-site.</p>
+                      </div>
+                      <div class="notice-card">
+                          <h4>Robotics & AI Academy</h4>
+                          <p>Ever dreamed of programming your own robot? Learn coding and artificial intelligence basics from university tutors. Enjoy a full-course lunch at the campus cafeteria daily.</p>
+                          <p><strong>Date:</strong> 2<sup>nd</sup> – 6<sup>th</sup> August, 20XX<br>
+                          <strong>Fee:</strong> $8,000<br>
+                          <strong>Remarks:</strong> Participants who pass the final test will get a certificate.</p>
+                      </div>
+                      <div class="notice-card">
+                          <h4>Marine Bio-Explorer Expedition</h4>
+                          <p>Explore marine life along the coastline! You will collect water samples, study sea creatures under microscopes, and create underwater photography.</p>
+                          <p><strong>Date:</strong> 18<sup>th</sup> – 22<sup>nd</sup> August, 20XX<br>
+                          <strong>Fee:</strong> $5,200<br>
+                          <strong>Remarks:</strong> Remember to bring your own waterproof boots and camera.</p>
+                      </div>
+                  </div>`,
+
+            r2: `<h3>The History of Paper Lanterns</h3>
+                 <p class="text-slate-600 font-bold mb-3">Wilson is reading an article about paper lanterns. Read it carefully, choose the best answers for Questions 23–27 and complete Question 28.</p>
+                 <p><strong>(i)</strong> Many people have played with lanterns during the Mid-Autumn Festival, but do you know that paper lanterns were first invented in China during the Han Dynasty? At that time, people used lanterns for lighting. They made paper lanterns with rice paper and bamboo, and then put lit candles inside them. It was believed that some people would even put fireflies in them.</p>
+                 <p><strong>(ii)</strong> Li Jianguo is a paper lantern craftsman who lives in Shanghai. He learnt how to make paper lanterns from his father. When Li was a boy, his father made him an unusual rabbit paper lantern. It was not the same as other lanterns because he modified it by adding four wheels to it. Li would run while pulling the rabbit lantern behind him. Now, Li makes and sells paper lanterns for a living.</p>
+                 <p><strong>(iii)</strong> Traditionally, the paper lanterns are round or shaped like a starfruit. Animals that are symbols of luck and health such as rabbits, dragons and goldfish are also some classic designs. Over the years, many new designs have come out, and most of them are made in factories. You can now buy a cartoon character lantern made of plastic with a little light bulb in it.</p>
+                 <p><strong>(iv)</strong> Today, you can also see lanterns in different countries. At the Lantern Festival of every Chinese New Year, people in China tie pieces of paper with riddles written on them to the paper lanterns. Then they gather to solve the riddles. Two weeks before Christmas, people in the Philippines celebrate a Giant Lantern Festival. They come from different villages to take part in the competition to make the biggest lantern. At the Hoi An Lantern Festival in Vietnam, all of the lights in the whole city are turned off at 8 p.m. The streets are lit up only by lanterns. Every November in Thailand, people put floating lanterns on the water of rivers and lakes. This is a way to make wishes and send blessings.</p>`,
+
+            r2b: `<h3>The Art of Chinese Silk Fans (Set B)</h3>
+                  <p><strong>(i)</strong> Many people use fans to keep cool in summer, but do you know that hand-painted silk fans were first created in China during the Zhou Dynasty over 3,000 years ago? At that time, royal families used silk fans during palace ceremonies. Craftsmen made the frames with carved bamboo and stretched finely woven silk across them.</p>
+                  <p><strong>(ii)</strong> Master Wang is a traditional fan craftsman who lives in Suzhou. He learnt how to paint delicate birds and flowers on silk fans from his grandfather. When Wang was a young boy, his grandfather made him a folding fan that smelled like sandalwood. Master Wang has preserved this ancient craft for forty years and now teaches young apprentices for a living.</p>
+                  <p><strong>(iii)</strong> Traditionally, silk fans are round like the full moon or shaped like folding wings. Classic motifs include peony flowers for wealth, cranes for long life, and Chinese calligraphy poems. Nowadays, however, most fans are mass-produced in factories. People often carry battery-powered plastic mini-fans instead of handmade silk ones.</p>
+                  <p><strong>(iv)</strong> Today, traditional fans are celebrated in cultures around the world. In Japan, performers use folding paper fans during traditional summer dances. Every spring in Spain, dancers in Seville wave bright red hand fans while performing the energetic Flamenco dance.</p>`,
+
+            r2c: `<h3>The Legend of Hong Kong’s Star Ferry (Mock Paper 2)</h3>
+                  <p class="text-slate-600 font-bold mb-3">Wilson is reading an article about Hong Kong's historic transport. Read it carefully, choose the best answers for Questions 23–27, and complete Question 28.</p>
+                  <p><strong>(i)</strong> Many people take the Star Ferry across Victoria Harbour every day, but do you know that it was founded over 130 years ago? In 1888, a businessman named Dorabjee Naorojee started the service with a single steam-powered boat called the Mistletoe. At that time, it took over forty minutes to cross the harbour between Central and Tsim Sha Tsui.</p>
+                  <p><strong>(ii)</strong> Over the decades, the Star Ferry fleet grew and became famous for its unique green-and-white design. The ferries were built with double-ended hulls, meaning they had propellers at both ends. This design allowed the ferry to change direction instantly without turning around in the busy water channel.</p>
+                  <p><strong>(iii)</strong> Traditionally, all Star Ferries ran on diesel engines. However, in recent years, the company has upgraded its vessels to solar-hybrid engines to reduce ocean air pollution. Although modern cross-harbour MTR trains are much faster, many local residents and overseas tourists still prefer taking the ferry to enjoy the scenic harbour breeze.</p>
+                  <p><strong>(iv)</strong> Today, the Star Ferry is recognized globally as an iconic cultural landmark. National Geographic named the ferry crossing one of the "50 Places of a Lifetime." Every evening at 8:00 p.m., passengers gather on the upper deck to watch the famous Symphony of Lights show reflecting across the skyscrapers.</p>`,
+
+            r3: `<h3>My Happy Memories (by Liam Wong)</h3>
+                 <p class="text-slate-600 font-bold mb-3">Wilson is reading a blog entry about Liam Wong. Read it carefully, choose the best answers for Questions 29–34 and complete Question 35.</p>
+                 <p><strong>[Paragraph 1]</strong> My name is Liam Wong. I went to a primary school in Sha Tin during the 1960s. There was a stationery store near my school at that time, and I always chatted with the store owner. She was a cheerful old lady. Sometimes when she was sick, I would help her take care of the store. That was the beginning of my dream of owning my own store when I grew up.</p>
+                 <p><strong>[Paragraph 2]</strong> I graduated from secondary school in 1977. After that, I worked as a librarian for four years and saved up all my salary. Finally, I reached my goal and rented a store in a new estate in Tai Po! On the opening day, I gave away free pencils to all children customers. Soon, my store became popular in the neighbourhood because there was no other stationery store in the area. All kinds of stationery were sold at a low price in my store. I also provided faxing and photocopying services.</p>
+                 <p><strong>[Paragraph 3]</strong> My business prospered during the 1980s. More and more people started to shop there, so I began selling fancy stationery imported from other countries like Germany and Japan. As there were many schools nearby, students loved hanging out here after school. They would tell me the things that happened to them, and I would listen patiently. When they were in a bad mood, I gave them cute stickers to cheer them up. Many happy memories were made in that store!</p>
+                 <p><strong>[Paragraph 4]</strong> Things have changed since 2019. People prefer online shopping and using electronic devices to study, so they do not buy stationery from physical stores as much as they used to. The rent became unaffordable when the business was not doing well. Also, my body was not strong enough to work long hours as I was getting older. Therefore, I decided to close down the store. Once I posted the news about closing down the store on social media, many old customers and owners of nearby shops came to visit me. The student customers have grown up so much! I was so surprised when they gave me a handmade scrapbook as a farewell gift! Now that I have moved to Australia, I still look at the scrapbook from time to time, and all the happy memories come back to life.</p>`,
+
+            r3b: `<h3>Grandma's Sunshine Bakery (by Sarah Chan - Set B)</h3>
+                  <p><strong>[Paragraph 1]</strong> My name is Sarah Chan. Growing up in Kowloon City during the 1970s, I loved helping my mother bake butter cookies in our tiny kitchen. The sweet aroma always made our neighbours smile. That was the beginning of my dream of opening my own neighbourhood bakery when I grew up.</p>
+                  <p><strong>[Paragraph 2]</strong> After finishing school in 1982, I trained as an apprentice baker in a hotel kitchen for five years and saved every dollar. Finally, I achieved my dream and opened "Sunshine Bakery" in Wan Chai! My shop quickly became famous in the street because I baked fresh pineapple buns with a secret butter recipe every morning at 6 a.m.</p>
+                  <p><strong>[Paragraph 3]</strong> Business boomed during the 1990s. Because there were three primary schools nearby, children loved visiting my shop after school. Whenever I saw hungry students who forgot their pocket money, I kindly gave them warm egg tarts for free and listened to their school stories.</p>
+                  <p><strong>[Paragraph 4]</strong> However, life changed in 2021. Large supermarket chains opened nearby, and the landlord doubled the monthly rent. In addition, my knees hurt too much to stand all day. Therefore, I decided to retire and close Sunshine Bakery. On my last day, my former student customers surprised me with a hand-painted recipe book filled with thank-you letters! Now that I live in Canada, I still flip through that book with joy.</p>`,
+
+            r3c: `<h3>My Volunteer Adventure (by Marcus Ho - Mock Paper 2)</h3>
+                  <p class="text-slate-600 font-bold mb-3">Marcus is writing a blog entry about his volunteer work. Read it carefully, choose the best answers for Questions 29–34, and complete Question 35.</p>
+                  <p><strong>[Paragraph 1]</strong> I have loved animals ever since I was a little boy. When I was in Primary 4, my older sister took me to a local animal shelter in Sha Tin. Seeing so many abandoned dogs and cats broke my heart. That was the moment I set my goal to become an active volunteer as soon as I turned twelve.</p>
+                  <p><strong>[Paragraph 2]</strong> In 2022, I finally reached my goal! Every Saturday morning, I woke up at 7:00 a.m. to travel to the shelter. I used my pocket money to buy healthy pet treats. At first, my job was to clean the cages and prepare food bowls. The shelter became very popular in our district because the staff treated all animals with immense care.</p>
+                  <p><strong>[Paragraph 3]</strong> During my second year, I met a rescue dog named "Buster". He was extremely anxious and would hide under a bench whenever people approached. I sat near him quietly every week and spoke in a soft voice. When he felt nervous, I offered him salmon snacks to comfort him. Gradually, Buster learned to trust me and would wag his tail whenever he saw me coming!</p>
+                  <p><strong>[Paragraph 4]</strong> Last month, a friendly family came to the shelter and adopted Buster! I felt emotional and shed tears, but I was overjoyed that he found a warm home. Before I left for secondary school, the shelter manager awarded me a dedicated volunteer badge. Now, whenever I feel stressed about my studies, I look at the badge, and all those heartwarming memories come back to life.</p>`
+        };
+
+        window.onload = () => {
+            document.getElementById('quest10-passage').innerHTML = passages.r1;
+            document.getElementById('quest10b-passage').innerHTML = passages.r1b;
+            document.getElementById('quest10c-passage').innerHTML = passages.r1c;
+            document.getElementById('quest20-passage').innerHTML = passages.r2;
+            document.getElementById('quest20b-passage').innerHTML = passages.r2b;
+            document.getElementById('quest20c-passage').innerHTML = passages.r2c;
+            document.getElementById('quest30-passage').innerHTML = passages.r3;
+            document.getElementById('quest30b-passage').innerHTML = passages.r3b;
+            document.getElementById('quest30c-passage').innerHTML = passages.r3c;
+
+            renderQuestSlide('Quest10');
+        };
+    </script>
+</body>
+</html>
