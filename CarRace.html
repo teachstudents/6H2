@@ -3,102 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Class Lap Racer - 3-Track Championship (Debugged)</title>
+    <title>Class Lap Racer - Ultimate 4-Track Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <style>
-        html, body {
-            height: 100%;
-            overflow: hidden;
-            font-family: 'Inter', sans-serif;
-            touch-action: none;
+        html, body { height: 100%; overflow: hidden; font-family: 'Inter', sans-serif; touch-action: none; }
+        canvas { background-color: #4d8a3b; border: 3px solid #374151; border-radius: 0.75rem; width: 100%; height: 100%; object-fit: contain; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5); z-index: 1; }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: #1f2937; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 4px; }
+        
+        .student-card.selected { background: linear-gradient(135deg, #2563eb, #1d4ed8); border-color: #93c5fd; transform: translateY(-1px); }
+        .class-tab.active { background: linear-gradient(135deg, #f59e0b, #d97706); color: #111827; border-color: #fde68a; }
+        .track-btn.active { background: linear-gradient(135deg, #ec4899, #be185d); color: #ffffff; border-color: #f9a8d4; }
+        .time-btn.active { background-color: #10b981; color: #111827; border-color: #6ee7b7; }
+        
+        /* Flashing Animation for Max Racers */
+        .flash-red { animation: flash 0.4s ease-in-out; }
+        @keyframes flash { 0%, 100% { color: #4ade80; transform: scale(1); } 50% { color: #f87171; transform: scale(1.1); } }
+
+        /* Floating Vehicle Animations for Winner Screen */
+        @keyframes floatVehicle {
+            0%, 100% { transform: translateY(0px) rotate(-3deg) scale(1); }
+            50% { transform: translateY(-12px) rotate(4deg) scale(1.08); }
         }
-        canvas {
-            background-color: #4d8a3b;
-            border: 3px solid #374151;
-            border-radius: 0.75rem;
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+        .floating-vehicle {
+            display: inline-block;
+            animation: floatVehicle 2.2s ease-in-out infinite;
+            filter: drop-shadow(0 10px 10px rgba(0, 0, 0, 0.5));
         }
-        ::-webkit-scrollbar {
-            width: 4px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #1f2937;
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #4b5563;
-            border-radius: 4px;
-        }
-        .student-card.selected {
-            background: linear-gradient(135deg, #2563eb, #1d4ed8);
-            border-color: #93c5fd;
-            transform: translateY(-1px);
-        }
-        .class-tab.active {
-            background: linear-gradient(135deg, #f59e0b, #d97706);
-            color: #111827;
-            border-color: #fde68a;
-        }
-        .track-btn.active {
-            background: linear-gradient(135deg, #ec4899, #be185d);
-            color: #ffffff;
-            border-color: #f9a8d4;
-        }
-        .time-btn.active {
-            background-color: #10b981;
-            color: #111827;
-            border-color: #6ee7b7;
-        }
+        .floating-delay-1 { animation-delay: 0.3s; }
+        .floating-delay-2 { animation-delay: 0.6s; }
     </style>
 </head>
 <body class="bg-gray-900 text-white flex flex-col items-center justify-center h-screen p-1.5 md:p-2 select-none">
 
-    <!-- ================= 1. CLASS, TRACK & STUDENT SELECTION SCREEN ================= -->
-    <div id="selectionScreen" class="w-full max-w-6xl bg-gray-800 border border-gray-700 rounded-2xl p-4 md:p-5 shadow-2xl flex flex-col max-h-[96vh]">
+    <!-- ================= 1. START SCREEN ================= -->
+    <div id="selectionScreen" class="w-full max-w-7xl bg-gray-800 border border-gray-700 rounded-2xl p-4 md:p-5 shadow-2xl flex flex-col max-h-[96vh]">
         
         <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-3 gap-3 border-b border-gray-700 pb-3">
             <div>
                 <h1 class="text-2xl md:text-3xl font-black text-yellow-400 tracking-tight flex items-center gap-2">
-                    🏁 Class Lap Racer: 3-Track Championship
+                    🏁 Ultimate Lap Racer
                     <span id="activeClassBadge" class="text-sm bg-yellow-500/20 text-yellow-300 border border-yellow-500/40 px-2.5 py-0.5 rounded-full font-bold">Class 6H2</span>
                 </h1>
                 <p class="text-gray-300 text-xs md:text-sm mt-0.5">
-                    3 Circuits with rock/fire crashes (<span class="font-bold">🪨🔥💥</span>), animal crossings, and loud 1st/2nd/3rd overtake commentary by <span class="text-blue-300 font-semibold">Brian & Andrew</span>!
+                    4 Circuits with Boosts (⚡), Crashes, and <span class="text-blue-300 font-semibold">Andrew & Emma</span> commentary!
                 </p>
             </div>
 
             <div class="flex flex-wrap items-center gap-2.5">
-                <!-- Class Toggle Buttons -->
                 <div class="flex items-center bg-gray-900 p-1 rounded-xl border border-gray-700">
                     <span class="text-xs text-gray-400 px-2 font-semibold">Class:</span>
-                    <button id="classBtn6H2" type="button" class="class-tab active font-extrabold text-xs px-2.5 py-1.5 rounded-lg border border-transparent transition">
-                        6H2 (32)
-                    </button>
-                    <button id="classBtn5M2" type="button" class="class-tab font-extrabold text-xs px-2.5 py-1.5 rounded-lg border border-transparent text-gray-300 hover:text-white transition">
-                        5M2 (23)
-                    </button>
+                    <button id="classBtn6H2" type="button" class="class-tab active font-extrabold text-xs px-2.5 py-1.5 rounded-lg border border-transparent transition">6H2 (33)</button>
+                    <button id="classBtn5M2" type="button" class="class-tab font-extrabold text-xs px-2.5 py-1.5 rounded-lg border border-transparent text-gray-300 hover:text-white transition">5M2 (23)</button>
                 </div>
 
-                <!-- 3 Track Selection Buttons -->
                 <div class="flex items-center bg-gray-900 p-1 rounded-xl border border-gray-700">
                     <span class="text-xs text-gray-400 px-2 font-semibold">Track:</span>
-                    <button data-track="1" type="button" class="track-btn active font-extrabold text-xs px-2.5 py-1.5 rounded-lg border border-transparent transition">
-                        1: City Corridors
-                    </button>
-                    <button data-track="2" type="button" class="track-btn font-extrabold text-xs px-2.5 py-1.5 rounded-lg border border-transparent text-gray-300 hover:text-white transition">
-                        2: Sharp Chicanes
-                    </button>
-                    <button data-track="3" type="button" class="track-btn font-extrabold text-xs px-2.5 py-1.5 rounded-lg border border-transparent text-gray-300 hover:text-white transition">
-                        3: Spiral Vortex
-                    </button>
+                    <button data-track="1" type="button" class="track-btn active font-extrabold text-xs px-2 py-1.5 rounded-lg border border-transparent transition">T1</button>
+                    <button data-track="2" type="button" class="track-btn font-extrabold text-xs px-2 py-1.5 rounded-lg border border-transparent text-gray-300 hover:text-white transition">T2</button>
+                    <button data-track="3" type="button" class="track-btn font-extrabold text-xs px-2 py-1.5 rounded-lg border border-transparent text-gray-300 hover:text-white transition">T3</button>
+                    <button data-track="4" type="button" class="track-btn font-extrabold text-xs px-2 py-1.5 rounded-lg border border-transparent text-gray-300 hover:text-white transition">T4</button>
                 </div>
 
-                <!-- Race Time Options (1, 2, 3 Mins) -->
                 <div class="flex items-center bg-gray-900 p-1 rounded-xl border border-gray-700">
                     <span class="text-xs text-gray-400 px-2 font-semibold">Time:</span>
                     <button data-mins="1" type="button" class="time-btn font-bold text-xs px-2 py-1.5 rounded-lg border border-transparent text-gray-300 hover:text-white transition">1m</button>
@@ -106,134 +75,92 @@
                     <button data-mins="3" type="button" class="time-btn font-bold text-xs px-2 py-1.5 rounded-lg border border-transparent text-gray-300 hover:text-white transition">3m</button>
                 </div>
 
-                <!-- Selected Counter -->
                 <div class="flex items-center gap-1.5 bg-gray-900 px-3 py-1.5 rounded-xl border border-gray-700">
-                    <span id="selectedCountBadge" class="text-base font-black text-green-400">17 / 17</span>
+                    <span id="selectedCountBadge" class="text-base font-black text-green-400">16 / 16</span>
                 </div>
             </div>
         </div>
 
-        <!-- Quick Selection Toolbar -->
         <div class="flex flex-wrap gap-2 mb-3">
-            <button id="btnFirst17" type="button" class="bg-blue-600 hover:bg-blue-500 text-white font-semibold py-1.5 px-3 rounded-lg text-xs transition">
-                Select First 17
-            </button>
-            <button id="btnRemaining" type="button" class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-1.5 px-3 rounded-lg text-xs transition">
-                Select Remaining Students
-            </button>
-            <button id="btnRandom17" type="button" class="bg-purple-600 hover:bg-purple-500 text-white font-semibold py-1.5 px-3 rounded-lg text-xs transition">
-                🎲 Random 17
-            </button>
-            <button id="btnClearAll" type="button" class="bg-gray-700 hover:bg-gray-600 text-gray-200 font-semibold py-1.5 px-3 rounded-lg text-xs transition">
-                ✖ Clear All
-            </button>
+            <button id="btnFirst16" type="button" class="bg-blue-600 hover:bg-blue-500 text-white font-semibold py-1.5 px-3 rounded-lg text-xs transition">Select First 16</button>
+            <button id="btnRemaining" type="button" class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-1.5 px-3 rounded-lg text-xs transition">Select Next 16</button>
+            <button id="btnRandom16" type="button" class="bg-purple-600 hover:bg-purple-500 text-white font-semibold py-1.5 px-3 rounded-lg text-xs transition">🎲 Random 16</button>
+            <button id="btnClearAll" type="button" class="bg-gray-700 hover:bg-gray-600 text-gray-200 font-semibold py-1.5 px-3 rounded-lg text-xs transition">✖ Clear All</button>
         </div>
 
-        <!-- Student Grid -->
-        <div id="studentGrid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2 overflow-y-auto pr-1 flex-1 py-1">
-            <!-- Dynamically populated -->
-        </div>
+        <div id="studentGrid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2 overflow-y-auto pr-1 flex-1 py-1"></div>
 
-        <!-- Available Vehicles & Proceed Button -->
         <div class="mt-3 pt-3 border-t border-gray-700 flex flex-col sm:flex-row items-center justify-between gap-3">
             <div class="text-xs text-gray-400 flex flex-wrap gap-1.5 items-center">
-                <span class="font-semibold text-gray-300">17 Vehicles:</span>
-                <span class="text-base tracking-widest bg-gray-900 px-2.5 py-1 rounded-lg border border-gray-700">
-                    🚗 🚕 🚙 🚌 🚎 🏎️ 🚓 🚑 🚒 🚐 🚚 🚛 🚜 🛻 🚲 🏍️ 🛵
-                </span>
+                <span class="font-semibold text-gray-300">16 Vehicles:</span>
+                <span class="text-base tracking-widest bg-gray-900 px-2.5 py-1 rounded-lg border border-gray-700">🚗 🚕 🚙 🚌 🚎 🏎️ 🚓 🚑 🚒 🚐 🚚 🚛 🚜 🛻 🏍️ 🛵</span>
             </div>
-            <button id="goToTrackBtn" type="button" class="w-full sm:w-auto bg-green-500 hover:bg-green-400 disabled:bg-gray-600 disabled:text-gray-400 text-gray-900 font-black py-2.5 px-7 rounded-xl shadow-lg text-base transition transform active:scale-95">
-                Go to Race Track ➔
-            </button>
+            <button id="goToTrackBtn" type="button" class="w-full sm:w-auto bg-green-500 hover:bg-green-400 disabled:bg-gray-600 disabled:text-gray-400 text-gray-900 font-black py-2.5 px-7 rounded-xl shadow-lg text-base transition transform active:scale-95">Go to Race Track ➔</button>
         </div>
     </div>
 
-    <!-- ================= 2. GAME SCREEN (ULTRA-COMPACT TOP CONTROLS TO RAISE RACER LIST) ================= -->
+    <!-- ================= 2. GAME SCREEN ================= -->
     <div id="gameScreen" class="hidden w-full h-full flex flex-row gap-2 items-stretch justify-center overflow-hidden">
         
-        <!-- HALF-WIDTH LEFT PANEL (w-36) WITH ULTRA-COMPACT HEADER SO RACERS SIT HIGH -->
-        <div class="w-36 bg-gray-800 border border-gray-700 rounded-xl p-1.5 flex flex-col h-full shrink-0 shadow-xl">
-            
-            <!-- Ultra-Compact Control Box -->
+        <!-- LEFT PANEL -->
+        <div class="w-36 bg-gray-800 border border-gray-700 rounded-xl p-1.5 flex flex-col h-full shrink-0 shadow-xl z-20">
             <div class="bg-gray-900 rounded-lg p-1.5 mb-1 border border-gray-700 flex flex-col gap-1">
-                <!-- Row 1: Timer + Icon-Only Action Buttons (Start/Restart, Roster, Switch Class) -->
                 <div class="flex items-center justify-between gap-1">
-                    <span id="raceTimerDisplay" class="text-sm font-black text-yellow-400 font-mono leading-none">
-                        02:00
-                    </span>
+                    <span id="raceTimerDisplay" class="text-sm font-black text-yellow-400 font-mono leading-none">02:00</span>
                     <div class="flex items-center gap-1">
-                        <button id="startButton" type="button" class="bg-green-500 hover:bg-green-400 text-gray-900 font-black px-1.5 py-0.5 rounded text-xs shadow transition" title="Start / Restart Race">
-                            ▶️
-                        </button>
-                        <button id="backButton" type="button" class="bg-gray-700 hover:bg-gray-600 text-white font-bold px-1.5 py-0.5 rounded text-xs transition" title="Student Roster">
-                            📋
-                        </button>
-                        <button id="quickSwitchClassBtn" type="button" class="bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold px-1 py-0.5 rounded text-[9px] transition" title="Switch Class">
-                            5M2
-                        </button>
+                        <button id="startButton" type="button" class="bg-green-500 hover:bg-green-400 text-gray-900 font-black px-1.5 py-0.5 rounded text-xs shadow transition">▶️</button>
+                        <button id="backButton" type="button" class="bg-gray-700 hover:bg-gray-600 text-white font-bold px-1.5 py-0.5 rounded text-xs transition">📋</button>
+                        <button id="quickSwitchClassBtn" type="button" class="bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold px-1 py-0.5 rounded text-[9px] transition">5M2</button>
                     </div>
                 </div>
 
-                <!-- Row 2: Track Switcher (T1 / T2 / T3) + Time (1m / 2m / 3m) -->
                 <div class="flex items-center justify-between gap-1">
-                    <div class="flex gap-0.5" title="Switch Race Track">
-                        <button data-track="1" type="button" class="track-btn active text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-gray-800 border border-gray-700">T1</button>
-                        <button data-track="2" type="button" class="track-btn text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-gray-800 text-gray-300 border border-gray-700">T2</button>
-                        <button data-track="3" type="button" class="track-btn text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-gray-800 text-gray-300 border border-gray-700">T3</button>
+                    <div class="flex gap-0.5">
+                        <button data-track="1" type="button" class="track-btn active text-[9px] font-extrabold px-1 py-0.5 rounded bg-gray-800 border border-gray-700">T1</button>
+                        <button data-track="2" type="button" class="track-btn text-[9px] font-extrabold px-1 py-0.5 rounded bg-gray-800 text-gray-300 border border-gray-700">T2</button>
+                        <button data-track="3" type="button" class="track-btn text-[9px] font-extrabold px-1 py-0.5 rounded bg-gray-800 text-gray-300 border border-gray-700">T3</button>
+                        <button data-track="4" type="button" class="track-btn text-[9px] font-extrabold px-1 py-0.5 rounded bg-gray-800 text-gray-300 border border-gray-700">T4</button>
                     </div>
-                    <div class="flex gap-0.5" title="Race Duration">
+                    <div class="flex gap-0.5">
                         <button data-mins="1" type="button" class="time-btn text-[9px] font-bold px-1 py-0.5 rounded bg-gray-800 text-gray-300 border border-gray-700">1m</button>
                         <button data-mins="2" type="button" class="time-btn active text-[9px] font-bold px-1 py-0.5 rounded bg-gray-800 border border-gray-700">2m</button>
                         <button data-mins="3" type="button" class="time-btn text-[9px] font-bold px-1 py-0.5 rounded bg-gray-800 text-gray-300 border border-gray-700">3m</button>
                     </div>
                 </div>
 
-                <!-- Row 3: Compact Speed Slider -->
                 <div class="flex items-center gap-1">
                     <span class="text-[9px]">🐢</span>
-                    <input id="speedSlider" type="range" min="0.5" max="2.5" value="1" step="0.1" class="w-full h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer" title="Race Speed">
+                    <input id="speedSlider" type="range" min="0.5" max="2.5" value="1" step="0.1" class="w-full h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer">
                     <span class="text-[9px]">🐇</span>
                 </div>
             </div>
-
-            <!-- Scrollable Racer List Raised High in Left Column -->
-            <div id="leftRacerList" class="flex-1 overflow-y-auto space-y-1 pr-0.5">
-                <!-- Populated dynamically: Name on top, Car below name -->
-            </div>
+            <div id="leftRacerList" class="flex-1 overflow-y-auto space-y-1 pr-0.5"></div>
         </div>
 
-        <!-- EXPANDED RIGHT AREA: 3-Track Canvas -->
+        <!-- RIGHT AREA: CANVAS & WEATHER -->
         <div id="trackContainer" class="flex-1 h-full flex items-center justify-center relative overflow-hidden">
+            
             <canvas id="gameCanvas"></canvas>
 
-            <!-- Live Commentator Subtitle Pill (Brian & Andrew) -->
-            <div id="commentaryBanner" class="hidden absolute bottom-3 left-1/2 -translate-x-1/2 bg-blue-950/95 text-blue-100 font-bold text-xs md:text-sm px-5 py-2 rounded-full shadow-2xl border-2 border-blue-400 z-20 flex items-center gap-2 max-w-[92%] text-center pointer-events-none">
+            <div id="commentaryBanner" class="hidden absolute bottom-3 left-1/2 -translate-x-1/2 bg-blue-950/95 text-blue-100 font-bold text-xs md:text-sm px-5 py-2 rounded-full shadow-2xl border-2 border-blue-400 z-30 flex items-center gap-2 max-w-[92%] text-center pointer-events-none">
                 <span class="text-lg">🎙️</span>
-                <span id="commentaryText">Brian: Welcome to the championship!</span>
+                <span id="commentaryText">Emma: Welcome to the championship!</span>
             </div>
 
-            <!-- Crash & Animal Alert Banner -->
-            <div id="hazardBanner" class="hidden absolute top-3 left-1/2 -translate-x-1/2 bg-red-600/95 text-white font-black text-xs md:text-sm px-4 py-1.5 rounded-full shadow-lg border-2 border-yellow-300 z-20 flex items-center gap-2 animate-bounce pointer-events-none">
+            <div id="hazardBanner" class="hidden absolute top-3 left-1/2 -translate-x-1/2 bg-red-600/95 text-white font-black text-xs md:text-sm px-4 py-1.5 rounded-full shadow-lg border-2 border-yellow-300 z-30 flex items-center gap-2 animate-bounce pointer-events-none">
                 <span id="hazardBannerIcon" class="text-lg">🪨🔥💥</span>
-                <span id="hazardBannerText">CRASH! Car hit a rock!</span>
+                <span id="hazardBannerText">Alert!</span>
             </div>
 
-            <!-- Winner / Podium Overlay -->
-            <div id="messageOverlay" class="absolute inset-0 bg-black/70 backdrop-blur-sm flex flex-col items-center justify-center rounded-xl text-center p-4 hidden z-30 pointer-events-auto">
-                <div class="bg-gray-800/95 border-2 border-yellow-400 rounded-2xl p-6 max-w-lg w-full shadow-2xl">
-                    <div class="text-6xl mb-2" id="winnerEmoji">🏆</div>
-                    <h2 id="messageTitle" class="text-2xl md:text-3xl font-black text-yellow-400 mb-3"></h2>
-                    
-                    <!-- Top 3 Podium Cards -->
+            <!-- Crystal-clear Winner Overlay (No dark clouding or blur so fireworks pop brightly!) -->
+            <div id="messageOverlay" class="absolute inset-0 bg-transparent flex flex-col items-center justify-center rounded-xl text-center p-4 hidden z-40 pointer-events-none">
+                <div class="bg-gray-900/80 border-2 border-yellow-400 rounded-2xl p-5 max-w-lg w-full shadow-[0_0_50px_rgba(250,204,21,0.45)] pointer-events-auto">
+                    <div class="text-6xl mb-2 floating-vehicle" id="winnerEmoji">🏆</div>
+                    <h2 id="messageTitle" class="text-2xl md:text-3xl font-black text-yellow-400 mb-3 drop-shadow-md"></h2>
                     <div id="podiumDetails" class="grid grid-cols-3 gap-2 mb-5 text-left"></div>
-
                     <div class="flex flex-wrap gap-3 justify-center">
-                        <button id="overlayRestartBtn" type="button" class="bg-green-500 hover:bg-green-400 text-gray-900 font-extrabold py-2.5 px-6 rounded-xl text-xl transition" title="Race Again">
-                            🔄
-                        </button>
-                        <button id="overlayRosterBtn" type="button" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2.5 px-6 rounded-xl text-xl transition" title="Student Roster">
-                            📋
-                        </button>
+                        <button id="overlayRestartBtn" type="button" class="bg-green-500 hover:bg-green-400 text-gray-900 font-extrabold py-2.5 px-6 rounded-xl text-xl shadow-lg transition transform hover:scale-105">🔄</button>
+                        <button id="overlayRosterBtn" type="button" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2.5 px-6 rounded-xl text-xl shadow-lg transition transform hover:scale-105">📋</button>
                     </div>
                 </div>
             </div>
@@ -242,1444 +169,965 @@
     </div>
 
     <script>
-        // --- 1. STUDENT ROSTERS FOR BOTH CLASSES (6H2 & 5M2) ---
+        // --- 1. DATA & CONSTANTS ---
         const CLASS_ROSTERS = {
-            "6H2": [
-                "Elsa", "Lily", "Florence", "Yao", "Miya", "Nadiia", "Amara", "Hitomi",
-                "Alice", "Karina", "Winnie", "Bella", "Sonia", "Albee", "Abby", "Martin",
-                "Noah", "Eric", "Eden", "Dominic", "Austin", "Charles", "Hoho", "Anders",
-                "Jimmy", "Ming", "Jason", "Brendan", "Charlie", "Sky", "Ryan", "Ian", "Biscuit"
-            ],
-            "5M2": [
-                "Julia", "Freya", "Anna", "Grace", "Avery", "Yihan", "Emma", "Abigail",
-                "Susie", "Nina", "Kenneth", "Dafa", "Jim", "Charles", "Henry", "Patrick",
-                "Ryan", "David", "Justin", "Jason M", "Edwin", "Jason S", "Terrance"
-            ]
+            "6H2": ["Elsa", "Lily", "Florence", "Yao", "Miya", "Nadiia", "Amara", "Hitomi", "Alice", "Karina", "Winnie", "Bella", "Sonia", "Albee", "Abby", "Martin", "Noah", "Eric", "Eden", "Dominic", "Austin", "Charles", "Hoho", "Anders", "Jimmy", "Ming", "Jason", "Brendan", "Charlie", "Sky", "Ryan", "Ian", "Biscuit"],
+            "5M2": ["Julia", "Freya", "Anna", "Grace", "Avery", "Yihan", "Emma", "Abigail", "Susie", "Nina", "Kenneth", "Dafa", "Jim", "Charles", "Henry", "Patrick", "Ryan", "David", "Justin", "Jason M", "Edwin", "Jason S", "Terrance"]
         };
-
-        const FLEET_VEHICLES = [
-            '🚗', '🚕', '🚙', '🚌', '🚎', '🏎️', '🚓', '🚑', '🚒',
-            '🚐', '🚚', '🚛', '🚜', '🛻', '🚲', '🏍️', '🛵'
-        ];
-
-        const VEHICLE_NAMES = {
-            '🚗': 'red car', '🚕': 'yellow taxi', '🚙': 'blue SUV', '🚌': 'school bus',
-            '🚎': 'trolleybus', '🏎️': 'Formula race car', '🚓': 'police cruiser',
-            '🚑': 'ambulance', '🚒': 'fire truck', '🚐': 'minivan', '🚚': 'delivery truck',
-            '🚛': 'semi-truck', '🚜': 'tractor', '🛻': 'pickup truck', '🚲': 'bicycle',
-            '🏍️': 'motorcycle', '🛵': 'motor scooter'
-        };
-
+        
+        const FLEET_VEHICLES = ['🚗', '🚕', '🚙', '🚌', '🚎', '🏎️', '🚓', '🚑', '🚒', '🚐', '🚚', '🚛', '🚜', '🛻', '🏍️', '🛵'];
+        const VEHICLE_NAMES = { '🚗':'red car', '🚕':'yellow taxi', '🚙':'blue SUV', '🚌':'school bus', '🚎':'trolleybus', '🏎️':'Formula race car', '🚓':'police cruiser', '🚑':'ambulance', '🚒':'fire truck', '🚐':'minivan', '🚚':'delivery truck', '🚛':'semi-truck', '🚜':'tractor', '🛻':'pickup truck', '🏍️':'motorcycle', '🛵':'motor scooter' };
+        
         const CROSSING_ANIMALS = [
-            { emoji: '🐄', name: 'Cow', speed: 0.013 },
-            { emoji: '🐖', name: 'Pig', speed: 0.015 },
-            { emoji: '🐑', name: 'Sheep', speed: 0.014 },
-            { emoji: '🐐', name: 'Goat', speed: 0.018 },
-            { emoji: '🦆', name: 'Duck', speed: 0.013 },
-            { emoji: '🐢', name: 'Turtle', speed: 0.008 },
-            { emoji: '🐇', name: 'Rabbit', speed: 0.025 },
-            { emoji: '🐕', name: 'Dog', speed: 0.022 },
+            { emoji: '🐄', name: 'Cow', speed: 0.013 }, { emoji: '🐖', name: 'Pig', speed: 0.015 },
+            { emoji: '🐑', name: 'Sheep', speed: 0.014 }, { emoji: '🐐', name: 'Goat', speed: 0.018 },
+            { emoji: '🦆', name: 'Duck', speed: 0.013 }, { emoji: '🐢', name: 'Turtle', speed: 0.008 },
+            { emoji: '🐇', name: 'Rabbit', speed: 0.025 }, { emoji: '🐕', name: 'Dog', speed: 0.022 },
             { emoji: '🐈', name: 'Cat', speed: 0.020 }
         ];
 
-        const MAX_RACERS = FLEET_VEHICLES.length; // 17
+        const EMOJIS = { building: ['🏢', '🏭', '🏤', '🏥', '🏦', '🏫', '🏪'], tree: ['🌳', '🌲', '🌴'], finish: '🏁' };
+        const MAX_RACERS = 16;
         const cols = 36;
         const rows = 22;
 
-        // --- 2. THREE DISTINCT RACE TRACK ARCHITECTURES ---
         const TRACK_CONFIGS = {
-            // TRACK 1: Original 7-Corridor Wide City Boulevard Circuit
             1: {
-                name: "City Boulevard Corridors",
-                startCol: 18,
-                startRow: 1,
-                treeChance: 0.42,
-                buildingChance: 0.35,
+                name: "City Boulevard",
+                startCol: 18, startRow: 1, treeChance: 0.42, buildingChance: 0.35,
                 trafficLights: [1, 3, 5, 7, 9, 11, 13],
+                tunnels: [], overpasses: [],
                 waypoints: [
-                    { x: 18, y: 1 },  { x: 3,  y: 1 },  { x: 3,  y: 4 },  { x: 29, y: 4 },
-                    { x: 29, y: 7 },  { x: 3,  y: 7 },  { x: 3,  y: 10 }, { x: 29, y: 10 },
-                    { x: 29, y: 13 }, { x: 3,  y: 13 }, { x: 3,  y: 16 }, { x: 29, y: 16 },
-                    { x: 29, y: 19 }, { x: 3,  y: 19 }, { x: 3,  y: 20 }, { x: 33, y: 20 },
+                    { x: 18, y: 1 }, { x: 3, y: 1 }, { x: 3, y: 4 }, { x: 29, y: 4 },
+                    { x: 29, y: 7 }, { x: 3, y: 7 }, { x: 3, y: 10 }, { x: 29, y: 10 },
+                    { x: 29, y: 13 }, { x: 3, y: 13 }, { x: 3, y: 16 }, { x: 29, y: 16 },
+                    { x: 29, y: 19 }, { x: 3, y: 19 }, { x: 3, y: 20 }, { x: 33, y: 20 },
                     { x: 33, y: 1 }
                 ]
             },
-
-            // TRACK 2: 38-Turn Sharp Hairpin & Chicane Circuit
             2: {
-                name: "Sharp Hairpin Chicanes",
-                startCol: 24,
-                startRow: 1,
-                treeChance: 0.07,
-                buildingChance: 0.14,
+                name: "Sharp Hairpins",
+                startCol: 24, startRow: 1, treeChance: 0.07, buildingChance: 0.14,
                 trafficLights: [2, 6, 13, 17, 25, 29, 37, 41],
+                tunnels: [], overpasses: [],
                 waypoints: [
-                    { x: 24, y: 1 },
-                    { x: 22, y: 1 }, { x: 22, y: 4 }, { x: 18, y: 4 }, { x: 18, y: 1 },
-                    { x: 14, y: 1 }, { x: 14, y: 4 }, { x: 10, y: 4 }, { x: 10, y: 1 },
-                    { x: 6,  y: 1 }, { x: 6,  y: 4 }, { x: 2,  y: 4 },
-                    { x: 2,  y: 7 }, { x: 7,  y: 7 }, { x: 7,  y: 10 }, { x: 12, y: 10 },
-                    { x: 12, y: 7 }, { x: 17, y: 7 }, { x: 17, y: 10 }, { x: 22, y: 10 },
-                    { x: 22, y: 7 }, { x: 27, y: 7 }, { x: 27, y: 10 }, { x: 30, y: 10 },
-                    { x: 30, y: 13 }, { x: 25, y: 13 }, { x: 25, y: 16 }, { x: 20, y: 16 },
-                    { x: 20, y: 13 }, { x: 15, y: 13 }, { x: 15, y: 16 }, { x: 10, y: 16 },
-                    { x: 10, y: 13 }, { x: 5,  y: 13 }, { x: 5,  y: 16 }, { x: 2,  y: 16 },
-                    { x: 2,  y: 20 }, { x: 8,  y: 20 }, { x: 8,  y: 18 }, { x: 14, y: 18 },
-                    { x: 14, y: 20 }, { x: 20, y: 20 }, { x: 20, y: 18 }, { x: 26, y: 18 },
-                    { x: 26, y: 20 }, { x: 33, y: 20 }, { x: 33, y: 1 }
+                    { x: 24, y: 1 }, { x: 22, y: 1 }, { x: 22, y: 4 }, { x: 18, y: 4 }, { x: 18, y: 1 },
+                    { x: 14, y: 1 }, { x: 14, y: 4 }, { x: 10, y: 4 }, { x: 10, y: 1 }, { x: 6,  y: 1 },
+                    { x: 6,  y: 4 }, { x: 2,  y: 4 }, { x: 2,  y: 7 }, { x: 7,  y: 7 }, { x: 7,  y: 10 },
+                    { x: 12, y: 10 }, { x: 12, y: 7 }, { x: 17, y: 7 }, { x: 17, y: 10 }, { x: 22, y: 10 },
+                    { x: 22, y: 7 }, { x: 27, y: 7 }, { x: 27, y: 10 }, { x: 30, y: 10 }, { x: 30, y: 13 },
+                    { x: 25, y: 13 }, { x: 25, y: 16 }, { x: 20, y: 16 }, { x: 20, y: 13 }, { x: 15, y: 13 },
+                    { x: 15, y: 16 }, { x: 10, y: 16 }, { x: 10, y: 13 }, { x: 5,  y: 13 }, { x: 5,  y: 16 },
+                    { x: 2,  y: 16 }, { x: 2,  y: 20 }, { x: 8,  y: 20 }, { x: 8,  y: 18 }, { x: 14, y: 18 },
+                    { x: 14, y: 20 }, { x: 20, y: 20 }, { x: 20, y: 18 }, { x: 26, y: 18 }, { x: 26, y: 20 },
+                    { x: 33, y: 20 }, { x: 33, y: 1 }
                 ]
             },
-
-            // TRACK 3: Grand Spiral & Double-Loop Vortex
             3: {
-                name: "Grand Spiral Vortex",
-                startCol: 22,
-                startRow: 1,
-                treeChance: 0.16,
-                buildingChance: 0.22,
+                name: "Spiral Vortex",
+                startCol: 22, startRow: 1, treeChance: 0.16, buildingChance: 0.22,
                 trafficLights: [1, 3, 5, 7, 10, 14, 18],
+                tunnels: [], overpasses: [],
                 waypoints: [
-                    { x: 22, y: 1 },  // 0: Start/Finish Line (moving LEFT)
-                    { x: 2,  y: 1 },  // 1: Outer Top-Left
-                    { x: 2,  y: 19 }, // 2: Outer Bottom-Left
-                    { x: 29, y: 19 }, // 3: Outer Bottom-Right
-                    { x: 29, y: 4 },  // 4: Middle Top-Right
-                    { x: 6,  y: 4 },  // 5: Middle Top-Left
-                    { x: 6,  y: 16 }, // 6: Middle Bottom-Left
-                    { x: 25, y: 16 }, // 7: Inner Bottom-Right
-                    { x: 25, y: 7 },  // 8: Inner Top-Right
-                    { x: 10, y: 7 },  // 9: Inner Top-Left
-                    { x: 10, y: 13 }, // 10: Core Bottom-Left
-                    { x: 21, y: 13 }, // 11: Core Bottom-Right
-                    { x: 21, y: 10 }, // 12: Vortex Center Right
-                    { x: 14, y: 10 }, // 13: Vortex Center Eye!
-                    { x: 14, y: 20 }, // 14: Escape Chute South
-                    { x: 20, y: 20 }, // 15: Escape Chicane 1
-                    { x: 20, y: 18 }, // 16: Escape Chicane 2
-                    { x: 26, y: 18 }, // 17: Escape Chicane 3
-                    { x: 26, y: 20 }, // 18: Escape Chicane 4
-                    { x: 33, y: 20 }, // 19: Expressway Base
-                    { x: 33, y: 1 }   // 20: Expressway Top-Right back to Start
+                    { x: 22, y: 1 }, { x: 2,  y: 1 }, { x: 2,  y: 19 }, { x: 29, y: 19 }, { x: 29, y: 4 },
+                    { x: 6,  y: 4 }, { x: 6,  y: 16 }, { x: 25, y: 16 }, { x: 25, y: 7 }, { x: 10, y: 7 },
+                    { x: 10, y: 13 }, { x: 21, y: 13 }, { x: 21, y: 10 }, { x: 14, y: 10 }, { x: 14, y: 20 },
+                    { x: 20, y: 20 }, { x: 20, y: 18 }, { x: 26, y: 18 }, { x: 26, y: 20 }, { x: 33, y: 20 },
+                    { x: 33, y: 1 }
+                ]
+            },
+            4: {
+                name: "Overpass & Tunnel Circuit",
+                startCol: 20, startRow: 1, treeChance: 0.18, buildingChance: 0.20,
+                trafficLights: [1, 4, 8, 12, 16, 20],
+                // Tunnels cover the road so cars drive inside them
+                tunnels: [
+                    { x1: 3, y1: 3, x2: 3, y2: 7, orientation: 'vertical', label: 'TUNNEL 1' },
+                    { x1: 11, y1: 14, x2: 16, y2: 14, orientation: 'horizontal', label: 'MOUNTAIN TUNNEL' },
+                    { x1: 33, y1: 8, x2: 33, y2: 13, orientation: 'vertical', label: 'EAST TUNNEL' }
+                ],
+                // Overpasses where vertical bridge segments cross directly over horizontal underpasses
+                overpasses: [
+                    { x: 10, y: 5, underWp: 12, overWp: 3 },
+                    { x: 10, y: 11, underWp: 15, overWp: 3 },
+                    { x: 26, y: 5, underWp: 12, overWp: 8 },
+                    { x: 26, y: 11, underWp: 14, overWp: 9 },
+                    { x: 18, y: 5, underWp: 2, overWp: 14 },
+                    { x: 18, y: 14, underWp: 16, overWp: 13 }
+                ],
+                waypoints: [
+                    { x: 20, y: 1 },  // 0: Start/Finish Line (heading left)
+                    { x: 3,  y: 1 },  // 1: Top-left corner
+                    { x: 3,  y: 9 },  // 2: Down through West Tunnel 1
+                    { x: 10, y: 9 },  // 3: Cut right to West Bridge
+                    { x: 10, y: 2 },  // 4: Drive UP West Overpass Bridge (crosses over y=5)
+                    { x: 10, y: 18 }, // 5: Drive DOWN West Overpass Bridge (crosses over y=5 and y=11)
+                    { x: 26, y: 18 }, // 6: Bottom-center expressway
+                    { x: 26, y: 3 },  // 7: Drive UP East Overpass Bridge (crosses over y=11 and y=5)
+                    { x: 31, y: 3 },  // 8: Top-right loop
+                    { x: 31, y: 16 }, // 9: Drop down right side
+                    { x: 22, y: 16 }, // 10: Cut in
+                    { x: 22, y: 5 },  // 11: Rise up to Underpass row y=5
+                    { x: 6,  y: 5 },  // 12: Drive LEFT through Underpasses at x=26, x=18, x=10!
+                    { x: 6,  y: 11 }, // 13: Drop to mid Underpass row y=11
+                    { x: 29, y: 11 }, // 14: Drive RIGHT through Underpasses at x=10 and x=26!
+                    { x: 29, y: 14 }, // 15: Drop to Mountain Tunnel row y=14
+                    { x: 8,  y: 14 }, // 16: Drive LEFT through Mountain Tunnel!
+                    { x: 8,  y: 20 }, // 17: Drop to bottom return lane
+                    { x: 18, y: 20 }, // 18: Center highway base
+                    { x: 18, y: 3 },  // 19: Center Skyway Overpass UP (crosses over y=14 and y=5)
+                    { x: 2,  y: 3 },  // 20: Upper west bend
+                    { x: 2,  y: 20 }, // 21: Far west chute
+                    { x: 33, y: 20 }, // 22: Bottom-right corner
+                    { x: 33, y: 1 }   // 23: Up through East Tunnel back to Finish Line (20, 1)
                 ]
             }
         };
 
-        const EMOJIS = {
-            building: ['🏢', '🏭', '🏤', '🏥', '🏦', '🏫', '🏪'],
-            tree: ['🌳', '🌲', '🌴'],
-            finish: '🏁'
-        };
-
-        // --- 3. STATE VARIABLES ---
-        let currentClass = "6H2";
-        let currentTrackId = 1;
-        let selectedStudents = new Set(CLASS_ROSTERS["6H2"].slice(0, MAX_RACERS));
-        let selectedDurationMinutes = 2;
-        let raceDurationMs = selectedDurationMinutes * 60 * 1000;
-
+        // --- 2. GAME STATE ---
+        let currentClass = "6H2"; let currentTrackId = 1; let selectedStudents = new Set(CLASS_ROSTERS["6H2"].slice(0, MAX_RACERS));
+        let selectedDurationMinutes = 2; let raceDurationMs = selectedDurationMinutes * 60 * 1000;
         let map = Array.from({ length: rows }, () => Array(cols).fill(0));
-        let lapWaypoints = TRACK_CONFIGS[1].waypoints;
-        let trafficLightWaypoints = TRACK_CONFIGS[1].trafficLights;
-        let hazardRoadCandidates = [];
+        let lapWaypoints = TRACK_CONFIGS[1].waypoints; let hazardRoadCandidates = [];
+        let segmentDistances = []; let cumulativeSegmentDist = [0]; let totalLapLength = 1;
+        let finishLinePhase = false; let podiumLocked = [];
+        let racers = []; let activeAnimals = []; let activeRocks = []; let activeTrafficLights = []; let fireworks = [];
+        let activeBoosts = []; // Persistent Nitro pads ⚡ (stay until driven over)
+        let emojiMap = []; let TILE_SIZE = 32;
+        let gameRunning = false; let celebrationActive = false; let animationFrameId = null; let simulationSpeed = 1;
+        let raceStartTime = 0; let remainingTimeMs = raceDurationMs; let lastTime = 0; let lastPanelRenderTime = 0;
+        
+        let nextAnimalSpawnTime = 0; let nextRockSpawnTime = 0; let nextBoostSpawnTime = 0; let nextRandomHornTime = 0;
 
-        let racers = [];
-        let activeAnimals = [];
-        let activeRocks = [];
-        let fireworks = [];
-        let nextAnimalSpawnTime = 0;
-        let nextRockSpawnTime = 0;
-        let nextRandomHornTime = 0;
-        let lastPanelRenderTime = 0;
-        let emojiMap = [];
-        let TILE_SIZE = 32;
+        // Commentary State
+        let prevTopThreeNames = ["", "", ""]; let lastSpeechStartTime = 0; let lastSpeechEndTime = 0; let commentatorTurn = 0; let commentaryStyleIndex = 0;
+        let urgentAnnouncementQueue = []; let lastCommentaryWasUrgent = false; let emmaVoice = null; let andrewVoice = null; const activeUtterances = [];
 
-        let gameRunning = false;
-        let celebrationActive = false;
-        let animationFrameId = null;
-        let simulationSpeed = 1;
-        let raceStartTime = 0;
-        let remainingTimeMs = raceDurationMs;
-
-        // Unified Top-3 Overtake & Crash Commentary State
-        let prevTopThreeNames = ["", "", ""];
-        let lastSpeechStartTime = 0;
-        let lastSpeechEndTime = 0;
-        let commentatorTurn = 0; // 0 = Brian, 1 = Andrew
-        let commentaryStyleIndex = 0;
-        let urgentAnnouncementQueue = [];
-        let lastCommentaryWasUrgent = false;
-        let brianVoice = null;
-        let andrewVoice = null;
-        const activeUtterances = []; // Prevents Chromium GC bug from dropping onend callbacks
-
-        // --- 4. BUILD ACTIVE TRACK MAP & FULL-ROAD HAZARD CANDIDATES ---
-        function buildActiveTrackMap() {
-            const cfg = TRACK_CONFIGS[currentTrackId];
-            lapWaypoints = cfg.waypoints;
-            trafficLightWaypoints = cfg.trafficLights;
-
-            for (let r = 0; r < rows; r++) {
-                for (let c = 0; c < cols; c++) {
-                    map[r][c] = 0; // Grass
-                }
-            }
-
-            const roadCandidateSet = new Set();
-
-            // Carve continuous road segments between waypoints & record all road tiles for hazards
-            for (let i = 0; i < lapWaypoints.length; i++) {
-                const p1 = lapWaypoints[i];
-                const p2 = lapWaypoints[(i + 1) % lapWaypoints.length];
-                const minX = Math.min(p1.x, p2.x);
-                const maxX = Math.max(p1.x, p2.x);
-                const minY = Math.min(p1.y, p2.y);
-                const maxY = Math.max(p1.y, p2.y);
-
-                for (let r = minY; r <= maxY; r++) {
-                    for (let c = minX; c <= maxX; c++) {
-                        map[r][c] = 1;
-                        // Avoid spawning rocks right on top of the starting grid (Row 1, right of startCol)
-                        const isStartGrid = (r === cfg.startRow && c >= cfg.startCol - 1);
-                        if (!isStartGrid && c < 33) {
-                            roadCandidateSet.add(`${c},${r}`);
-                        }
-                    }
-                }
-            }
-
-            // Mark Start / Finish Line
-            map[cfg.startRow][cfg.startCol] = 4;
-
-            // Populate scenery according to track density
-            for (let r = 0; r < rows; r++) {
-                for (let c = 0; c < cols; c++) {
-                    if (map[r][c] === 0) {
-                        if (r === 0 || r === rows - 1 || c === 0 || c === cols - 1) {
-                            if ((r + c) % 2 === 0) map[r][c] = 3;
-                        } else if (Math.random() < cfg.buildingChance) {
-                            map[r][c] = 2;
-                        } else if (Math.random() < cfg.treeChance) {
-                            map[r][c] = 3;
-                        }
-                    }
-                }
-            }
-
-            hazardRoadCandidates = Array.from(roadCandidateSet).map(coord => {
-                const [x, y] = coord.split(',').map(Number);
-                return { x, y };
-            });
-
-            emojiMap = map.map(row => row.map(tile => {
-                if (tile === 2) return EMOJIS.building[Math.floor(Math.random() * EMOJIS.building.length)];
-                if (tile === 3) return EMOJIS.tree[Math.floor(Math.random() * EMOJIS.tree.length)];
-                return null;
-            }));
-        }
-
-        // --- 5. DOM ELEMENTS ---
-        const selectionScreen = document.getElementById('selectionScreen');
-        const gameScreen = document.getElementById('gameScreen');
-        const studentGrid = document.getElementById('studentGrid');
-        const selectedCountBadge = document.getElementById('selectedCountBadge');
-        const activeClassBadge = document.getElementById('activeClassBadge');
-        const quickSwitchClassBtn = document.getElementById('quickSwitchClassBtn');
-        const goToTrackBtn = document.getElementById('goToTrackBtn');
-
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-        const startButton = document.getElementById('startButton');
-        const backButton = document.getElementById('backButton');
-        const speedSlider = document.getElementById('speedSlider');
-        const raceTimerDisplay = document.getElementById('raceTimerDisplay');
-        const leftRacerList = document.getElementById('leftRacerList');
-
+        // DOM elements
         const commentaryBanner = document.getElementById('commentaryBanner');
         const commentaryText = document.getElementById('commentaryText');
         const hazardBanner = document.getElementById('hazardBanner');
         const hazardBannerIcon = document.getElementById('hazardBannerIcon');
         const hazardBannerText = document.getElementById('hazardBannerText');
 
-        const messageOverlay = document.getElementById('messageOverlay');
-        const messageTitle = document.getElementById('messageTitle');
-        const podiumDetails = document.getElementById('podiumDetails');
-        const winnerEmoji = document.getElementById('winnerEmoji');
-        const overlayRestartBtn = document.getElementById('overlayRestartBtn');
-        const overlayRosterBtn = document.getElementById('overlayRosterBtn');
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const studentGrid = document.getElementById('studentGrid');
 
-        // --- 6. UNIFIED BRIAN & ANDREW COMMENTARY (1ST/2ND/3RD OVERTAKES + ROCK CRASHES ON ALL TRACKS) ---
-        function loadVoices() {
-            if (!('speechSynthesis' in window)) return;
-            const voices = window.speechSynthesis.getVoices();
-            if (!voices.length) return;
+        // --- 3. TRACK BUILDER & EXACT GEOMETRIC PROGRESS CALCULATOR ---
+        function buildActiveTrackMap() {
+            const cfg = TRACK_CONFIGS[currentTrackId]; lapWaypoints = cfg.waypoints;
+            for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) map[r][c] = 0;
+            const roadCandidateSet = new Set();
 
-            brianVoice = voices.find(v => v.name.includes('Brian') && v.name.includes('Natural'))
-                      || voices.find(v => v.name.includes('Brian'))
-                      || voices.find(v => v.lang.startsWith('en') && v.name.includes('Natural'))
-                      || voices.find(v => v.lang.startsWith('en'));
+            // Precompute exact geometric segment lengths so 1st, 2nd, 3rd place on the left panel is 100% accurate
+            segmentDistances = [];
+            cumulativeSegmentDist = [0];
+            totalLapLength = 0;
 
-            andrewVoice = voices.find(v => v.name.includes('Andrew') && v.name.includes('Natural'))
-                       || voices.find(v => v.name.includes('Andrew'))
-                       || voices.find(v => v.lang.startsWith('en') && v !== brianVoice)
-                       || brianVoice;
-        }
+            for (let i = 0; i < lapWaypoints.length; i++) {
+                const p1 = lapWaypoints[i]; const p2 = lapWaypoints[(i + 1) % lapWaypoints.length];
+                const segLen = Math.hypot(p2.x - p1.x, p2.y - p1.y);
+                segmentDistances.push(segLen);
+                totalLapLength += segLen;
+                cumulativeSegmentDist.push(totalLapLength);
 
-        if ('speechSynthesis' in window) {
-            loadVoices();
-            window.speechSynthesis.onvoiceschanged = loadVoices;
-        }
-
-        function setMusicAndHornsDucked(isDucked) {
-            if (!soundInitialized) return;
-            try {
-                Tone.Destination.volume.rampTo(isDucked ? -14 : 0, 0.08);
-            } catch (e) {}
-        }
-
-        function speakCommentary(speaker, text, interrupt = false) {
-            if (!('speechSynthesis' in window)) return;
-            loadVoices();
-
-            const now = performance.now();
-
-            // Watchdog: If browser speech synthesis has been stuck speaking for > 8.5s, force reset
-            if (!interrupt && window.speechSynthesis.speaking) {
-                if (now - lastSpeechStartTime > 8500) {
-                    window.speechSynthesis.cancel();
-                } else {
-                    return;
+                const minX = Math.min(p1.x, p2.x); const maxX = Math.max(p1.x, p2.x);
+                const minY = Math.min(p1.y, p2.y); const maxY = Math.max(p1.y, p2.y);
+                for (let r = minY; r <= maxY; r++) {
+                    for (let c = minX; c <= maxX; c++) {
+                        map[r][c] = 1;
+                        if (!(r === cfg.startRow && c >= cfg.startCol - 2) && c < cols - 2) roadCandidateSet.add(`${c},${r}`);
+                    }
                 }
             }
-
-            if (interrupt) {
-                window.speechSynthesis.cancel();
-                activeUtterances.length = 0;
-            }
-
-            const utter = new SpeechSynthesisUtterance(text);
-            utter.volume = 1.0; // Maximum 100% volume
-            utter.rate = 0.85;  // 85% speech speed
-            utter.pitch = speaker === 'Brian' ? 1.0 : 0.96;
-            if (speaker === 'Brian' && brianVoice) utter.voice = brianVoice;
-            if (speaker === 'Andrew' && andrewVoice) utter.voice = andrewVoice;
-
-            activeUtterances.push(utter);
-
-            const cleanupUtterance = () => {
-                const idx = activeUtterances.indexOf(utter);
-                if (idx !== -1) activeUtterances.splice(idx, 1);
-                lastSpeechEndTime = performance.now();
-                setMusicAndHornsDucked(false);
-            };
-
-            utter.onstart = () => {
-                lastSpeechStartTime = performance.now();
-                setMusicAndHornsDucked(true);
-                commentaryBanner.classList.remove('hidden');
-                commentaryText.textContent = `${speaker}: "${text}"`;
-            };
-            utter.onend = cleanupUtterance;
-            utter.onerror = cleanupUtterance;
-
-            window.speechSynthesis.speak(utter);
-        }
-
-        function queueUrgentEventAnnouncement(text) {
-            urgentAnnouncementQueue.push(text);
-            if (urgentAnnouncementQueue.length > 2) {
-                urgentAnnouncementQueue.shift();
-            }
-        }
-
-        function processLiveCommentary(sortedRacers) {
-            if (!('speechSynthesis' in window) || sortedRacers.length === 0) return;
-
-            const now = performance.now();
-            if (window.speechSynthesis.speaking) {
-                if (now - lastSpeechStartTime > 8500) {
-                    window.speechSynthesis.cancel();
-                } else {
-                    return;
+            map[cfg.startRow][cfg.startCol] = 4;
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < cols; c++) {
+                    if (map[r][c] === 0) {
+                        if (r === 0 || r === rows - 1 || c === 0 || c === cols - 1) { if ((r + c) % 2 === 0) map[r][c] = 3; }
+                        else if (Math.random() < cfg.buildingChance) map[r][c] = 2;
+                        else if (Math.random() < cfg.treeChance) map[r][c] = 3;
+                    }
                 }
             }
-
-            const first = sortedRacers[0];
-            const second = sortedRacers[1];
-            const third = sortedRacers[2];
-
-            const v1 = VEHICLE_NAMES[first.emoji] || 'race car';
-            const v2 = second ? (VEHICLE_NAMES[second.emoji] || 'vehicle') : '';
-            const v3 = third ? (VEHICLE_NAMES[third.emoji] || 'vehicle') : '';
-
-            const oldFirst = prevTopThreeNames[0];
-            const oldSecond = prevTopThreeNames[1];
-            const oldThird = prevTopThreeNames[2];
-
-            const firstChanged = oldFirst !== "" && first.name !== oldFirst;
-            const secondChanged = second && oldSecond !== "" && second.name !== oldSecond;
-            const thirdChanged = third && oldThird !== "" && third.name !== oldThird;
-            const anyTopThreePass = firstChanged || secondChanged || thirdChanged;
-
-            // Alternate so urgent crashes never starve out the 1st/2nd/3rd passing commentary
-            if (urgentAnnouncementQueue.length > 0 && !lastCommentaryWasUrgent && (now - lastSpeechEndTime > 250)) {
-                const urgentLine = urgentAnnouncementQueue.shift();
-                const speaker = commentatorTurn % 2 === 0 ? 'Brian' : 'Andrew';
-                commentatorTurn++;
-                lastCommentaryWasUrgent = true;
-                speakCommentary(speaker, urgentLine, false);
-                return;
-            }
-
-            const requiredGap = anyTopThreePass ? 250 : 850;
-            if (now - lastSpeechEndTime < requiredGap) return;
-
-            lastCommentaryWasUrgent = false;
-            prevTopThreeNames = [
-                first ? first.name : "",
-                second ? second.name : "",
-                third ? third.name : ""
-            ];
-
-            const speaker = commentatorTurn % 2 === 0 ? 'Brian' : 'Andrew';
-            commentatorTurn++;
-            commentaryStyleIndex++;
-
-            let line = "";
-            if (second && third) {
-                if (firstChanged) {
-                    line = speaker === 'Brian'
-                        ? `Overtake for the lead! ${first.name} in the ${v1} just passed ${oldFirst} to take first place! ${second.name} is now second in the ${v2}, and ${third.name} is third in the ${v3}!`
-                        : `New number one! ${first.name} surges past ${oldFirst} in the ${v1} to grab first place! ${second.name} holds second in the ${v2}, and ${third.name} is third in the ${v3}!`;
-                } else if (secondChanged) {
-                    line = speaker === 'Brian'
-                        ? `Pass for second place! While ${first.name} leads in the ${v1}, ${second.name} in the ${v2} just overtook ${oldSecond} for second, with ${third.name} in third in the ${v3}!`
-                        : `Look at that move! ${first.name} is first in the ${v1}, ${second.name} powers into second in the ${v2}, and ${third.name} battles in third in the ${v3}!`;
-                } else if (thirdChanged) {
-                    line = `Top three shake-up! ${first.name} is first in the ${v1}, ${second.name} is second in the ${v2}, and ${third.name} in the ${v3} just passed ${oldThird} to take third place!`;
-                } else {
-                    const templates = [
-                        `In first place right now is ${first.name} in the ${v1}! Second place is ${second.name} in the ${v2}, and in third place is ${third.name} driving the ${v3}!`,
-                        `Top three update on lap ${first.laps + 1}: ${first.name} leads at number one in the ${v1}, ${second.name} is close behind in second in the ${v2}, and ${third.name} holds third in the ${v3}!`,
-                        `Side by side through the turns! Number one is ${first.name} in the ${v1}, number two is ${second.name} in the ${v2}, and number three is ${third.name} in the ${v3}!`
-                    ];
-                    line = templates[commentaryStyleIndex % templates.length];
-                }
-            } else if (second) {
-                line = `${first.name} leads in first in the ${v1}, with ${second.name} chasing in second in the ${v2}!`;
-            } else {
-                line = `${first.name} is in first place in the ${v1}!`;
-            }
-
-            speakCommentary(speaker, line, false);
+            hazardRoadCandidates = Array.from(roadCandidateSet).map(coord => { const [x, y] = coord.split(',').map(Number); return { x, y }; });
+            emojiMap = map.map(row => row.map(tile => {
+                if (tile === 2) return EMOJIS.building[Math.floor(Math.random() * EMOJIS.building.length)];
+                if (tile === 3) return EMOJIS.tree[Math.floor(Math.random() * EMOJIS.tree.length)]; return null;
+            }));
+            activeTrafficLights = cfg.trafficLights.map(wpIdx => { const node = lapWaypoints[wpIdx]; return { wpIdx: wpIdx, x: node ? node.x : 0, y: node ? node.y : 0, state: 'green', timer: Math.random() * 4000 + 2000 }; }).filter(l => l.x !== 0);
         }
 
-        function announceWinnersPodium(sortedRacers) {
-            if (!('speechSynthesis' in window) || sortedRacers.length === 0) return;
-            window.speechSynthesis.cancel();
-            activeUtterances.length = 0;
-            loadVoices();
-
-            const first = sortedRacers[0];
-            const second = sortedRacers[1];
-            const third = sortedRacers[2];
-
-            const v1 = VEHICLE_NAMES[first.emoji] || 'car';
-            const v2 = second ? (VEHICLE_NAMES[second.emoji] || 'car') : '';
-            const v3 = third ? (VEHICLE_NAMES[third.emoji] || 'car') : '';
-
-            const brianLine = `The checkered flag waves on ${TRACK_CONFIGS[currentTrackId].name}! Winning first place for Class ${currentClass} is ${first.name} in the ${v1}!`;
-            let andrewLine = '';
-            if (second && third) {
-                andrewLine = `What a finish, Brian! Second place goes to ${second.name} driving the ${v2}, and taking third place on the podium is ${third.name} in the ${v3}! Congratulations everyone!`;
-            } else if (second) {
-                andrewLine = `And finishing in second place is ${second.name} in the ${v2}!`;
-            } else {
-                andrewLine = `A spectacular victory for ${first.name}!`;
+        // Compute exact race score so left panel standings always match physical track position and finish line order
+        function computeRacerExactScore(racer) {
+            if (racer.finishRank > 0) {
+                // Locked podium finishers stay strictly at the top in exact finish order (1st, 2nd, 3rd...)
+                return 1000000 - (racer.finishRank * 1000);
             }
-
-            const u1 = new SpeechSynthesisUtterance(brianLine);
-            u1.volume = 1.0;
-            u1.rate = 0.85;
-            if (brianVoice) u1.voice = brianVoice;
-            u1.onstart = () => {
-                setMusicAndHornsDucked(true);
-                commentaryBanner.classList.remove('hidden');
-                commentaryText.textContent = `Brian: "${brianLine}"`;
-            };
-
-            const u2 = new SpeechSynthesisUtterance(andrewLine);
-            u2.volume = 1.0;
-            u2.rate = 0.85;
-            if (andrewVoice) u2.voice = andrewVoice;
-            u2.onstart = () => {
-                setMusicAndHornsDucked(true);
-                commentaryBanner.classList.remove('hidden');
-                commentaryText.textContent = `Andrew: "${andrewLine}"`;
-            };
-            u2.onend = () => {
-                setMusicAndHornsDucked(false);
-            };
-
-            activeUtterances.push(u1, u2);
-            window.speechSynthesis.speak(u1);
-            window.speechSynthesis.speak(u2);
+            const prevWpIdx = (racer.waypointIndex - 1 + lapWaypoints.length) % lapWaypoints.length;
+            const prevNode = lapWaypoints[prevWpIdx];
+            const targetNode = lapWaypoints[racer.waypointIndex];
+            const segLen = segmentDistances[prevWpIdx] || 1;
+            const distFromPrev = Math.min(segLen, Math.hypot(racer.tileX - (prevNode.x + 0.5), racer.tileY - (prevNode.y + 0.5)));
+            const distanceAlongCurrentLap = cumulativeSegmentDist[prevWpIdx] + distFromPrev;
+            return (racer.laps * totalLapLength) + distanceAlongCurrentLap;
         }
 
-        // --- 7. SOUND ENGINE (QUIET MUSIC/HORNS + CRASH EXPLOSION SFX) ---
-        let polySynth, bassSynth, hornSawSynth, hornSquareSynth, airHornSynth, fireworkNoise, crashSynth, musicLoop;
+        function getSortedRacers() {
+            return [...racers].sort((a, b) => computeRacerExactScore(b) - computeRacerExactScore(a));
+        }
+
+        // --- 4. AUDIO ENGINE ---
+        let polySynth, bassSynth, hornSawSynth, hornSquareSynth, airHornSynth, fireworkNoise, crashSynth, boostSynth, musicLoop;
         let soundInitialized = false;
 
         async function initAudioEngine() {
             if (soundInitialized) return;
             try {
                 await Tone.start();
+                polySynth = new Tone.PolySynth(Tone.Synth, { oscillator: { type: 'triangle' }, envelope: { attack: 0.02, decay: 0.1, sustain: 0.2, release: 0.3 } }).toDestination(); polySynth.volume.value = -23;
+                bassSynth = new Tone.MonoSynth({ oscillator: { type: 'square' }, envelope: { attack: 0.01, decay: 0.15, sustain: 0.1, release: 0.1 } }).toDestination(); bassSynth.volume.value = -27;
+                hornSawSynth = new Tone.PolySynth(Tone.Synth, { oscillator: { type: 'sawtooth' }, envelope: { attack: 0.01, decay: 0.15, sustain: 0.5, release: 0.12 } }).toDestination(); hornSawSynth.volume.value = -19;
+                hornSquareSynth = new Tone.PolySynth(Tone.Synth, { oscillator: { type: 'square' }, envelope: { attack: 0.005, decay: 0.08, sustain: 0.35, release: 0.08 } }).toDestination(); hornSquareSynth.volume.value = -20;
+                airHornSynth = new Tone.PolySynth(Tone.Synth, { oscillator: { type: 'fatsawtooth', count: 3, spread: 20 }, envelope: { attack: 0.04, decay: 0.25, sustain: 0.6, release: 0.25 } }).toDestination(); airHornSynth.volume.value = -17;
+                fireworkNoise = new Tone.NoiseSynth({ noise: { type: 'pink' }, envelope: { attack: 0.005, decay: 0.35, sustain: 0, release: 0.2 } }).toDestination(); fireworkNoise.volume.value = -14;
+                crashSynth = new Tone.NoiseSynth({ noise: { type: 'brown' }, envelope: { attack: 0.002, decay: 0.45, sustain: 0.1, release: 0.25 } }).toDestination(); crashSynth.volume.value = -12;
+                boostSynth = new Tone.NoiseSynth({ noise: { type: 'white' }, envelope: { attack: 0.05, decay: 0.5, sustain: 0.2, release: 1 } }).toDestination(); boostSynth.volume.value = -14;
 
-                polySynth = new Tone.PolySynth(Tone.Synth, {
-                    oscillator: { type: 'triangle' },
-                    envelope: { attack: 0.02, decay: 0.1, sustain: 0.2, release: 0.3 }
-                }).toDestination();
-                polySynth.volume.value = -23;
-
-                bassSynth = new Tone.MonoSynth({
-                    oscillator: { type: 'square' },
-                    envelope: { attack: 0.01, decay: 0.15, sustain: 0.1, release: 0.1 }
-                }).toDestination();
-                bassSynth.volume.value = -27;
-
-                hornSawSynth = new Tone.PolySynth(Tone.Synth, {
-                    oscillator: { type: 'sawtooth' },
-                    envelope: { attack: 0.01, decay: 0.15, sustain: 0.5, release: 0.12 }
-                }).toDestination();
-                hornSawSynth.volume.value = -19;
-
-                hornSquareSynth = new Tone.PolySynth(Tone.Synth, {
-                    oscillator: { type: 'square' },
-                    envelope: { attack: 0.005, decay: 0.08, sustain: 0.35, release: 0.08 }
-                }).toDestination();
-                hornSquareSynth.volume.value = -20;
-
-                airHornSynth = new Tone.PolySynth(Tone.Synth, {
-                    oscillator: { type: 'fatsawtooth', count: 3, spread: 20 },
-                    envelope: { attack: 0.04, decay: 0.25, sustain: 0.6, release: 0.25 }
-                }).toDestination();
-                airHornSynth.volume.value = -17;
-
-                fireworkNoise = new Tone.NoiseSynth({
-                    noise: { type: 'pink' },
-                    envelope: { attack: 0.005, decay: 0.35, sustain: 0, release: 0.2 }
-                }).toDestination();
-                fireworkNoise.volume.value = -14;
-
-                crashSynth = new Tone.NoiseSynth({
-                    noise: { type: 'brown' },
-                    envelope: { attack: 0.002, decay: 0.45, sustain: 0.1, release: 0.25 }
-                }).toDestination();
-                crashSynth.volume.value = -12;
-
-                const melodyNotes = [
-                    'C5', 'E5', 'G5', 'E5', 'F5', 'A5', 'G5', 'E5',
-                    'D5', 'F5', 'A5', 'F5', 'G5', 'B5', 'C6', 'G5'
-                ];
-                const bassNotes = [
-                    'C3', 'C3', 'G2', 'G2', 'F2', 'F2', 'C3', 'C3',
-                    'D2', 'D2', 'A2', 'A2', 'G2', 'G2', 'G2', 'B2'
-                ];
+                const melodyNotes = ['C5', 'E5', 'G5', 'E5', 'F5', 'A5', 'G5', 'E5', 'D5', 'F5', 'A5', 'F5', 'G5', 'B5', 'C6', 'G5'];
+                const bassNotes = ['C3', 'C3', 'G2', 'G2', 'F2', 'F2', 'C3', 'C3', 'D2', 'D2', 'A2', 'A2', 'G2', 'G2', 'G2', 'B2'];
                 let step = 0;
-
                 musicLoop = new Tone.Loop((time) => {
                     if (!gameRunning) return;
-                    const mNote = melodyNotes[step % melodyNotes.length];
-                    const bNote = bassNotes[step % bassNotes.length];
-                    polySynth.triggerAttackRelease(mNote, '16n', time);
-                    bassSynth.triggerAttackRelease(bNote, '8n', time);
+                    polySynth.triggerAttackRelease(melodyNotes[step % melodyNotes.length], '16n', time);
+                    bassSynth.triggerAttackRelease(bassNotes[step % bassNotes.length], '8n', time);
                     step++;
                 }, '8n');
-
-                Tone.Transport.bpm.value = 140;
-                soundInitialized = true;
-            } catch (e) {
-                console.warn('Audio init warning:', e);
-            }
+                Tone.Transport.bpm.value = 140; soundInitialized = true;
+            } catch (e) { console.warn('Audio init warning:', e); }
         }
+        function startBackgroundMusic() { if (!soundInitialized) return; try { if (Tone.Transport.state !== 'started') Tone.Transport.start(); musicLoop.start(0); } catch (e) {} }
+        function stopBackgroundMusic() { if (!soundInitialized) return; try { musicLoop.stop(); } catch (e) {} }
+        function setMusicAndHornsDucked(isDucked) { if (!soundInitialized) return; try { Tone.Destination.volume.rampTo(isDucked ? -14 : 0, 0.08); } catch (e) {} }
+        function playCrashSound() { if (!soundInitialized) return; try { const now = Tone.now() + 0.01; crashSynth.triggerAttackRelease('4n', now); polySynth.triggerAttackRelease(['C2', 'F#2'], '8n', now + 0.02); } catch (e) {} }
+        function playVariedCarHorn() { if (!soundInitialized) return; try { hornSquareSynth.triggerAttackRelease(['A5', 'C#6'], '16n', Tone.now() + 0.01); } catch (e) {} }
+        function playStartSound() { if (!soundInitialized) return; try { const now = Tone.now() + 0.02; polySynth.triggerAttackRelease('C5', '16n', now); polySynth.triggerAttackRelease('C5', '16n', now + 0.22); polySynth.triggerAttackRelease('G5', '8n', now + 0.44); } catch (e) {} }
+        function playLapSound() { if (!soundInitialized) return; try { polySynth.triggerAttackRelease(['E5', 'G5', 'C6'], '16n', Tone.now() + 0.02); } catch (e) {} }
 
-        function startBackgroundMusic() {
-            if (!soundInitialized) return;
-            try {
-                if (Tone.Transport.state !== 'started') Tone.Transport.start();
-                musicLoop.start(0);
-            } catch (e) {}
+        // --- 5. COMMENTARY ENGINE ---
+        function loadVoices() {
+            if (!('speechSynthesis' in window)) return; const voices = window.speechSynthesis.getVoices(); if (!voices.length) return;
+            emmaVoice = voices.find(v => v.name.includes('Emma') && v.name.includes('Natural')) || voices.find(v => v.name.includes('Emma')) || voices.find(v => v.lang.startsWith('en') && v.name.includes('Female')) || voices.find(v => v.lang.startsWith('en'));
+            andrewVoice = voices.find(v => v.name.includes('Andrew') && v.name.includes('Natural')) || voices.find(v => v.name.includes('Andrew')) || voices.find(v => v.lang.startsWith('en') && v !== emmaVoice) || emmaVoice;
         }
+        if ('speechSynthesis' in window) { loadVoices(); window.speechSynthesis.onvoiceschanged = loadVoices; }
 
-        function stopBackgroundMusic() {
-            if (!soundInitialized) return;
-            try {
-                musicLoop.stop();
-            } catch (e) {}
-        }
-
-        function playCrashSound() {
-            if (!soundInitialized) return;
-            try {
-                const now = Tone.now() + 0.01 + Math.random() * 0.02;
-                crashSynth.triggerAttackRelease('4n', now);
-                polySynth.triggerAttackRelease(['C2', 'F#2'], '8n', now + 0.02);
-            } catch (e) {}
-        }
-
-        function playVariedCarHorn(forcedType = null) {
-            if (!soundInitialized) return;
-            try {
-                const now = Tone.now() + 0.01 + Math.random() * 0.02;
-                const hornType = forcedType !== null ? forcedType : Math.floor(Math.random() * 5);
-
-                switch (hornType) {
-                    case 0:
-                        hornSquareSynth.triggerAttackRelease(['A5', 'C#6'], '32n', now);
-                        hornSquareSynth.triggerAttackRelease(['A5', 'C#6'], '16n', now + 0.11);
-                        break;
-                    case 1:
-                        hornSawSynth.triggerAttackRelease(['F4', 'A4'], '16n', now);
-                        hornSawSynth.triggerAttackRelease(['F4', 'A4'], '8n', now + 0.16);
-                        break;
-                    case 2:
-                        airHornSynth.triggerAttackRelease(['C3', 'G3', 'C4'], '4n', now);
-                        break;
-                    case 3:
-                        hornSquareSynth.triggerAttackRelease(['E5', 'G#5'], '32n', now);
-                        hornSquareSynth.triggerAttackRelease(['E5', 'G#5'], '32n', now + 0.09);
-                        hornSquareSynth.triggerAttackRelease(['E5', 'B5'], '16n', now + 0.18);
-                        break;
-                    case 4:
-                        hornSawSynth.triggerAttackRelease(['G4', 'B4'], '16n', now);
-                        hornSawSynth.triggerAttackRelease(['D4', 'F#4'], '4n', now + 0.14);
-                        break;
-                }
-            } catch (e) {}
-        }
-
-        function playStartSound() {
-            if (!soundInitialized) return;
-            try {
-                const now = Tone.now() + 0.02;
-                polySynth.triggerAttackRelease('C5', '16n', now);
-                polySynth.triggerAttackRelease('C5', '16n', now + 0.22);
-                polySynth.triggerAttackRelease('G5', '8n', now + 0.44);
-            } catch (e) {}
-        }
-
-        function playLapSound() {
-            if (!soundInitialized) return;
-            try {
-                const now = Tone.now() + 0.01 + Math.random() * 0.02;
-                polySynth.triggerAttackRelease(['E5', 'G5', 'C6'], '16n', now);
-            } catch (e) {}
-        }
-
-        function playFireworkExplosionSound() {
-            if (!soundInitialized) return;
-            try {
-                const now = Tone.now() + 0.01 + Math.random() * 0.03;
-                fireworkNoise.triggerAttackRelease('8n', now);
-                const chimeNotes = ['C5', 'E5', 'G5', 'B5', 'C6', 'D6', 'E6'];
-                const randomNote = chimeNotes[Math.floor(Math.random() * chimeNotes.length)];
-                polySynth.triggerAttackRelease([randomNote, 'G5'], '16n', now + 0.05);
-            } catch (e) {}
-        }
-
-        function playWinFanfare() {
-            if (!soundInitialized) return;
-            try {
-                const now = Tone.now() + 0.02;
-                polySynth.triggerAttackRelease(['C4', 'E4', 'G4', 'C5'], '4n', now);
-                polySynth.triggerAttackRelease(['E4', 'G4', 'C5', 'E5'], '4n', now + 0.25);
-                polySynth.triggerAttackRelease(['G4', 'C5', 'E5', 'G5'], '2n', now + 0.5);
-                playFireworkExplosionSound();
-            } catch (e) {}
-        }
-
-        // --- 8. FIREWORKS ENGINE FOR WINNER CELEBRATION ---
-        function launchFireworkBurst() {
-            const x = (0.15 + Math.random() * 0.7) * canvas.width;
-            const y = (0.15 + Math.random() * 0.55) * canvas.height;
-            const colors = ['#facc15', '#f87171', '#60a5fa', '#34d399', '#c084fc', '#fb923c', '#ffffff'];
-            const particles = [];
-
-            for (let i = 0; i < 42; i++) {
-                const angle = (Math.PI * 2 * i) / 42 + (Math.random() * 0.2);
-                const speed = 1.5 + Math.random() * 4.5;
-                particles.push({
-                    x: x,
-                    y: y,
-                    vx: Math.cos(angle) * speed,
-                    vy: Math.sin(angle) * speed,
-                    color: colors[i % colors.length],
-                    alpha: 1,
-                    size: 2.5 + Math.random() * 3
-                });
-            }
-            fireworks.push(...particles);
-            playFireworkExplosionSound();
-        }
-
-        function updateAndDrawFireworks() {
-            if (celebrationActive && Math.random() < 0.09) {
-                launchFireworkBurst();
-            }
-
-            for (let i = fireworks.length - 1; i >= 0; i--) {
-                const p = fireworks[i];
-                p.x += p.vx;
-                p.y += p.vy;
-                p.vy += 0.06;
-                p.alpha -= 0.016;
-
-                if (p.alpha <= 0) {
-                    fireworks.splice(i, 1);
-                    continue;
-                }
-
-                ctx.save();
-                ctx.globalAlpha = Math.max(0, p.alpha);
-                ctx.fillStyle = p.color;
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.restore();
-            }
-        }
-
-        // --- 9. CLASS, TRACK & TIME SELECTION LOGIC ---
-        function switchClass(className) {
-            currentClass = className;
-            const roster = CLASS_ROSTERS[currentClass];
-            selectedStudents = new Set(roster.slice(0, MAX_RACERS));
-
-            document.getElementById('classBtn6H2').classList.toggle('active', currentClass === '6H2');
-            document.getElementById('classBtn5M2').classList.toggle('active', currentClass === '5M2');
-            activeClassBadge.textContent = `Class ${currentClass}`;
-            quickSwitchClassBtn.textContent = currentClass === '6H2' ? '5M2' : '6H2';
-
-            renderStudentGrid();
-        }
-
-        document.getElementById('classBtn6H2').addEventListener('click', () => switchClass('6H2'));
-        document.getElementById('classBtn5M2').addEventListener('click', () => switchClass('5M2'));
-
-        quickSwitchClassBtn.addEventListener('click', () => {
-            const nextClass = currentClass === '6H2' ? '5M2' : '6H2';
-            switchClass(nextClass);
-            setupRacersAndTrack();
-        });
-
-        // Switch between Track 1, Track 2, and Track 3
-        document.querySelectorAll('.track-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                currentTrackId = parseInt(btn.dataset.track, 10);
-                document.querySelectorAll('.track-btn').forEach(b => {
-                    b.classList.toggle('active', parseInt(b.dataset.track, 10) === currentTrackId);
-                });
-                if (!gameScreen.classList.contains('hidden')) {
-                    setupRacersAndTrack();
-                }
-            });
-        });
-
-        document.querySelectorAll('.time-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const mins = parseInt(btn.dataset.mins, 10);
-                selectedDurationMinutes = mins;
-                raceDurationMs = mins * 60 * 1000;
-
-                document.querySelectorAll('.time-btn').forEach(b => {
-                    b.classList.toggle('active', parseInt(b.dataset.mins, 10) === mins);
-                });
-
-                if (!gameRunning) {
-                    remainingTimeMs = raceDurationMs;
-                    updateTimerDisplay(remainingTimeMs);
-                }
-            });
-        });
-
-        // --- 10. STUDENT ROSTER SELECTION ---
-        function renderStudentGrid() {
-            const roster = CLASS_ROSTERS[currentClass];
-            studentGrid.innerHTML = '';
-
-            roster.forEach(name => {
-                const isSelected = selectedStudents.has(name);
-                const btn = document.createElement('button');
-                btn.type = 'button';
-                btn.className = `student-card flex items-center justify-between px-3 py-2 rounded-xl border text-left font-semibold text-xs md:text-sm transition ${
-                    isSelected
-                        ? 'selected text-white shadow-md'
-                        : 'bg-gray-900 border-gray-700 text-gray-300 hover:border-gray-500'
-                }`;
-                btn.innerHTML = `
-                    <span class="truncate">${name}</span>
-                    <span class="text-xs ml-1">${isSelected ? '✅' : ''}</span>
-                `;
-                btn.addEventListener('click', () => toggleStudent(name));
-                studentGrid.appendChild(btn);
-            });
-
-            selectedCountBadge.textContent = `${selectedStudents.size} / ${MAX_RACERS}`;
-            goToTrackBtn.disabled = selectedStudents.size === 0;
-        }
-
-        function toggleStudent(name) {
-            if (selectedStudents.has(name)) {
-                selectedStudents.delete(name);
-            } else {
-                if (selectedStudents.size >= MAX_RACERS) {
-                    alert(`Maximum of ${MAX_RACERS} racers reached!`);
-                    return;
-                }
-                selectedStudents.add(name);
-            }
-            renderStudentGrid();
-        }
-
-        document.getElementById('btnFirst17').addEventListener('click', () => {
-            selectedStudents = new Set(CLASS_ROSTERS[currentClass].slice(0, MAX_RACERS));
-            renderStudentGrid();
-        });
-
-        document.getElementById('btnRemaining').addEventListener('click', () => {
-            const roster = CLASS_ROSTERS[currentClass];
-            const remaining = roster.slice(MAX_RACERS);
-            selectedStudents = new Set(remaining.length > 0 ? remaining : roster.slice(0, MAX_RACERS));
-            renderStudentGrid();
-        });
-
-        document.getElementById('btnRandom17').addEventListener('click', () => {
-            const shuffled = [...CLASS_ROSTERS[currentClass]].sort(() => 0.5 - Math.random());
-            selectedStudents = new Set(shuffled.slice(0, MAX_RACERS));
-            renderStudentGrid();
-        });
-
-        document.getElementById('btnClearAll').addEventListener('click', () => {
-            selectedStudents.clear();
-            renderStudentGrid();
-        });
-
-        goToTrackBtn.addEventListener('click', () => {
-            if (selectedStudents.size === 0) return;
-            selectionScreen.classList.add('hidden');
-            gameScreen.classList.remove('hidden');
-            setupRacersAndTrack();
-        });
-
-        // --- 11. INITIALIZE ACTIVE TRACK, RACERS, ROCK CRASHES & ANIMAL CROSSINGS ---
-        function resizeCanvasOnly() {
-            const container = canvas.parentElement;
-            const cw = container.clientWidth || 800;
-            const ch = container.clientHeight || 500;
-            const aspect = cols / rows;
-
-            let width = cw;
-            let height = cw / aspect;
-            if (height > ch) {
-                height = ch;
-                width = ch * aspect;
-            }
-
-            canvas.width = Math.max(360, Math.floor(width));
-            canvas.height = Math.max(240, Math.floor(height));
-            TILE_SIZE = canvas.width / cols;
-        }
-
-        function setupRacersAndTrack() {
-            endGame(false);
-            celebrationActive = false;
-            fireworks = [];
-            remainingTimeMs = raceDurationMs;
-            updateTimerDisplay(remainingTimeMs);
-            activeAnimals = [];
-            activeRocks = [];
-            urgentAnnouncementQueue = [];
-            prevTopThreeNames = ["", "", ""];
-            hazardBanner.classList.add('hidden');
-            commentaryBanner.classList.add('hidden');
-
-            buildActiveTrackMap();
-            resizeCanvasOnly();
-
-            const cfg = TRACK_CONFIGS[currentTrackId];
-            const availableVehicles = [...FLEET_VEHICLES].sort(() => 0.5 - Math.random());
-            const chosenNames = Array.from(selectedStudents);
-
-            // Clamp starting grid spacing so all 17 racers fit cleanly between startCol and col 32.5
-            const maxSpanCols = Math.max(4, 32.2 - (cfg.startCol + 0.5));
-            const spacingCols = Math.min(0.42, maxSpanCols / Math.max(1, chosenNames.length));
-
-            racers = chosenNames.map((name, idx) => {
-                const laneOffset = ((idx % 5) - 2) * 0.09;
-                const startTileX = cfg.startCol + 0.5 + (idx * spacingCols);
-                const startTileY = cfg.startRow + 0.5 + laneOffset;
-
-                return {
-                    id: idx,
-                    name: name,
-                    emoji: availableVehicles[idx % availableVehicles.length],
-                    tileX: startTileX,
-                    tileY: startTileY,
-                    baseSpeed: 1.65 + (Math.random() * 0.16),
-                    speed: 1.7,
-                    speedChangeTimer: 0,
-                    waypointIndex: 1,
-                    laps: 0,
-                    totalDistance: 0,
-                    laneOffset: laneOffset,
-                    facingRight: false,
-                    tiltAngle: 0,
-                    isStopped: false,
-                    stoppedByAnimal: false,
-                    crashedUntil: 0,
-                    stopEndTime: 0
-                };
-            });
-
-            renderLeftPanel(true);
-            drawTrack();
-        }
-
-        // --- 12. RAISED LEFT COLUMN: NAME ABOVE CAR + LIVE COMMENTARY ---
-        function renderLeftPanel(forceRender = false) {
+        function speakCommentary(speaker, text, interrupt = false) {
+            if (!('speechSynthesis' in window)) return; loadVoices();
             const now = performance.now();
-            const sorted = [...racers].sort((a, b) => b.totalDistance - a.totalDistance);
+            if (!interrupt && window.speechSynthesis.speaking) { if (now - lastSpeechStartTime > 7500) window.speechSynthesis.cancel(); else return; }
+            if (interrupt) { window.speechSynthesis.cancel(); activeUtterances.length = 0; }
 
-            if (gameRunning && sorted.length > 0 && now - raceStartTime > 1200) {
-                processLiveCommentary(sorted);
+            const utter = new SpeechSynthesisUtterance(text);
+            utter.volume = 1.0; utter.rate = 1.0; utter.pitch = speaker === 'Emma' ? 1.04 : 0.96;
+            if (speaker === 'Emma' && emmaVoice) utter.voice = emmaVoice; if (speaker === 'Andrew' && andrewVoice) utter.voice = andrewVoice;
+            activeUtterances.push(utter);
+
+            const cleanup = () => { const idx = activeUtterances.indexOf(utter); if (idx !== -1) activeUtterances.splice(idx, 1); lastSpeechEndTime = performance.now(); setMusicAndHornsDucked(false); };
+            utter.onstart = () => { lastSpeechStartTime = performance.now(); setMusicAndHornsDucked(true); commentaryBanner.classList.remove('hidden'); commentaryText.textContent = `${speaker}: "${text}"`; };
+            utter.onend = cleanup; utter.onerror = cleanup;
+            window.speechSynthesis.speak(utter);
+        }
+        function queueUrgentEventAnnouncement(text) { urgentAnnouncementQueue.push(text); if (urgentAnnouncementQueue.length > 3) urgentAnnouncementQueue.shift(); }
+
+        function processLiveCommentary(sortedRacers) {
+            if (!('speechSynthesis' in window) || sortedRacers.length === 0) return;
+            const now = performance.now();
+            if (window.speechSynthesis.speaking) { if (now - lastSpeechStartTime > 7500) window.speechSynthesis.cancel(); else return; }
+
+            const first = sortedRacers[0]; const second = sortedRacers[1]; const third = sortedRacers[2];
+            const v1 = VEHICLE_NAMES[first.emoji] || 'car'; const v2 = second ? (VEHICLE_NAMES[second.emoji] || 'car') : ''; const v3 = third ? (VEHICLE_NAMES[third.emoji] || 'car') : '';
+            const oldFirst = prevTopThreeNames[0];
+            const oldSecond = prevTopThreeNames[1];
+            const firstChanged = oldFirst !== "" && first.name !== oldFirst;
+            const secondChanged = second && oldSecond !== "" && second.name !== oldSecond;
+
+            if (urgentAnnouncementQueue.length > 0 && !lastCommentaryWasUrgent && (now - lastSpeechEndTime > 160)) {
+                const speaker = commentatorTurn % 2 === 0 ? 'Emma' : 'Andrew'; commentatorTurn++; lastCommentaryWasUrgent = true;
+                speakCommentary(speaker, urgentAnnouncementQueue.shift(), false); return;
             }
 
-            // Throttle DOM updates to 5 FPS (every 200ms) so scrolling the left panel never stutters
-            if (!forceRender && now - lastPanelRenderTime < 200) return;
-            lastPanelRenderTime = now;
+            if (now - lastSpeechEndTime < (firstChanged ? 150 : 520)) return;
+            lastCommentaryWasUrgent = false; prevTopThreeNames = [first ? first.name : "", second ? second.name : "", third ? third.name : ""];
+            const speaker = commentatorTurn % 2 === 0 ? 'Emma' : 'Andrew'; commentatorTurn++; commentaryStyleIndex++;
 
-            leftRacerList.innerHTML = sorted.map((r, index) => {
-                const rank = index + 1;
-                let badgeColor = 'bg-gray-700 text-gray-200';
-                let cardBorder = 'border-gray-700 bg-gray-900/90';
-
-                if (rank === 1) {
-                    badgeColor = 'bg-yellow-400 text-gray-900';
-                    cardBorder = 'border-yellow-500/80 bg-gray-900';
-                } else if (rank === 2) {
-                    badgeColor = 'bg-gray-300 text-gray-900';
-                } else if (rank === 3) {
-                    badgeColor = 'bg-amber-600 text-white';
+            let line = "";
+            if (finishLinePhase) {
+                const sprintLines = [
+                    `Final sprint to the checkered flag! ${first.name} in the ${v1} is leading the charge toward the finish line, with ${second ? second.name + ' in the ' + v2 : 'the pack'} right on their bumper!`,
+                    `The clock is at zero! Who will cross the line first? Right now ${first.name} in the ${v1} has the edge over ${second ? second.name + ' in the ' + v2 : 'the field'}!`,
+                    `Heart-pounding finish! ${first.name} is flooring the gas in the ${v1}, trying to hold off ${second ? second.name + ' in the ' + v2 : 'everyone'} at the checkered flag!`
+                ];
+                line = sprintLines[commentaryStyleIndex % sprintLines.length];
+            } else if (second && third) {
+                if (firstChanged) {
+                    const overtakeLinesEmma = [
+                        `Incredible overtake for the lead! ${first.name} in the ${v1} just blasted past ${oldFirst} to claim first place! ${second.name} is now second in the ${v2}, and ${third.name} is third in the ${v3}!`,
+                        `We have a brand new leader! ${first.name} wheels the ${v1} into the number one spot! ${second.name} chases in second in the ${v2}, with ${third.name} holding third in the ${v3}!`,
+                        `What a fearless move! ${first.name} surges to the front in the ${v1}, leaving ${oldFirst} behind! ${second.name} is second in the ${v2} and ${third.name} is third in the ${v3}!`,
+                        `Sensational pass! ${first.name} takes command of the race in the ${v1}! Second place is ${second.name} in the ${v2}, and third is ${third.name} in the ${v3}!`
+                    ];
+                    const overtakeLinesAndrew = [
+                        `Unbelievable pass! ${first.name} grabs the lead in the ${v1}, overtaking ${oldFirst}! ${second.name} holds second in the ${v2}, and ${third.name} is third in the ${v3}!`,
+                        `Shake-up at the top! ${first.name} muscles the ${v1} into first place! ${second.name} is right behind in second in the ${v2}, and ${third.name} is third in the ${v3}!`,
+                        `Look at that speed! ${first.name} rockets past ${oldFirst} in the ${v1} to take number one! ${second.name} is second in the ${v2}, and ${third.name} is in third in the ${v3}!`,
+                        `New leader alert! ${first.name} is now out front driving the ${v1}, followed closely by ${second.name} in the ${v2} and ${third.name} in the ${v3}!`
+                    ];
+                    const pool = speaker === 'Emma' ? overtakeLinesEmma : overtakeLinesAndrew;
+                    line = pool[commentaryStyleIndex % pool.length];
+                } else if (secondChanged) {
+                    line = speaker === 'Emma'
+                        ? `Big move for second place! While ${first.name} leads in the ${v1}, ${second.name} in the ${v2} just passed ${oldSecond} for second, with ${third.name} in third in the ${v3}!`
+                        : `Battle for the podium! ${first.name} holds first in the ${v1}, but ${second.name} just charged into second place in the ${v2}, ahead of ${third.name} in the ${v3}!`;
+                } else {
+                    const templates = [
+                        `In first place right now is ${first.name} driving the ${v1}! Second is ${second.name} in the ${v2}, and third is ${third.name} in the ${v3}!`,
+                        `Top three check on lap ${first.laps + 1}: ${first.name} leads the pack in the ${v1}, ${second.name} chases in second in the ${v2}, and ${third.name} holds third in the ${v3}!`,
+                        `What a wild race! ${first.name} is out front in the ${v1}, followed by ${second.name} in the ${v2} and ${third.name} in the ${v3}!`,
+                        `${first.name} is putting on a driving clinic in the ${v1} at number one! ${second.name} is closing the gap in second in the ${v2}, and ${third.name} is right there in third in the ${v3}!`,
+                        `Bumper-to-bumper action! ${first.name} commands first place in the ${v1}, ${second.name} is hungry for the lead in second in the ${v2}, and ${third.name} is third in the ${v3}!`,
+                        `Listen to those engines roar! ${first.name} is pacing the field in the ${v1}, with ${second.name} in second in the ${v2} and ${third.name} rounding out the top three in the ${v3}!`,
+                        `${first.name} refuses to give up first place in the ${v1}! ${second.name} is applying heavy pressure in second in the ${v2}, while ${third.name} watches closely from third in the ${v3}!`,
+                        `Checking our leaderboard: ${first.name} is number one in the ${v1}, ${second.name} holds the runner-up spot in the ${v2}, and ${third.name} is in third driving the ${v3}!`
+                    ];
+                    line = templates[commentaryStyleIndex % templates.length];
                 }
+            } else if (second) line = `${first.name} leads in first in the ${v1}, with ${second.name} chasing in second in the ${v2}!`;
+            else line = `${first.name} is in first place in the ${v1}!`;
 
-                const isCrashed = now < r.crashedUntil;
-                const statusIcon = isCrashed
-                    ? '🪨🔥💥'
-                    : (r.stoppedByAnimal ? '🐄' : (r.isStopped ? '🔴' : `L${r.laps + 1}`));
-
-                return `
-                    <div class="flex items-center justify-between px-1.5 py-0.5 rounded-lg border ${cardBorder}">
-                        <div class="flex items-center gap-1.5 min-w-0">
-                            <span class="w-4 h-4 rounded-full text-[10px] font-black flex items-center justify-center shrink-0 ${badgeColor}">
-                                ${rank}
-                            </span>
-                            <!-- Name on top, Vehicle directly below Name -->
-                            <div class="flex flex-col items-start leading-none min-w-0">
-                                <span class="font-bold text-[11px] text-white truncate max-w-[68px]">${r.name}</span>
-                                <span class="text-base mt-0.5 leading-none">${r.emoji}</span>
-                            </div>
-                        </div>
-                        <div class="text-right shrink-0">
-                            <span class="text-[10px] font-extrabold text-yellow-400">${statusIcon}</span>
-                        </div>
-                    </div>
-                `;
-            }).join('');
+            speakCommentary(speaker, line, false);
         }
 
-        // --- 13. ROCK CRASH HAZARDS (🪨🔥💥) & ANIMAL CROSSINGS ON ALL 3 TRACKS ---
-        function spawnRockHazard(now) {
-            if (hazardRoadCandidates.length === 0) return;
-            const sorted = [...racers].sort((a, b) => b.totalDistance - a.totalDistance);
-            const targetRacer = sorted[Math.floor(Math.random() * Math.min(4, sorted.length))];
-
-            let chosenPoint;
-            if (targetRacer && Math.random() < 0.65) {
-                const targetWp = lapWaypoints[targetRacer.waypointIndex];
-                chosenPoint = {
-                    x: Math.round((targetRacer.tileX + targetWp.x) / 2),
-                    y: Math.round((targetRacer.tileY + targetWp.y) / 2)
-                };
-                if (map[chosenPoint.y]?.[chosenPoint.x] !== 1) {
-                    chosenPoint = hazardRoadCandidates[Math.floor(Math.random() * hazardRoadCandidates.length)];
+        // --- 6. RACER UPDATE & HAZARDS (MORE ANIMALS, PERSISTENT BOOSTS & CHAOS) ---
+        function updateHazardsAndHorns(now, dt) {
+            activeTrafficLights.forEach(light => {
+                light.timer -= dt;
+                if (light.timer <= 0) {
+                    if (light.state === 'green') { light.state = 'yellow'; light.timer = 1400; }
+                    else if (light.state === 'yellow') { light.state = 'red'; light.timer = 3200 + Math.random() * 1800; }
+                    else { light.state = 'green'; light.timer = 4500 + Math.random() * 2000; }
                 }
-            } else {
-                chosenPoint = hazardRoadCandidates[Math.floor(Math.random() * hazardRoadCandidates.length)];
-            }
-
-            activeRocks.push({
-                tileX: chosenPoint.x + 0.5,
-                tileY: chosenPoint.y + 0.5,
-                spawnTime: now,
-                expiresAt: now + 9000
-            });
-        }
-
-        function spawnCrossingAnimal(now) {
-            if (hazardRoadCandidates.length === 0) return;
-            const animalSpec = CROSSING_ANIMALS[Math.floor(Math.random() * CROSSING_ANIMALS.length)];
-            const candidate = hazardRoadCandidates[Math.floor(Math.random() * hazardRoadCandidates.length)];
-            const direction = Math.random() < 0.5 ? 1 : -1;
-
-            activeAnimals.push({
-                emoji: animalSpec.emoji,
-                name: animalSpec.name,
-                tileX: candidate.x + 0.5,
-                tileY: candidate.y + 0.5 - (direction * 0.8),
-                endY: candidate.y + 0.5 + (direction * 0.8),
-                roadRow: candidate.y,
-                direction: direction,
-                speed: animalSpec.speed,
-                announced: false
             });
 
-            hazardBannerIcon.textContent = animalSpec.emoji;
-            hazardBannerText.textContent = `${animalSpec.emoji} ${animalSpec.name} crossing the track!`;
-            hazardBanner.classList.remove('hidden');
-
-            playVariedCarHorn();
-        }
-
-        function updateHazardsAndHorns(now) {
-            if (now > nextAnimalSpawnTime && activeAnimals.length < 2) {
-                spawnCrossingAnimal(now);
-                nextAnimalSpawnTime = now + 5500 + Math.random() * 4500;
+            // More frequent animal crossings (up to 4 active animals on the road)
+            if (now > nextAnimalSpawnTime && activeAnimals.length < 4 && hazardRoadCandidates.length > 0) {
+                const animalSpec = CROSSING_ANIMALS[Math.floor(Math.random() * CROSSING_ANIMALS.length)];
+                const candidate = hazardRoadCandidates[Math.floor(Math.random() * hazardRoadCandidates.length)];
+                const dir = Math.random() < 0.5 ? 1 : -1;
+                activeAnimals.push({
+                    emoji: animalSpec.emoji, name: animalSpec.name,
+                    tileX: candidate.x + 0.5, tileY: candidate.y + 0.5 - (dir * 0.85),
+                    endY: candidate.y + 0.5 + (dir * 0.85), roadRow: candidate.y,
+                    direction: dir, speed: animalSpec.speed, announced: false
+                });
+                hazardBannerIcon.textContent = animalSpec.emoji;
+                hazardBannerText.textContent = `${animalSpec.emoji} ${animalSpec.name} crossing the road!`;
+                hazardBanner.classList.remove('hidden');
+                playVariedCarHorn();
+                if (Math.random() < 0.65) {
+                    queueUrgentEventAnnouncement(`Heads up! A ${animalSpec.name} is wandering across the track!`);
+                }
+                nextAnimalSpawnTime = now + 2600 + Math.random() * 2400;
             }
 
-            if (now > nextRockSpawnTime && activeRocks.length < 3) {
-                spawnRockHazard(now);
-                nextRockSpawnTime = now + 4200 + Math.random() * 3500;
+            // Frequent rock hazards for unpredictable accidents
+            if (now > nextRockSpawnTime && activeRocks.length < 5 && hazardRoadCandidates.length > 0) {
+                const pt = hazardRoadCandidates[Math.floor(Math.random() * hazardRoadCandidates.length)];
+                activeRocks.push({ tileX: pt.x + 0.5, tileY: pt.y + 0.5, expiresAt: now + 11000 });
+                nextRockSpawnTime = now + 2800 + Math.random() * 2500;
+            }
+
+            // Persistent Power Boosts (⚡) — NO expiration timer! They stay until someone drives into them!
+            if (now > nextBoostSpawnTime && activeBoosts.length < 4 && hazardRoadCandidates.length > 0) {
+                const pt = hazardRoadCandidates[Math.floor(Math.random() * hazardRoadCandidates.length)];
+                const alreadyOccupied = activeBoosts.some(b => Math.hypot(b.tileX - (pt.x + 0.5), b.tileY - (pt.y + 0.5)) < 1.2);
+                if (!alreadyOccupied) {
+                    activeBoosts.push({ tileX: pt.x + 0.5, tileY: pt.y + 0.5 });
+                }
+                nextBoostSpawnTime = now + 3500 + Math.random() * 3000;
             }
 
             if (now > nextRandomHornTime) {
                 playVariedCarHorn();
-                nextRandomHornTime = now + 2400 + Math.random() * 3200;
+                nextRandomHornTime = now + 2000 + Math.random() * 2800;
             }
 
-            activeAnimals.forEach(animal => {
-                animal.tileY += animal.direction * animal.speed * simulationSpeed;
-            });
-
-            activeAnimals = activeAnimals.filter(a => {
-                return a.direction > 0 ? a.tileY < a.endY : a.tileY > a.endY;
-            });
-
+            activeAnimals.forEach(a => a.tileY += a.direction * a.speed * simulationSpeed);
+            activeAnimals = activeAnimals.filter(a => a.direction > 0 ? a.tileY < a.endY : a.tileY > a.endY);
             activeRocks = activeRocks.filter(r => now < r.expiresAt);
-
-            if (activeAnimals.length === 0 && !racers.some(r => now < r.crashedUntil)) {
-                hazardBanner.classList.add('hidden');
-            }
+            if (activeAnimals.length === 0 && !racers.some(r => now < r.crashedUntil)) hazardBanner.classList.add('hidden');
         }
 
-        // --- 14. GAME LOOP, COMPETITIVE RUBBER-BANDING & CRASH PHYSICS ---
-        async function startGame() {
-            if (gameRunning) return;
-            await initAudioEngine();
-            playStartSound();
-
-            if (remainingTimeMs <= 0 || celebrationActive) {
-                setupRacersAndTrack();
-            }
-
-            celebrationActive = false;
-            fireworks = [];
-            gameRunning = true;
-            messageOverlay.classList.add('hidden');
-            startButton.textContent = '🔄';
-            raceStartTime = performance.now();
-            nextAnimalSpawnTime = raceStartTime + 3500;
-            nextRockSpawnTime = raceStartTime + 2500;
-            nextRandomHornTime = raceStartTime + 2000;
-            lastSpeechEndTime = raceStartTime;
-
-            speakCommentary(
-                'Brian',
-                `Green light on Track ${currentTrackId}, ${TRACK_CONFIGS[currentTrackId].name}! Watch the battle for first, second, and third, and watch out for boulders and fire crashes!`,
-                true
-            );
-
-            startBackgroundMusic();
-            animationFrameId = requestAnimationFrame(gameLoop);
-        }
-
-        function endGame(showWinnerModal = false) {
-            gameRunning = false;
-            stopBackgroundMusic();
-            setMusicAndHornsDucked(false);
-            startButton.textContent = '▶️';
-
-            if (!showWinnerModal) {
-                celebrationActive = false;
-                if (animationFrameId) cancelAnimationFrame(animationFrameId);
-                if ('speechSynthesis' in window) {
-                    window.speechSynthesis.cancel();
-                    activeUtterances.length = 0;
-                }
-                return;
-            }
-
-            if (racers.length > 0) {
-                celebrationActive = true;
-                renderLeftPanel(true);
-                const sorted = [...racers].sort((a, b) => b.totalDistance - a.totalDistance);
-                const first = sorted[0];
-                const second = sorted[1];
-                const third = sorted[2];
-
-                winnerEmoji.textContent = first.emoji;
-                messageTitle.textContent = `🎉 ${first.name} Wins! 🎉`;
-
-                const podiumItems = [
-                    { place: '🥇 1st', racer: first, bg: 'bg-yellow-500/20 border-yellow-400' },
-                    { place: '🥈 2nd', racer: second, bg: 'bg-gray-400/20 border-gray-300' },
-                    { place: '🥉 3rd', racer: third, bg: 'bg-amber-600/20 border-amber-500' }
-                ].filter(item => item.racer);
-
-                podiumDetails.innerHTML = podiumItems.map(item => `
-                    <div class="border ${item.bg} rounded-xl p-2.5 text-center flex flex-col items-center">
-                        <span class="text-xs font-black uppercase text-gray-200">${item.place}</span>
-                        <span class="text-3xl my-1">${item.racer.emoji}</span>
-                        <span class="font-extrabold text-sm text-white truncate w-full">${item.racer.name}</span>
-                        <span class="text-[11px] text-yellow-300 font-semibold">${item.racer.laps} Laps</span>
-                    </div>
-                `).join('');
-
-                messageOverlay.classList.remove('hidden');
-                playWinFanfare();
-                launchFireworkBurst();
-                setTimeout(launchFireworkBurst, 300);
-                setTimeout(launchFireworkBurst, 600);
-
-                announceWinnersPodium(sorted);
-            }
-        }
-
-        function updateTimerDisplay(ms) {
-            const clamped = Math.max(0, Math.ceil(ms / 1000));
-            const mins = Math.floor(clamped / 60);
-            const secs = clamped % 60;
-            raceTimerDisplay.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-        }
-
-        function update(now) {
-            if (!gameRunning) return;
-
-            const elapsed = now - raceStartTime;
-            remainingTimeMs = raceDurationMs - elapsed;
-            updateTimerDisplay(remainingTimeMs);
-
-            if (remainingTimeMs <= 0) {
-                updateTimerDisplay(0);
-                endGame(true);
-                return;
-            }
-
-            updateHazardsAndHorns(now);
-
-            const sortedByDist = [...racers].sort((a, b) => b.totalDistance - a.totalDistance);
-            const leadDistance = sortedByDist.length > 0 ? sortedByDist[0].totalDistance : 0;
+        function updateRacers(now, dt) {
+            // Update left panel rankings identically to finish line order
+            const sortedByProgress = getSortedRacers();
+            const leadScore = sortedByProgress.length > 0 ? computeRacerExactScore(sortedByProgress[0]) : 0;
 
             racers.forEach(racer => {
-                if (now < racer.crashedUntil) {
-                    return;
-                }
+                if (now < racer.crashedUntil) return;
+                
+                // Once a racer is locked into a podium spot at the finish line, they stop processing physics
+                if (racer.finishRank > 0) return;
 
-                // 1. Check collision with active rock (🪨) -> Trigger 🪨🔥💥 Crash + Top-3 Context Announcement!
-                const hitRockIndex = activeRocks.findIndex(rock => {
-                    return Math.hypot(racer.tileX - rock.tileX, racer.tileY - rock.tileY) < 0.72;
-                });
-
-                if (hitRockIndex !== -1) {
-                    activeRocks.splice(hitRockIndex, 1);
-                    racer.crashedUntil = now + 2200;
-                    playCrashSound();
-
+                // 🪨 Rock Crash Accident (Disappointed & Dramatic Commentary!)
+                const hitRockIdx = activeRocks.findIndex(rock => Math.hypot(racer.tileX - rock.tileX, racer.tileY - rock.tileY) < 0.72);
+                if (hitRockIdx !== -1) {
+                    activeRocks.splice(hitRockIdx, 1); racer.crashedUntil = now + 2100; playCrashSound();
                     const vName = VEHICLE_NAMES[racer.emoji] || 'car';
                     hazardBannerIcon.textContent = '🪨🔥💥';
-                    hazardBannerText.textContent = `🪨🔥💥 CRASH! ${racer.name} hit a rock in the ${vName}!`;
+                    hazardBannerText.textContent = `ACCIDENT! ${racer.name} (${racer.emoji}) crashed into a rock!`;
                     hazardBanner.classList.remove('hidden');
 
-                    const leaderNow = sortedByDist[0];
-                    const secondNow = sortedByDist[1];
-                    const contextTail = (leaderNow && secondNow && leaderNow.name !== racer.name)
-                        ? ` Meanwhile, ${leaderNow.name} holds first place ahead of ${secondNow.name} in second!`
-                        : (secondNow ? ` That opens the door for ${secondNow.name} to challenge for first place!` : '');
-
-                    queueUrgentEventAnnouncement(
-                        `Crash! ${racer.name} in the ${vName} just smashed into a rock with fire and an explosion!${contextTail}`
-                    );
+                    const crashPhrases = [
+                        `Oh no, what a heartbreak! ${racer.name} in the ${vName} just smashed straight into a boulder with flames and an explosion! That is so disappointing for ${racer.name}!`,
+                        `Disaster on the track! ${racer.name} was looking so strong in the ${vName}, but just crashed into a rock! Tough luck!`,
+                        `Ouch! Heartbreaking accident for ${racer.name}! The ${vName} clipped a giant rock and burst into flames, costing them precious positions!`,
+                        `Oh, you hate to see that happen! ${racer.name} in the ${vName} just spun out in a fiery rock crash! What a disappointing setback!`,
+                        `Crunch! ${racer.name} had nowhere to go in the ${vName} and slammed right into a boulder! So disappointing!`
+                    ];
+                    queueUrgentEventAnnouncement(crashPhrases[Math.floor(Math.random() * crashPhrases.length)]);
                     return;
                 }
 
-                // 2. Check if blocked by a crossing animal
-                const blockingAnimal = activeAnimals.find(a => {
-                    return Math.hypot(racer.tileX - a.tileX, racer.tileY - a.tileY) < 1.1;
-                });
+                // ⚡ Persistent Nitro Boost (Exciting High-Energy Commentary!)
+                const hitBoostIdx = activeBoosts.findIndex(b => Math.hypot(racer.tileX - b.tileX, racer.tileY - b.tileY) < 0.78);
+                if (hitBoostIdx !== -1) {
+                    activeBoosts.splice(hitBoostIdx, 1);
+                    racer.boostUntil = now + 3200;
+                    if (soundInitialized) { try { boostSynth.triggerAttackRelease('8n', Tone.now()); } catch (e) {} }
+                    const vName = VEHICLE_NAMES[racer.emoji] || 'car';
 
+                    const boostPhrases = [
+                        `Maximum overdrive! ${racer.name} in the ${vName} just hit a lightning power boost and is rocketing past the competition at supersonic speed!`,
+                        `Boom! Electric turbo boost activated for ${racer.name}! Look at that ${vName} fly down the track!`,
+                        `What a massive power-up! ${racer.name} ran right over a lightning bolt in the ${vName} and is blasting forward like a jet!`,
+                        `High voltage speed! ${racer.name} grabs the lightning boost pad and the ${vName} is absolutely scorching the asphalt!`,
+                        `Hold onto your hats! ${racer.name} just triggered a nitro lightning boost in the ${vName}! Unbelievable acceleration!`
+                    ];
+                    queueUrgentEventAnnouncement(boostPhrases[Math.floor(Math.random() * boostPhrases.length)]);
+                }
+
+                // 🐄 Animal Crossing Blockade
+                const blockingAnimal = activeAnimals.find(a => Math.hypot(racer.tileX - a.tileX, racer.tileY - a.tileY) < 1.1);
                 if (blockingAnimal) {
                     if (!racer.stoppedByAnimal) {
                         playVariedCarHorn();
                         if (!blockingAnimal.announced) {
                             blockingAnimal.announced = true;
                             const vName = VEHICLE_NAMES[racer.emoji] || 'car';
-                            queueUrgentEventAnnouncement(
-                                `Watch out! A ${blockingAnimal.name} is crossing the road and stopping ${racer.name} in the ${vName}!`
-                            );
+                            const animalPhrases = [
+                                `Animal crossing! A ${blockingAnimal.name} is strolling right across the road and completely blocking ${racer.name} in the ${vName}!`,
+                                `Slam on the brakes! ${racer.name} in the ${vName} is stuck waiting for a ${blockingAnimal.name} to cross the track!`,
+                                `Traffic jam! A ${blockingAnimal.name} has wandered onto the asphalt right in front of ${racer.name} driving the ${vName}!`
+                            ];
+                            queueUrgentEventAnnouncement(animalPhrases[Math.floor(Math.random() * animalPhrases.length)]);
                         }
                     }
-                    racer.stoppedByAnimal = true;
-                    return;
-                } else {
-                    racer.stoppedByAnimal = false;
-                }
-
-                // 3. Check traffic light stop
-                if (racer.isStopped) {
-                    if (now > racer.stopEndTime) {
-                        racer.isStopped = false;
-                    } else {
-                        return;
-                    }
-                }
-
-                // 4. Dynamic Rubber-Banding & Slipstream Surges (Ensures many students take turns in 1st place!)
-                if (now > racer.speedChangeTimer) {
-                    const rankIndex = sortedByDist.findIndex(r => r.id === racer.id);
-                    const gapBehindLeader = Math.max(0, leadDistance - racer.totalDistance);
-
-                    let catchupMultiplier = 1.0;
-                    if (rankIndex === 0) {
-                        catchupMultiplier = 0.72 + Math.random() * 0.25;
-                    } else if (rankIndex <= 5) {
-                        catchupMultiplier = 1.05 + Math.random() * 0.55 + Math.min(0.35, gapBehindLeader * 0.03);
-                    } else {
-                        catchupMultiplier = 1.15 + Math.random() * 0.65 + Math.min(0.45, gapBehindLeader * 0.04);
-                    }
-
-                    racer.speed = racer.baseSpeed * catchupMultiplier;
-                    racer.speedChangeTimer = now + 900 + Math.random() * 1100;
-                }
+                    racer.stoppedByAnimal = true; return;
+                } else racer.stoppedByAnimal = false;
 
                 const targetNode = lapWaypoints[racer.waypointIndex];
                 const targetTileX = targetNode.x + 0.5 + racer.laneOffset;
                 const targetTileY = targetNode.y + 0.5 + racer.laneOffset;
 
-                const dx = targetTileX - racer.tileX;
-                const dy = targetTileY - racer.tileY;
-                const distTiles = Math.hypot(dx, dy);
-                const stepTiles = (racer.speed * simulationSpeed) / 31;
+                // Traffic Light
+                let stoppingForLight = false;
+                const upcomingLight = activeTrafficLights.find(l => l.wpIdx === racer.waypointIndex);
+                if (upcomingLight && (upcomingLight.state === 'red' || upcomingLight.state === 'yellow')) {
+                    const distToInter = Math.hypot(targetTileX - racer.tileX, targetTileY - racer.tileY);
+                    if (distToInter < 1.8 && distToInter > 0.4) stoppingForLight = true;
+                }
+                if (stoppingForLight) { racer.isStoppedAtLight = true; return; } else racer.isStoppedAtLight = false;
 
-                // Ensure front hood always points forward in direction of travel
-                if (Math.abs(dx) > Math.abs(dy)) {
-                    racer.facingRight = dx > 0;
-                    racer.tiltAngle = 0;
-                } else {
-                    // Keep natural left-facing orientation and angle hood downward (-0.42) or upward (+0.42)
-                    racer.facingRight = false;
-                    racer.tiltAngle = dy > 0 ? -0.42 : 0.42;
+                // Highly Unpredictable Speed Surges, Slipstreams & Random Chaos
+                if (now > racer.speedChangeTimer) {
+                    const rankIndex = sortedByProgress.findIndex(r => r.id === racer.id);
+                    const myScore = computeRacerExactScore(racer);
+                    const gapBehindLeader = Math.max(0, leadScore - myScore);
+
+                    let chaosMultiplier = 0.78 + Math.random() * 0.68; // Wide natural variance
+                    if (rankIndex === 0) {
+                        chaosMultiplier = 0.68 + Math.random() * 0.35; // Headwind on 1st place so lead changes constantly
+                    } else if (rankIndex <= 5) {
+                        chaosMultiplier = 0.95 + Math.random() * 0.65 + Math.min(0.4, gapBehindLeader * 0.025);
+                    } else {
+                        chaosMultiplier = 1.10 + Math.random() * 0.75 + Math.min(0.55, gapBehindLeader * 0.035);
+                    }
+
+                    // 12% chance of a wild random adrenaline surge or brief engine sputter
+                    if (Math.random() < 0.08 && rankIndex > 1) chaosMultiplier *= 1.45;
+                    else if (Math.random() < 0.05 && rankIndex === 0) chaosMultiplier *= 0.65;
+
+                    racer.speed = racer.baseSpeed * chaosMultiplier;
+                    racer.speedChangeTimer = now + 550 + Math.random() * 850;
                 }
 
+                // Apply Boost Modifiers
+                let finalSpeed = racer.speed;
+                if (now < racer.boostUntil) finalSpeed *= 2.4;
+                if (finishLinePhase) finalSpeed *= 1.35; // Exciting sprint to cross the finish line when time is up!
+
+                const dx = targetTileX - racer.tileX; const dy = targetTileY - racer.tileY;
+                const distTiles = Math.hypot(dx, dy); const stepTiles = (finalSpeed * simulationSpeed) / 31;
+
+                if (Math.abs(dx) > Math.abs(dy)) { racer.facingRight = dx > 0; racer.tiltAngle = 0; }
+                else { racer.facingRight = false; racer.tiltAngle = dy > 0 ? -0.42 : 0.42; }
+
                 if (distTiles <= stepTiles) {
-                    racer.tileX = targetTileX;
-                    racer.tileY = targetTileY;
-                    racer.totalDistance += distTiles;
-
-                    if (trafficLightWaypoints.includes(racer.waypointIndex) && Math.random() < 0.14) {
-                        racer.isStopped = true;
-                        racer.stopEndTime = now + 650 + Math.random() * 900;
-                    }
-
-                    const prevWaypoint = racer.waypointIndex;
+                    const reachedWaypoint = racer.waypointIndex;
+                    racer.tileX = targetTileX; racer.tileY = targetTileY;
                     racer.waypointIndex = (racer.waypointIndex + 1) % lapWaypoints.length;
 
-                    if (prevWaypoint === 0) {
+                    // Waypoint 0 is the exact Start/Finish Line (🏁)!
+                    if (reachedWaypoint === 0) {
                         racer.laps++;
                         playLapSound();
+
+                        // If timer expired, crossing the finish line (waypoint 0) locks in the winner & podium!
+                        if (finishLinePhase && racer.finishRank === 0) {
+                            podiumLocked.push(racer);
+                            racer.finishRank = podiumLocked.length;
+
+                            if (podiumLocked.length >= Math.min(3, racers.length)) {
+                                endGame(true);
+                                return;
+                            }
+                        }
                     }
                 } else {
-                    racer.tileX += (dx / distTiles) * stepTiles;
-                    racer.tileY += (dy / distTiles) * stepTiles;
-                    racer.totalDistance += stepTiles;
+                    racer.tileX += (dx / distTiles) * stepTiles; racer.tileY += (dy / distTiles) * stepTiles;
                 }
             });
 
-            renderLeftPanel(false);
+            // Update Left Panel (Guaranteed to use the exact same sorting as the finish line!)
+            if (now - lastPanelRenderTime > 160) {
+                lastPanelRenderTime = now;
+                const currentSorted = getSortedRacers();
+                if (gameRunning && currentSorted.length > 0 && now - raceStartTime > 1000) processLiveCommentary(currentSorted);
+                renderLeftPanelDOM(currentSorted, now);
+            }
         }
 
-        // --- 15. RENDER ACTIVE TRACK, ROCKS (🪨), CRASHES (🪨🔥💥), ANIMALS & VEHICLES ---
+        function renderLeftPanelDOM(sortedList, now = performance.now()) {
+            document.getElementById('leftRacerList').innerHTML = sortedList.map((r, index) => {
+                const rank = index + 1;
+                let badgeColor = 'bg-gray-700 text-gray-200'; let cardBorder = 'border-gray-700 bg-gray-900/90';
+                if (rank === 1) { badgeColor = 'bg-yellow-400 text-gray-900'; cardBorder = 'border-yellow-500/80 bg-gray-900'; }
+                else if (rank === 2) { badgeColor = 'bg-gray-300 text-gray-900'; }
+                else if (rank === 3) { badgeColor = 'bg-amber-600 text-white'; }
+                const isCrashed = now < r.crashedUntil;
+                const isBoosted = now < r.boostUntil;
+                const statusIcon = r.finishRank > 0
+                    ? `🏁#${r.finishRank}`
+                    : (isCrashed ? '🪨🔥💥' : (r.stoppedByAnimal ? '🐄' : (r.isStoppedAtLight ? '🔴' : (isBoosted ? '⚡' : `L${r.laps + 1}`))));
+                return `<div class="flex items-center justify-between px-1.5 py-0.5 rounded-lg border ${cardBorder}">
+                            <div class="flex items-center gap-1.5 min-w-0">
+                                <span class="w-4 h-4 rounded-full text-[10px] font-black flex items-center justify-center shrink-0 ${badgeColor}">${rank}</span>
+                                <div class="flex flex-col items-start leading-none min-w-0">
+                                    <span class="font-bold text-[11px] text-white truncate max-w-[68px]">${r.name}</span>
+                                    <span class="text-base mt-0.5 leading-none">${r.emoji}</span>
+                                </div>
+                            </div>
+                            <div class="text-right shrink-0"><span class="text-[10px] font-extrabold text-yellow-400">${statusIcon}</span></div>
+                        </div>`;
+            }).join('');
+        }
+
+        // Helper to draw a single racer sprite
+        function drawRacerSprite(racer, now) {
+            const isCrashed = now < racer.crashedUntil;
+            const isBoosted = now < racer.boostUntil;
+            const rx = racer.tileX * TILE_SIZE; const ry = racer.tileY * TILE_SIZE;
+
+            ctx.save(); ctx.translate(rx, ry);
+            if (racer.facingRight) ctx.scale(-1, 1);
+            if (isCrashed) ctx.rotate((now * 0.015) % (Math.PI * 2));
+            else if (racer.tiltAngle !== 0) ctx.rotate(racer.tiltAngle);
+
+            ctx.font = `${TILE_SIZE * 0.78}px sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillText(racer.emoji, 0, 0);
+
+            if (isBoosted && !isCrashed) { ctx.font = `${TILE_SIZE * 0.5}px sans-serif`; ctx.fillText('💨', TILE_SIZE * 0.6, 0); }
+            ctx.restore();
+
+            if (isCrashed) { ctx.font = `${TILE_SIZE * 0.62}px sans-serif`; ctx.fillText('🪨🔥💥', rx, ry - TILE_SIZE * 0.55); }
+            else if (racer.stoppedByAnimal) { ctx.font = `${TILE_SIZE * 0.42}px sans-serif`; ctx.fillText('🛑', rx, ry - TILE_SIZE * 0.48); }
+        }
+
+        // Check if a racer is currently on an elevated overpass bridge on Track 4
+        function isRacerOnOverpassBridge(racer) {
+            if (currentTrackId !== 4) return false;
+            return [4, 5, 7, 8, 19].includes(racer.waypointIndex);
+        }
+
+        // --- 7. RENDERING (WITH TRACK 4 OVERPASSES, UNDERPASSES & TUNNELS) ---
         function drawTrack() {
             const now = performance.now();
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const cfg = TRACK_CONFIGS[currentTrackId];
+            ctx.fillStyle = '#4d8a3b'; ctx.fillRect(0, 0, canvas.width, canvas.height);
 
             for (let y = 0; y < rows; y++) {
                 for (let x = 0; x < cols; x++) {
-                    const tile = map[y][x];
-                    const px = x * TILE_SIZE;
-                    const py = y * TILE_SIZE;
-
+                    const tile = map[y][x]; const px = x * TILE_SIZE; const py = y * TILE_SIZE;
                     if (tile === 1 || tile === 4) {
-                        ctx.fillStyle = currentTrackId === 3 ? '#312e81' : '#374151';
+                        ctx.fillStyle = currentTrackId === 3 ? '#312e81' : (currentTrackId === 4 ? '#1f2937' : '#374151');
                         ctx.fillRect(px, py, TILE_SIZE + 0.6, TILE_SIZE + 0.6);
-
-                        ctx.fillStyle = currentTrackId === 3 ? '#818cf8' : '#9ca3af';
+                        ctx.fillStyle = currentTrackId === 3 ? '#818cf8' : (currentTrackId === 4 ? '#fbbf24' : '#9ca3af');
                         ctx.fillRect(px + TILE_SIZE * 0.38, py + TILE_SIZE * 0.45, TILE_SIZE * 0.22, TILE_SIZE * 0.08);
-                    } else {
-                        ctx.fillStyle = '#4d8a3b';
-                        ctx.fillRect(px, py, TILE_SIZE + 0.6, TILE_SIZE + 0.6);
                     }
-
-                    const centerX = px + TILE_SIZE / 2;
-                    const centerY = py + TILE_SIZE / 2;
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-
-                    if (tile === 2 || tile === 3) {
-                        ctx.font = `${TILE_SIZE * 0.72}px sans-serif`;
-                        ctx.fillText(emojiMap[y][x], centerX, centerY);
-                    } else if (tile === 4) {
-                        ctx.fillStyle = '#facc15';
-                        ctx.fillRect(px, py, TILE_SIZE * 0.22, TILE_SIZE);
-                        ctx.font = `${TILE_SIZE * 0.8}px sans-serif`;
-                        ctx.fillText(EMOJIS.finish, centerX, centerY);
+                    const centerX = px + TILE_SIZE / 2; const centerY = py + TILE_SIZE / 2;
+                    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                    if (tile === 2 || tile === 3) { ctx.font = `${TILE_SIZE * 0.72}px sans-serif`; ctx.fillText(emojiMap[y][x], centerX, centerY); }
+                    else if (tile === 4) {
+                        ctx.fillStyle = '#facc15'; ctx.fillRect(px, py, TILE_SIZE * 0.24, TILE_SIZE);
+                        ctx.font = `${TILE_SIZE * 0.82}px sans-serif`; ctx.fillText(EMOJIS.finish, centerX, centerY);
                     }
                 }
             }
 
-            // Draw Traffic Lights
-            ctx.font = `${TILE_SIZE * 0.45}px sans-serif`;
-            trafficLightWaypoints.forEach(wpIdx => {
-                const node = lapWaypoints[wpIdx];
-                if (!node) return;
-                const lx = (node.x + 0.5) * TILE_SIZE;
-                const ly = (node.y + 0.5) * TILE_SIZE;
-                const anyoneStopped = racers.some(r => r.isStopped && r.waypointIndex === (wpIdx + 1) % lapWaypoints.length);
-                ctx.fillText(anyoneStopped ? '🔴' : '🟢', lx, ly - TILE_SIZE * 0.35);
-            });
-
-            // Draw Active Rock Boulders (🪨)
-            activeRocks.forEach(rock => {
-                const rx = rock.tileX * TILE_SIZE;
-                const ry = rock.tileY * TILE_SIZE;
-                ctx.font = `${TILE_SIZE * 0.82}px sans-serif`;
-                ctx.fillText('🪨', rx, ry);
-            });
-
-            // Draw Active Animal Crossings
-            activeAnimals.forEach(animal => {
-                const ax = animal.tileX * TILE_SIZE;
-                const ay = animal.tileY * TILE_SIZE;
-                const roadCenterY = (animal.roadRow + 0.5) * TILE_SIZE;
-
-                ctx.fillStyle = 'rgba(250, 204, 21, 0.55)';
-                for (let s = -0.35; s <= 0.35; s += 0.22) {
-                    ctx.fillRect(ax - TILE_SIZE * 0.35, roadCenterY + s * TILE_SIZE, TILE_SIZE * 0.7, TILE_SIZE * 0.1);
-                }
-
-                ctx.font = `${TILE_SIZE * 0.45}px sans-serif`;
-                ctx.fillText('⚠️', ax, roadCenterY - TILE_SIZE * 0.55);
-
-                ctx.font = `${TILE_SIZE * 0.85}px sans-serif`;
-                ctx.fillText(animal.emoji, ax, ay);
-            });
-
-            // Draw Racers (Vehicles ONLY — No names on track)
-            racers.forEach(racer => {
-                const isCrashed = now < racer.crashedUntil;
-                const rx = racer.tileX * TILE_SIZE;
-                const ry = racer.tileY * TILE_SIZE;
-
+            // Draw Persistent Power Boosts ⚡ & Rocks 🪨
+            activeBoosts.forEach(b => {
                 ctx.save();
-                ctx.translate(rx, ry);
-
-                if (racer.facingRight) {
-                    ctx.scale(-1, 1);
-                }
-                if (isCrashed) {
-                    ctx.rotate((now * 0.015) % (Math.PI * 2));
-                } else if (racer.tiltAngle !== 0) {
-                    ctx.rotate(racer.tiltAngle);
-                }
-
-                ctx.font = `${TILE_SIZE * 0.78}px sans-serif`;
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText(racer.emoji, 0, 0);
+                ctx.font = `${TILE_SIZE * 0.85}px sans-serif`;
+                ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                ctx.fillText('⚡', b.tileX * TILE_SIZE, b.tileY * TILE_SIZE);
                 ctx.restore();
-
-                if (isCrashed) {
-                    ctx.font = `${TILE_SIZE * 0.62}px sans-serif`;
-                    ctx.fillText('🪨🔥💥', rx, ry - TILE_SIZE * 0.55);
-                } else if (racer.stoppedByAnimal) {
-                    ctx.font = `${TILE_SIZE * 0.42}px sans-serif`;
-                    ctx.fillText('🛑', rx, ry - TILE_SIZE * 0.48);
-                }
+            });
+            activeRocks.forEach(r => {
+                ctx.font = `${TILE_SIZE * 0.82}px sans-serif`;
+                ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                ctx.fillText('🪨', r.tileX * TILE_SIZE, r.tileY * TILE_SIZE);
             });
 
-            // Fireworks Overlay
+            activeAnimals.forEach(a => {
+                const ax = a.tileX * TILE_SIZE; const ay = a.tileY * TILE_SIZE; const roadCenterY = (a.roadRow + 0.5) * TILE_SIZE;
+                ctx.fillStyle = 'rgba(250, 204, 21, 0.55)';
+                for (let s = -0.35; s <= 0.35; s += 0.22) ctx.fillRect(ax - TILE_SIZE * 0.35, roadCenterY + s * TILE_SIZE, TILE_SIZE * 0.7, TILE_SIZE * 0.1);
+                ctx.font = `${TILE_SIZE * 0.45}px sans-serif`; ctx.fillText('⚠️', ax, roadCenterY - TILE_SIZE * 0.55);
+                ctx.font = `${TILE_SIZE * 0.85}px sans-serif`; ctx.fillText(a.emoji, ax, ay);
+            });
+
+            // LAYER 1: Draw Ground / Underpass Racers first
+            racers.forEach(racer => {
+                if (!isRacerOnOverpassBridge(racer)) drawRacerSprite(racer, now);
+            });
+
+            // LAYER 2: Draw Track 4 Overpass Bridges (Elevated decks with shadow & steel guardrails so underpass cars pass beneath!)
+            if (cfg.overpasses && cfg.overpasses.length > 0) {
+                cfg.overpasses.forEach(ov => {
+                    const ox = ov.x * TILE_SIZE; const oy = ov.y * TILE_SIZE;
+                    // Dark underpass shadow on the horizontal road below
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.55)';
+                    ctx.fillRect(ox - TILE_SIZE * 0.18, oy, TILE_SIZE * 1.36, TILE_SIZE);
+                    // Elevated vertical bridge deck
+                    ctx.fillStyle = '#4b5563';
+                    ctx.fillRect(ox, oy - TILE_SIZE * 0.1, TILE_SIZE, TILE_SIZE * 1.2);
+                    // Bright yellow/orange bridge suspension rails
+                    ctx.fillStyle = '#f59e0b';
+                    ctx.fillRect(ox - 2, oy - TILE_SIZE * 0.1, 4, TILE_SIZE * 1.2);
+                    ctx.fillRect(ox + TILE_SIZE - 2, oy - TILE_SIZE * 0.1, 4, TILE_SIZE * 1.2);
+                    // Center stripe on bridge
+                    ctx.fillStyle = '#fef08a';
+                    ctx.fillRect(ox + TILE_SIZE * 0.46, oy + TILE_SIZE * 0.25, TILE_SIZE * 0.08, TILE_SIZE * 0.5);
+                });
+            }
+
+            // LAYER 3: Draw Racers currently driving ON TOP of the Overpass Bridges
+            racers.forEach(racer => {
+                if (isRacerOnOverpassBridge(racer)) drawRacerSprite(racer, now);
+            });
+
+            // LAYER 4: Draw Track 4 Mountain Tunnels (Roof drawn OVER the road so cars disappear inside the tunnel!)
+            if (cfg.tunnels && cfg.tunnels.length > 0) {
+                cfg.tunnels.forEach(t => {
+                    const minX = Math.min(t.x1, t.x2) * TILE_SIZE;
+                    const minY = Math.min(t.y1, t.y2) * TILE_SIZE;
+                    const width = (Math.abs(t.x2 - t.x1) + 1) * TILE_SIZE;
+                    const height = (Math.abs(t.y2 - t.y1) + 1) * TILE_SIZE;
+
+                    // Dark stone tunnel roof with semi-transparent cutaway so kids can see cars inside
+                    ctx.fillStyle = 'rgba(17, 24, 39, 0.86)';
+                    ctx.fillRect(minX, minY, width, height);
+                    ctx.strokeStyle = '#9ca3af';
+                    ctx.lineWidth = 3;
+                    ctx.strokeRect(minX, minY, width, height);
+
+                    // Tunnel portal arches
+                    ctx.fillStyle = '#6b7280';
+                    if (t.orientation === 'vertical') {
+                        ctx.fillRect(minX - 3, minY, width + 6, TILE_SIZE * 0.28);
+                        ctx.fillRect(minX - 3, minY + height - TILE_SIZE * 0.28, width + 6, TILE_SIZE * 0.28);
+                    } else {
+                        ctx.fillRect(minX, minY - 3, TILE_SIZE * 0.28, height + 6);
+                        ctx.fillRect(minX + width - TILE_SIZE * 0.28, minY - 3, TILE_SIZE * 0.28, height + 6);
+                    }
+
+                    ctx.fillStyle = '#fde047';
+                    ctx.font = `bold ${Math.max(9, TILE_SIZE * 0.32)}px Inter, sans-serif`;
+                    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                    ctx.fillText(`🏔️ ${t.label}`, minX + width / 2, minY + height / 2);
+                });
+            }
+
+            activeTrafficLights.forEach(light => {
+                const lx = (light.x + 0.5) * TILE_SIZE; const ly = (light.y + 0.5) * TILE_SIZE;
+                ctx.fillStyle = '#222'; ctx.fillRect(lx - TILE_SIZE*0.25, ly - TILE_SIZE*1.2, TILE_SIZE*0.5, TILE_SIZE*1.05);
+                ctx.fillStyle = light.state === 'red' ? '#ff4444' : '#444'; ctx.beginPath(); ctx.arc(lx, ly - TILE_SIZE*0.95, TILE_SIZE*0.12, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = light.state === 'yellow' ? '#ffff44' : '#444'; ctx.beginPath(); ctx.arc(lx, ly - TILE_SIZE*0.65, TILE_SIZE*0.12, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = light.state === 'green' ? '#44ff44' : '#444'; ctx.beginPath(); ctx.arc(lx, ly - TILE_SIZE*0.35, TILE_SIZE*0.12, 0, Math.PI*2); ctx.fill();
+            });
+
             if (celebrationActive || fireworks.length > 0) {
-                updateAndDrawFireworks();
+                if (celebrationActive && Math.random() < 0.24) {
+                    const x = (0.08 + Math.random() * 0.84) * canvas.width; const y = (0.08 + Math.random() * 0.65) * canvas.height;
+                    const colors = ['#facc15', '#f87171', '#60a5fa', '#34d399', '#c084fc', '#fb923c', '#ffffff', '#f472b6'];
+                    for (let i = 0; i < 55; i++) fireworks.push({ x: x, y: y, vx: Math.cos((Math.PI * 2 * i) / 55 + (Math.random() * 0.25)) * (1.8 + Math.random() * 5.8), vy: Math.sin((Math.PI * 2 * i) / 55 + (Math.random() * 0.25)) * (1.8 + Math.random() * 5.8), color: colors[i % colors.length], alpha: 1, size: 3 + Math.random() * 3.5 });
+                    if(soundInitialized){ try{ fireworkNoise.triggerAttackRelease('8n', Tone.now()); polySynth.triggerAttackRelease([['C5', 'E5', 'G5', 'B5', 'C6', 'D6', 'E6'][Math.floor(Math.random() * 7)], 'G5'], '16n', Tone.now() + 0.05); }catch(e){} }
+                }
+                for (let i = fireworks.length - 1; i >= 0; i--) {
+                    const p = fireworks[i]; p.x += p.vx; p.y += p.vy; p.vy += 0.05; p.alpha -= 0.013;
+                    if (p.alpha <= 0) { fireworks.splice(i, 1); continue; }
+                    ctx.save(); ctx.globalAlpha = Math.max(0, p.alpha); ctx.fillStyle = p.color; ctx.shadowColor = p.color; ctx.shadowBlur = 8; ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+                }
+            }
+        }
+
+        // --- 8. INITIALIZATION & UI BINDING ---
+        function resizeCanvasOnly() {
+            const container = canvas.parentElement; const cw = container.clientWidth || 800; const ch = container.clientHeight || 500;
+            const aspect = cols / rows; let width = cw; let height = cw / aspect;
+            if (height > ch) { height = ch; width = ch * aspect; }
+            canvas.width = Math.max(360, Math.floor(width)); canvas.height = Math.max(240, Math.floor(height)); TILE_SIZE = canvas.width / cols;
+        }
+
+        async function startGame() {
+            if (gameRunning) return;
+            await initAudioEngine(); playStartSound();
+            if (racers.length === 0 || remainingTimeMs <= 0 || celebrationActive || finishLinePhase) {
+                endGame(false); celebrationActive = false; finishLinePhase = false; podiumLocked = []; fireworks = []; remainingTimeMs = raceDurationMs;
+                activeAnimals = []; activeRocks = []; activeBoosts = []; urgentAnnouncementQueue = []; prevTopThreeNames = ["", "", ""];
+                hazardBanner.classList.add('hidden'); commentaryBanner.classList.add('hidden');
+                
+                buildActiveTrackMap(); resizeCanvasOnly();
+                const cfg = TRACK_CONFIGS[currentTrackId]; const availableVehicles = [...FLEET_VEHICLES].sort(() => 0.5 - Math.random()); const chosenNames = Array.from(selectedStudents);
+                const maxSpanCols = Math.max(4, (cols - 4) - cfg.startCol);
+                const spacingCols = Math.min(0.42, maxSpanCols / Math.max(1, chosenNames.length));
+
+                // Spawn 3 initial permanent power boosts (⚡) on the track right away
+                for (let b = 0; b < 3; b++) {
+                    if (hazardRoadCandidates.length > 0) {
+                        const pt = hazardRoadCandidates[Math.floor(Math.random() * hazardRoadCandidates.length)];
+                        activeBoosts.push({ tileX: pt.x + 0.5, tileY: pt.y + 0.5 });
+                    }
+                }
+
+                racers = chosenNames.map((name, idx) => {
+                    const laneOffset = ((idx % 5) - 2) * 0.09;
+                    return { id: idx, name: name, emoji: availableVehicles[idx % availableVehicles.length], tileX: cfg.startCol + 0.5 + (idx * spacingCols), tileY: cfg.startRow + 0.5 + laneOffset, baseSpeed: 1.65 + (Math.random() * 0.16), speed: 1.7, speedChangeTimer: 0, waypointIndex: 1, laps: 0, finishRank: 0, laneOffset: laneOffset, facingRight: false, tiltAngle: 0, isStoppedAtLight: false, stoppedByAnimal: false, crashedUntil: 0, boostUntil: 0 };
+                });
+            }
+
+            celebrationActive = false; fireworks = []; gameRunning = true;
+            document.getElementById('messageOverlay').classList.add('hidden'); document.getElementById('startButton').textContent = '🔄';
+            raceStartTime = performance.now(); lastTime = raceStartTime; lastPanelRenderTime = raceStartTime;
+            nextAnimalSpawnTime = raceStartTime + 2200; nextRockSpawnTime = raceStartTime + 2000; nextBoostSpawnTime = raceStartTime + 2500; nextRandomHornTime = raceStartTime + 1800; lastSpeechEndTime = raceStartTime;
+
+            const trackIntro = currentTrackId === 4
+                ? `Green light on Track 4, the Overpass and Tunnel Circuit! Watch cars race through the mountain tunnels, underpasses, and bridges!`
+                : `Green light on Track ${currentTrackId}, ${TRACK_CONFIGS[currentTrackId].name}! Watch out for animal crossings, rock crashes, and lightning power boosts!`;
+            speakCommentary('Emma', trackIntro, true);
+            startBackgroundMusic(); animationFrameId = requestAnimationFrame(gameLoop);
+        }
+
+        function endGame(showWinnerModal = false) {
+            gameRunning = false; finishLinePhase = false; stopBackgroundMusic(); setMusicAndHornsDucked(false); document.getElementById('startButton').textContent = '▶️';
+            if (!showWinnerModal) { celebrationActive = false; if (animationFrameId) cancelAnimationFrame(animationFrameId); if ('speechSynthesis' in window) { window.speechSynthesis.cancel(); activeUtterances.length = 0; } return; }
+
+            if (racers.length > 0) {
+                celebrationActive = true;
+                // Use the exact same sorted list for both the Left Panel and the Podium Modal!
+                const sorted = getSortedRacers();
+                renderLeftPanelDOM(sorted);
+
+                const first = sorted[0]; const second = sorted[1]; const third = sorted[2];
+                document.getElementById('winnerEmoji').textContent = first.emoji; document.getElementById('messageTitle').textContent = `🎉 ${first.name} Wins! 🎉`;
+
+                const podiumItems = [
+                    { place: '🥇 1st', racer: first, bg: 'bg-yellow-500/25 border-yellow-400', delayClass: '' },
+                    { place: '🥈 2nd', racer: second, bg: 'bg-gray-400/25 border-gray-300', delayClass: 'floating-delay-1' },
+                    { place: '🥉 3rd', racer: third, bg: 'bg-amber-600/25 border-amber-500', delayClass: 'floating-delay-2' }
+                ].filter(item => item.racer);
+                document.getElementById('podiumDetails').innerHTML = podiumItems.map(item => `<div class="border ${item.bg} rounded-xl p-2.5 text-center flex flex-col items-center shadow-lg"><span class="text-xs font-black uppercase text-gray-200">${item.place}</span><span class="text-4xl my-2 floating-vehicle ${item.delayClass}">${item.racer.emoji}</span><span class="font-extrabold text-sm text-white truncate w-full">${item.racer.name}</span><span class="text-[11px] text-yellow-300 font-semibold">${item.racer.laps} Laps</span></div>`).join('');
+
+                document.getElementById('messageOverlay').classList.remove('hidden');
+
+                // Launch an immediate multi-burst firework barrage so the sky lights up right away!
+                for (let b = 0; b < 5; b++) {
+                    setTimeout(() => {
+                        if (!celebrationActive) return;
+                        const x = (0.1 + Math.random() * 0.8) * canvas.width;
+                        const y = (0.1 + Math.random() * 0.6) * canvas.height;
+                        const colors = ['#facc15', '#f87171', '#60a5fa', '#34d399', '#c084fc', '#fb923c', '#ffffff'];
+                        for (let i = 0; i < 60; i++) {
+                            fireworks.push({
+                                x, y,
+                                vx: Math.cos((Math.PI * 2 * i) / 60 + Math.random() * 0.2) * (2 + Math.random() * 5.5),
+                                vy: Math.sin((Math.PI * 2 * i) / 60 + Math.random() * 0.2) * (2 + Math.random() * 5.5),
+                                color: colors[i % colors.length], alpha: 1, size: 3 + Math.random() * 3.5
+                            });
+                        }
+                        if (soundInitialized) {
+                            try {
+                                fireworkNoise.triggerAttackRelease('8n', Tone.now());
+                                polySynth.triggerAttackRelease(['C5', 'G5', 'C6'], '16n', Tone.now() + 0.04);
+                            } catch (e) {}
+                        }
+                    }, b * 260);
+                }
+
+                if(soundInitialized) { try{const now = Tone.now() + 0.02; polySynth.triggerAttackRelease(['C4', 'E4', 'G4', 'C5'], '4n', now); polySynth.triggerAttackRelease(['E4', 'G4', 'C5', 'E5'], '4n', now + 0.25); polySynth.triggerAttackRelease(['G4', 'C5', 'E5', 'G5'], '2n', now + 0.5); }catch(e){} }
+                if (!('speechSynthesis' in window) || sorted.length === 0) return;
+                window.speechSynthesis.cancel(); activeUtterances.length = 0; loadVoices();
+                
+                const v1 = VEHICLE_NAMES[first.emoji] || 'car'; const v2 = second ? (VEHICLE_NAMES[second.emoji] || 'car') : ''; const v3 = third ? (VEHICLE_NAMES[third.emoji] || 'car') : '';
+                const winOpeners = [
+                    `Across the finish line with fireworks lighting up the sky! Winning first place for Class ${currentClass} is ${first.name} driving the ${v1}!`,
+                    `Checkered flag victory! ${first.name} takes the championship crown for Class ${currentClass} aboard the ${v1}!`,
+                    `What an unforgettable grand finale! ${first.name} storms across the finish line in first place in the ${v1}!`
+                ];
+                const winClosers = [
+                    second && third ? `Spectacular racing! Taking second place on the podium is ${second.name} in the ${v2}, and clinching third place is ${third.name} in the ${v3}!` : `A legendary victory!`,
+                    second && third ? `Look at those floating podium rides! ${second.name} grabs silver in the ${v2}, and ${third.name} takes bronze in the ${v3}!` : `What a performance!`
+                ];
+                const u1 = new SpeechSynthesisUtterance(winOpeners[Math.floor(Math.random() * winOpeners.length)]); u1.volume = 1.0; u1.rate = 1.0; if (emmaVoice) u1.voice = emmaVoice;
+                u1.onstart = () => { setMusicAndHornsDucked(true); commentaryBanner.classList.remove('hidden'); commentaryText.textContent = `Emma: "${u1.text}"`; };
+                const u2 = new SpeechSynthesisUtterance(winClosers[Math.floor(Math.random() * winClosers.length)]); u2.volume = 1.0; u2.rate = 1.0; if (andrewVoice) u2.voice = andrewVoice;
+                u2.onstart = () => { setMusicAndHornsDucked(true); commentaryBanner.classList.remove('hidden'); commentaryText.textContent = `Andrew: "${u2.text}"`; }; u2.onend = () => setMusicAndHornsDucked(false);
+                activeUtterances.push(u1, u2); window.speechSynthesis.speak(u1); window.speechSynthesis.speak(u2);
             }
         }
 
         function gameLoop(now) {
             if (gameRunning) {
-                update(now);
+                const dt = now - lastTime; lastTime = now;
+                const elapsed = now - raceStartTime; remainingTimeMs = Math.max(0, raceDurationMs - elapsed);
+                if (remainingTimeMs > 0) {
+                    const totalSecs = Math.ceil(remainingTimeMs / 1000);
+                    document.getElementById('raceTimerDisplay').textContent = `${String(Math.floor(totalSecs / 60)).padStart(2, '0')}:${String(totalSecs % 60).padStart(2, '0')}`;
+                } else {
+                    // Time is up! Activate Checkered Flag Finish-Line Phase so 1st, 2nd, and 3rd physically cross the 🏁 line!
+                    document.getElementById('raceTimerDisplay').textContent = `🏁 LAP`;
+                    if (!finishLinePhase) {
+                        finishLinePhase = true;
+                        hazardBannerIcon.textContent = '🏁';
+                        hazardBannerText.textContent = 'FINAL SPRINT! First to cross the 🏁 Finish Line wins!';
+                        hazardBanner.classList.remove('hidden');
+                        queueUrgentEventAnnouncement(`Time is up! Checkered flag is out at the finish line! First cars to cross the finish line take first, second, and third!`);
+                    }
+                }
+                updateHazardsAndHorns(now, dt); updateRacers(now, dt);
             }
             drawTrack();
-            if (gameRunning || celebrationActive || fireworks.length > 0) {
-                animationFrameId = requestAnimationFrame(gameLoop);
-            }
+            if (gameRunning || celebrationActive || fireworks.length > 0) animationFrameId = requestAnimationFrame(gameLoop);
         }
 
-        // --- 16. EVENT LISTENERS ---
-        startButton.addEventListener('click', () => {
-            if (gameRunning) {
-                setupRacersAndTrack();
+        // --- Event Listeners & UI Binding ---
+        function renderStudentGrid() {
+            studentGrid.innerHTML = '';
+            CLASS_ROSTERS[currentClass].forEach(name => {
+                const btn = document.createElement('button'); btn.type = 'button';
+                btn.className = `student-card flex items-center justify-between px-3 py-2 rounded-xl border text-left font-semibold text-xs md:text-sm transition ${selectedStudents.has(name) ? 'selected text-white shadow-md' : 'bg-gray-900 border-gray-700 text-gray-300 hover:border-gray-500'}`;
+                btn.innerHTML = `<span class="truncate">${name}</span><span class="text-xs ml-1">${selectedStudents.has(name) ? '✅' : ''}</span>`;
+                btn.addEventListener('click', () => {
+                    if (selectedStudents.has(name)) {
+                        selectedStudents.delete(name);
+                    } else { 
+                        if (selectedStudents.size >= MAX_RACERS) { 
+                            const badge = document.getElementById('selectedCountBadge');
+                            badge.classList.remove('flash-red');
+                            void badge.offsetWidth; // trigger reflow
+                            badge.classList.add('flash-red');
+                            return; 
+                        } 
+                        selectedStudents.add(name); 
+                    }
+                    renderStudentGrid();
+                });
+                studentGrid.appendChild(btn);
+            });
+            document.getElementById('selectedCountBadge').textContent = `${selectedStudents.size} / ${MAX_RACERS}`;
+            document.getElementById('goToTrackBtn').disabled = selectedStudents.size === 0;
+        }
+
+        function switchClass(className) {
+            if (currentClass !== className) {
+                currentClass = className; 
+                selectedStudents = new Set(CLASS_ROSTERS[currentClass].slice(0, MAX_RACERS));
             }
-            startGame();
+            document.getElementById('classBtn6H2').classList.toggle('active', currentClass === '6H2');
+            document.getElementById('classBtn5M2').classList.toggle('active', currentClass === '5M2');
+            document.getElementById('activeClassBadge').textContent = `Class ${currentClass}`;
+            document.getElementById('quickSwitchClassBtn').textContent = currentClass === '6H2' ? '5M2' : '6H2';
+            renderStudentGrid();
+        }
+
+        document.getElementById('classBtn6H2').addEventListener('click', () => switchClass('6H2'));
+        document.getElementById('classBtn5M2').addEventListener('click', () => switchClass('5M2'));
+        document.getElementById('quickSwitchClassBtn').addEventListener('click', () => { 
+            switchClass(currentClass === '6H2' ? '5M2' : '6H2'); 
+            racers = [];
+            endGame(); document.getElementById('messageOverlay').classList.add('hidden'); startGame(); 
         });
 
-        backButton.addEventListener('click', () => {
-            endGame(false);
-            gameScreen.classList.add('hidden');
-            selectionScreen.classList.remove('hidden');
+        document.querySelectorAll('.track-btn').forEach(btn => btn.addEventListener('click', () => {
+            currentTrackId = parseInt(btn.dataset.track, 10);
+            document.querySelectorAll('.track-btn').forEach(b => b.classList.toggle('active', parseInt(b.dataset.track, 10) === currentTrackId));
+            if (!document.getElementById('gameScreen').classList.contains('hidden')) { racers = []; endGame(); document.getElementById('messageOverlay').classList.add('hidden'); startGame(); }
+        }));
+        
+        document.querySelectorAll('.time-btn').forEach(btn => btn.addEventListener('click', () => {
+            const mins = parseInt(btn.dataset.mins, 10); selectedDurationMinutes = mins; raceDurationMs = mins * 60 * 1000;
+            document.querySelectorAll('.time-btn').forEach(b => b.classList.toggle('active', parseInt(b.dataset.mins, 10) === mins));
+            if (!gameRunning) document.getElementById('raceTimerDisplay').textContent = `${String(mins).padStart(2, '0')}:00`;
+        }));
+
+        document.getElementById('btnFirst16').addEventListener('click', () => { selectedStudents = new Set(CLASS_ROSTERS[currentClass].slice(0, MAX_RACERS)); renderStudentGrid(); });
+        document.getElementById('btnRemaining').addEventListener('click', () => { const rem = CLASS_ROSTERS[currentClass].slice(MAX_RACERS); selectedStudents = new Set(rem.length > 0 ? rem.slice(0, MAX_RACERS) : CLASS_ROSTERS[currentClass].slice(0, MAX_RACERS)); renderStudentGrid(); });
+        document.getElementById('btnRandom16').addEventListener('click', () => { selectedStudents = new Set([...CLASS_ROSTERS[currentClass]].sort(() => 0.5 - Math.random()).slice(0, MAX_RACERS)); renderStudentGrid(); });
+        document.getElementById('btnClearAll').addEventListener('click', () => { selectedStudents.clear(); renderStudentGrid(); });
+
+        document.getElementById('goToTrackBtn').addEventListener('click', () => {
+            if (selectedStudents.size === 0) return;
+            document.getElementById('selectionScreen').classList.add('hidden'); document.getElementById('gameScreen').classList.remove('hidden');
+            setTimeout(() => { racers = []; endGame(); document.getElementById('messageOverlay').classList.add('hidden'); startGame(); }, 50);
         });
 
-        overlayRestartBtn.addEventListener('click', () => {
-            messageOverlay.classList.add('hidden');
-            setupRacersAndTrack();
-            startGame();
-        });
-
-        overlayRosterBtn.addEventListener('click', () => {
-            messageOverlay.classList.add('hidden');
-            endGame(false);
-            gameScreen.classList.add('hidden');
-            selectionScreen.classList.remove('hidden');
-        });
-
-        speedSlider.addEventListener('input', (e) => {
-            simulationSpeed = parseFloat(e.target.value);
-        });
-
+        document.getElementById('startButton').addEventListener('click', () => { if (gameRunning) { racers = []; endGame(); document.getElementById('messageOverlay').classList.add('hidden'); } startGame(); });
+        document.getElementById('backButton').addEventListener('click', () => { endGame(false); document.getElementById('gameScreen').classList.add('hidden'); document.getElementById('selectionScreen').classList.remove('hidden'); });
+        document.getElementById('overlayRestartBtn').addEventListener('click', () => { document.getElementById('messageOverlay').classList.add('hidden'); racers = []; endGame(); startGame(); });
+        document.getElementById('overlayRosterBtn').addEventListener('click', () => { document.getElementById('messageOverlay').classList.add('hidden'); endGame(false); document.getElementById('gameScreen').classList.add('hidden'); document.getElementById('selectionScreen').classList.remove('hidden'); });
+        document.getElementById('speedSlider').addEventListener('input', (e) => { simulationSpeed = parseFloat(e.target.value); });
+        
         window.addEventListener('resize', () => {
-            if (!gameScreen.classList.contains('hidden')) {
+            if (!document.getElementById('gameScreen').classList.contains('hidden')) {
                 resizeCanvasOnly();
                 drawTrack();
             }
         });
 
-        // Initial Boot
-        renderStudentGrid();
+        // Initialize safely
+        switchClass(currentClass);
     </script>
 </body>
 </html>
