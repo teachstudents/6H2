@@ -10,7 +10,7 @@
         
         body {
             font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #ffffff, #fef08a, #ffdab9);
+            background: linear-gradient(135deg, #ffffff, #fef08a, #ffdab9); /* White to yellow to peach */
             color: #1e1b4b;
             overflow-x: hidden;
         }
@@ -20,9 +20,9 @@
         }
 
         .glass-panel {
-            background: rgba(255, 255, 255, 0.5);
+            background: rgba(255, 255, 255, 0.7);
             backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.8);
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
         }
 
@@ -30,17 +30,17 @@
             transition: all 0.2s ease-in-out;
         }
         .btn-hover:hover {
-            transform: translateY(-3px) scale(1.02);
+            transform: translateY(-2px) scale(1.02);
             box-shadow: 0 10px 20px rgba(0,0,0,0.15);
         }
 
         .timer-bar-container {
             width: 100%;
-            height: 20px;
+            height: 16px;
             background: rgba(0,0,0,0.1);
-            border-radius: 10px;
+            border-radius: 8px;
             overflow: hidden;
-            margin-bottom: 20px;
+            margin-bottom: 16px;
         }
 
         .timer-bar {
@@ -55,10 +55,11 @@
             background: linear-gradient(90deg, #facc15, #ef4444) !important;
         }
 
-        .clue-time { color: #1d4ed8; font-weight: 800; }
-        .clue-verb { color: #7e22ce; font-weight: 800; }
-        .clue-condition { color: #15803d; font-weight: 800; }
-        .clue-degree { color: #0f766e; font-weight: 800; }
+        /* Text colors for different grammar clues */
+        .clue-time { color: #1d4ed8; font-weight: 800; } /* Blue */
+        .clue-verb { color: #7e22ce; font-weight: 800; } /* Purple */
+        .clue-condition { color: #15803d; font-weight: 800; } /* Green */
+        .clue-degree { color: #0f766e; font-weight: 800; } 
 
         /* Fixed gap width to prevent sentence shifting */
         .fixed-gap {
@@ -68,13 +69,21 @@
             border-bottom: 3px solid rgba(0,0,0,0.4);
             padding: 0 8px;
             transition: all 0.2s;
+            color: transparent; /* Hide text if it's placed inside before reveal */
+        }
+        .fixed-gap.revealed {
+            color: white;
+            background: #22c55e;
+            border-bottom: none;
+            border-radius: 8px;
+            padding: 2px 8px;
         }
 
         .gap-blank {
             display: inline-block;
             width: 140px;
             text-align: center;
-            background: rgba(255, 255, 255, 0.7);
+            background: rgba(255, 255, 255, 0.9);
             border: 2px dashed #4b5563;
             border-radius: 8px;
             padding: 2px 10px;
@@ -110,7 +119,6 @@
             transition: all 0.2s;
         }
         .word-bank-btn.selected {
-            ring: 4px;
             box-shadow: 0 0 0 4px #facc15;
             transform: scale(1.1);
         }
@@ -149,13 +157,14 @@
 
     <!-- MAIN MENU -->
     <div id="main-menu" class="w-full max-w-6xl flex flex-col items-center">
-        <h1 class="text-5xl md:text-7xl font-black text-center mb-4 text-transparent bg-clip-text bg-gradient-to-r from-blue-700 to-purple-700 drop-shadow-lg">
+        <h1 class="text-4xl md:text-6xl font-black text-center mb-2 text-transparent bg-clip-text bg-gradient-to-r from-blue-700 to-purple-700 drop-shadow-lg">
             6H2 Grammar Challenge
         </h1>
-        <p class="text-3xl mb-10 text-gray-800">🎬 🍿 🎥 🌟 🏆</p>
+        <p class="text-2xl mb-6 text-gray-800">🎬 🍿 🎥 🌟 🏆</p>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full px-4">
-            <!-- Categories will be injected here -->
+        <!-- Compressed Grid for 8 Categories -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 w-full px-4">
+            <!-- Categories injected here -->
         </div>
     </div>
 
@@ -163,18 +172,20 @@
     <div id="game-screen" class="hidden w-full max-w-6xl flex-col items-center">
         
         <!-- Header -->
-        <div class="w-full flex flex-col md:flex-row justify-between items-center mb-4 glass-panel p-4 rounded-2xl gap-4">
+        <div class="w-full flex flex-col md:flex-row justify-between items-center mb-4 glass-panel p-3 rounded-2xl gap-4">
             <div class="flex items-center gap-4">
                 <button onclick="returnToMenu()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-xl font-bold btn-hover shadow-md">
                     ⬅️ Menu
                 </button>
                 <div class="text-xl font-bold bg-white border-2 border-indigo-200 px-4 py-2 rounded-xl text-indigo-900">Q: <span id="q-counter">1</span></div>
+                
+                <!-- Check Answers (Only visible on gap fill) -->
                 <button id="check-gap-answers" onclick="checkGapFillAnswers()" class="bg-gradient-to-r from-green-500 to-blue-600 text-white font-black px-4 py-2 rounded-xl btn-hover shadow-md hidden">
                     Check Answers ✅
                 </button>
             </div>
             
-            <h2 id="category-title" class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-700 to-blue-700 hidden lg:block">Category Name</h2>
+            <h2 id="category-title" class="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-700 to-blue-700 hidden md:block">Category Name</h2>
         </div>
 
         <!-- Timer -->
@@ -183,39 +194,39 @@
         </div>
 
         <!-- Matchup Area -->
-        <div class="w-full grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 mt-4">
+        <div class="w-full grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 mt-2">
             
             <!-- Girl Card -->
-            <div class="glass-panel p-6 rounded-3xl flex flex-col items-center border-t-4 border-pink-500 relative">
+            <div class="glass-panel p-3 rounded-3xl flex flex-col items-center border-t-4 border-pink-500 relative">
                 <!-- Clickable Score -->
-                <button onclick="awardPoint('girl')" class="text-5xl md:text-6xl font-black text-purple-900 hover:text-pink-600 mb-2 transition-colors cursor-pointer drop-shadow-md" title="Award Point to Girls">
+                <button onclick="awardPoint('girl')" class="text-4xl md:text-5xl font-black text-purple-900 hover:text-pink-600 mb-1 transition-colors cursor-pointer drop-shadow-md" title="Award Point to Girls">
                     <span id="girl-score">0</span>
                 </button>
-                <div class="text-6xl mb-2 drop-shadow-md">👧</div>
-                <h3 id="girl-name" class="text-2xl font-bold text-pink-600 mb-2">Girls</h3>
-                <div id="girl-badges" class="flex gap-2 mt-2 text-2xl h-8"></div>
+                <div class="text-4xl mb-1 drop-shadow-md">👧</div>
+                <h3 id="girl-name" class="text-xl font-bold text-pink-600 mb-1">Girls</h3>
+                <div id="girl-badges" class="flex gap-1 mt-1 text-xl h-6"></div>
             </div>
 
             <!-- VS -->
             <div class="flex flex-col items-center justify-center relative">
-                <div class="text-5xl font-black text-blue-900 italic mb-4 drop-shadow-md">VS</div>
+                <div class="text-4xl font-black text-blue-900 italic drop-shadow-md">VS</div>
             </div>
 
             <!-- Boy Card -->
-            <div class="glass-panel p-6 rounded-3xl flex flex-col items-center border-t-4 border-blue-500 relative">
+            <div class="glass-panel p-3 rounded-3xl flex flex-col items-center border-t-4 border-blue-500 relative">
                 <!-- Clickable Score -->
-                <button onclick="awardPoint('boy')" class="text-5xl md:text-6xl font-black text-purple-900 hover:text-blue-600 mb-2 transition-colors cursor-pointer drop-shadow-md" title="Award Point to Boys">
+                <button onclick="awardPoint('boy')" class="text-4xl md:text-5xl font-black text-purple-900 hover:text-blue-600 mb-1 transition-colors cursor-pointer drop-shadow-md" title="Award Point to Boys">
                     <span id="boy-score">0</span>
                 </button>
-                <div class="text-6xl mb-2 drop-shadow-md">👦</div>
-                <h3 id="boy-name" class="text-2xl font-bold text-blue-600 mb-2">Boys</h3>
-                <div id="boy-badges" class="flex gap-2 mt-2 text-2xl h-8"></div>
+                <div class="text-4xl mb-1 drop-shadow-md">👦</div>
+                <h3 id="boy-name" class="text-xl font-bold text-blue-600 mb-1">Boys</h3>
+                <div id="boy-badges" class="flex gap-1 mt-1 text-xl h-6"></div>
             </div>
         </div>
 
         <!-- Question Box (Standard) -->
         <div id="standard-question-box" class="w-full glass-panel p-8 rounded-3xl text-center mb-8 shadow-xl">
-            <p id="question-text" class="text-3xl md:text-4xl leading-relaxed font-semibold mb-8 text-blue-900">
+            <p id="question-text" class="text-3xl md:text-4xl leading-relaxed font-semibold mb-8 text-black">
                 Loading...
             </p>
             
@@ -227,12 +238,22 @@
         <!-- Gap Fill Box (Category 7) -->
         <div id="gap-fill-box" class="w-full glass-panel p-8 rounded-3xl mb-8 shadow-xl hidden flex-col items-center">
             <h3 id="review-title" class="text-3xl font-black text-purple-700 mb-6 text-center"></h3>
-            <p id="gap-fill-text" class="text-2xl md:text-3xl leading-relaxed font-medium mb-10 text-left w-full max-w-4xl mx-auto text-blue-950">
+            <p id="gap-fill-text" class="text-2xl md:text-3xl leading-relaxed font-medium mb-10 text-left w-full max-w-4xl mx-auto text-black">
                 <!-- Gap fill injected here -->
             </p>
             
-            <div id="word-bank" class="flex flex-wrap justify-center gap-4 mb-8 w-full max-w-4xl mx-auto bg-white bg-opacity-70 p-6 rounded-2xl border border-blue-300">
+            <div id="word-bank" class="flex flex-wrap justify-center gap-4 mb-4 w-full max-w-4xl mx-auto bg-white bg-opacity-70 p-6 rounded-2xl border border-blue-300">
                 <!-- Word bank buttons injected here -->
+            </div>
+        </div>
+
+        <!-- Genre Matching Box (Category 8) -->
+        <div id="genre-box" class="w-full glass-panel p-8 rounded-3xl text-center mb-8 shadow-xl hidden">
+            <p id="genre-description" class="text-3xl md:text-4xl leading-relaxed font-bold mb-10 text-blue-900">
+                Loading description...
+            </p>
+            <div id="genre-options" class="flex flex-col md:flex-row justify-center gap-4">
+                <!-- Genre buttons injected here -->
             </div>
         </div>
 
@@ -257,44 +278,72 @@
             { id: 3, title: "3. Zero Conditional 🎥", color: "from-orange-400 to-red-600" },
             { id: 4, title: "4. First Conditional 🌟", color: "from-blue-400 to-cyan-600" },
             { id: 5, title: "5. Too vs. Enough 🎭", color: "from-yellow-400 to-amber-600" },
-            { id: 6, title: "6. To-infinitive & Although 🎟️", color: "from-pink-400 to-rose-600" },
-            { id: 7, title: "7. Movie Reviews Gap-Fill 📝", color: "from-indigo-400 to-purple-800" }
+            { id: 6, title: "6. To-inf & Although 🎟️", color: "from-pink-400 to-rose-600" },
+            { id: 7, title: "7. Gap-Fill Reviews 📝", color: "from-indigo-400 to-purple-800" },
+            { id: 8, title: "8. Genre Matching 🍿", color: "from-teal-400 to-cyan-700" }
         ];
 
-        // Generator functions to create exactly 25 questions per category
+        // --- 50 Factual Since/For Questions ---
+        const sinceFor50 = [
+            ["Tom Cruise has played Ethan Hunt", "1996", true, "🎬"], // since
+            ["Daniel Radcliffe has been known as Harry Potter", "a decade", false, "⚡"], // for
+            ["The Star Wars franchise has existed", "1977", true, "🌌"],
+            ["James Cameron has developed Avatar sequels", "many years", false, "👽"],
+            ["Marvel Studios has produced the MCU", "2008", true, "🦸‍♂️"],
+            ["Hugh Jackman has portrayed Wolverine", "24 years", false, "🐺"],
+            ["The Jurassic Park series has thrilled audiences", "the 90s", true, "🦖"],
+            ["Harrison Ford has played Indiana Jones", "over 40 years", false, "🤠"],
+            ["The Academy Awards have taken place", "1929", true, "🏆"],
+            ["Meryl Streep has acted in movies", "half a century", false, "🎭"],
+            ["Leonardo DiCaprio has worked in Hollywood", "childhood", true, "🌟"],
+            ["The James Bond film series has entertained us", "six decades", false, "🕵️"],
+            ["Pixar has created computer-animated films", "1995", true, "💡"],
+            ["Keanu Reeves has trained for action roles", "months", false, "🥋"],
+            ["The Lord of the Rings has been popular", "2001", true, "💍"],
+            ["Tom Hanks has voiced Woody in Toy Story", "four movies", false, "🤠"],
+            ["Christopher Nolan has directed blockbusters", "the late 90s", true, "🎥"],
+            ["Johnny Depp has played Captain Jack Sparrow", "many years", false, "🏴‍☠️"],
+            ["The Fast and Furious franchise has released films", "2001", true, "🏎️"],
+            ["Steven Spielberg has directed classic films", "over 50 years", false, "🎬"],
+            ["Fans have waited for the sequel", "three years", false, "🍿"],
+            ["The actor has lived in Los Angeles", "2015", true, "🌴"],
+            ["The crew has filmed in the desert", "last Tuesday", true, "🐪"],
+            ["The director has planned this project", "a long time", false, "📋"],
+            ["The composer has written the movie score", "January", true, "🎼"],
+            ["The stunt team has practiced the car chase", "weeks", false, "🚗"],
+            ["The sci-fi movie has been in theaters", "Friday", true, "🛸"],
+            ["The horror movie has scared audiences", "a month", false, "👻"],
+            ["The makeup artist has worked on the monster", "5:00 AM", true, "🧟"],
+            ["The actors have rehearsed their lines", "hours", false, "📝"],
+            ["The studio has owned the rights to the comic", "2012", true, "📚"],
+            ["The special effects have taken", "a year", false, "💻"],
+            ["The superhero has protected the city", "the first movie", true, "🦸‍♀️"],
+            ["The villain has been locked away", "decades", false, "🔒"],
+            ["The chosen one has trained with the master", "childhood", true, "⚔️"],
+            ["The detective has searched for clues", "two days", false, "🔍"],
+            ["The explorers have wandered the jungle", "Sunday", true, "🗺️"],
+            ["The astronaut has drifted in space", "months", false, "🚀"],
+            ["The rebel alliance has fought the empire", "a long time", false, "🛡️"],
+            ["The magical kingdom has been cursed", "the winter", true, "❄️"],
+            ["The giant monster has slept underwater", "centuries", false, "🌊"],
+            ["The secret agent has followed the target", "midnight", true, "🕶️"],
+            ["The athletes have played the championship match", "three hours", false, "⚽"],
+            ["The romantic couple has been separated", "the war began", true, "❤️"],
+            ["The sheriff has guarded the frontier town", "years", false, "🤠"],
+            ["The treasure has been hidden in the cave", "ancient times", true, "💎"],
+            ["The ghosts have haunted the old mansion", "a century", false, "🏚️"],
+            ["The AI has controlled the space station", "2050", true, "🤖"],
+            ["The martial arts master has taught students", "many years", false, "🥋"],
+            ["The film festival has celebrated cinema", "1946", true, "🎞️"]
+        ];
+
+        // Generator functions to create questions per category
         function generateQuestions(categoryId) {
             let q = [];
             
             if (categoryId === 1) {
-                const s1 = [
-                    ["The director has worked on this fantasy movie", "two years", false, "🎥", "(work)"],
-                    ["The actor has played the superhero", "2024", true, "🦸", "(play)"],
-                    ["The film crew has been on location", "six months", false, "🏕️", "(be)"],
-                    ["The producer has planned the project", "last summer", true, "📋", "(plan)"],
-                    ["The screenwriter has written movie scripts", "fifteen years", false, "📝", "(write)"],
-                    ["The special effects team has worked nonstop", "Monday", true, "💻", "(work)"],
-                    ["The actress has starred in action films", "a decade", false, "🎬", "(star)"],
-                    ["The camera operator has filmed scenes", "dawn", true, "🌅", "(film)"],
-                    ["The studio has developed this sci-fi franchise", "many years", false, "🛸", "(develop)"],
-                    ["The costume designer has worked on the movie", "January", true, "👗", "(work)"],
-                    ["The explorers have searched the jungle setting", "three weeks", false, "🧭", "(search)"],
-                    ["The horror movie has taken place in the haunted house", "the beginning of the film", true, "👻", "(take)"],
-                    ["The audience has watched the adventure movie", "two hours", false, "🍿", "(watch)"],
-                    ["The detective has investigated clues in the mansion", "Tuesday", true, "🔍", "(investigate)"],
-                    ["The hero has traveled through the magical kingdom", "months", false, "🏰", "(travel)"],
-                    ["The crew has filmed in the desert", "April", true, "🐪", "(film)"],
-                    ["The villains have hidden in the secret base", "several weeks", false, "🦹", "(hide)"],
-                    ["The astronaut has lived on the space station", "2050", true, "🚀", "(live)"],
-                    ["The sheriff has protected the frontier town", "years", false, "🤠", "(protect)"],
-                    ["The rebels have fought in the ancient kingdom", "childhood", true, "⚔️", "(fight)"],
-                    ["The chosen hero has trained with the wise mentor", "six months", false, "🧙", "(train)"],
-                    ["The scientist has studied alien technology", "many years", false, "🔬", "(study)"],
-                    ["The performer has dreamed of success", "childhood", true, "🎭", "(dream)"],
-                    ["The sidekick has helped the hero", "the first movie", true, "🤝", "(help)"],
-                    ["The hidden traitor has fooled the crew", "months", false, "🎭", "(fool)"]
-                ];
-                q = s1.map(item => ({
-                    text: `${item[0]} <span class="fixed-gap">___</span> <span class="clue-time">${item[1]}</span>. <span class="text-gray-400 font-bold ml-2">${item[4]}</span> ${item[3]}`,
+                q = sinceFor50.map(item => ({
+                    text: `${item[0]} <span class="fixed-gap">___</span> <span class="clue-time">${item[1]}</span>. ${item[3]}`,
                     plainText: `${item[0]} blank ${item[1]}.`,
                     options: ["since", "for"],
                     correctIndex: item[2] ? 0 : 1
@@ -328,39 +377,39 @@
                     ["The detective", "investigated", "this mystery for two weeks", "has", "have", "🔍", "(investigate)"]
                 ];
                 q = s2.map(item => ({
-                    text: `${item[0]} <span class="fixed-gap">___</span> <span class="clue-verb">${item[1]}</span> ${item[2]}. <span class="text-gray-400 font-bold ml-2">${item[6]}</span> ${item[5]}`,
+                    text: `${item[0]} <span class="fixed-gap">___</span> <span class="clue-verb">${item[1]}</span> ${item[2]}. ${item[5]} <b>${item[6]}</b>`,
                     plainText: `${item[0]} blank ${item[1]} ${item[2]}.`,
                     options: [item[3], item[4]],
                     correctIndex: 0
                 }));
             } else if (categoryId === 3) {
-                // Fixed blank logic for Zero Conditional
+                // Zero Conditional
                 const s3 = [
-                    ["a horror movie uses suspense", "the audience ___ nervous", "feels", "will feel", "👻", "feels"],
-                    ["a superhero loses their powers", "the story ___", "changes", "will change", "🦸", "changes"],
-                    ["a detective finds evidence", "the mystery ___ clearer", "becomes", "became", "🔍", "becomes"],
-                    ["a comedy uses misunderstandings", "people ___", "laugh", "laughed", "😂", "laugh"],
-                    ["a sci-fi movie includes advanced tech", "viewers ___ futuristic settings", "expect", "expected", "🛸", "expect"],
-                    ["a movie has a villain", "the hero usually ___ conflict", "faces", "will face", "🦹", "faces"],
-                    ["a performer practices regularly", "performances ___", "improve", "improves", "🎭", "improve"],
-                    ["audiences connect with characters", "they ___ the film more", "enjoy", "enjoyed", "🍿", "enjoy"],
-                    ["the plot is confusing", "the audience ___ interest", "loses", "will lose", "❓", "loses"],
-                    ["the camera breaks", "filming ___ completely", "stops", "will stop", "🎥", "stops"],
-                    ["an actor forgets lines", "the director ___ cut", "yells", "will yell", "🎬", "yells"],
-                    ["it rains on a film set", "the crew ___ indoors", "moves", "will move", "🌧️", "moves"],
-                    ["the budget runs out", "the production ___ down", "shuts", "will shut", "💸", "shuts"],
-                    ["a movie wins an Oscar", "ticket sales ___", "increase", "will increase", "🏆", "increase"],
-                    ["the lighting is too dark", "the scene ___ scary", "looks", "will look", "💡", "looks"],
-                    ["the soundtrack is loud", "the scene ___ intense", "feels", "will feel", "🎧", "feels"],
-                    ["a stunt goes wrong", "the actor ___ injured", "gets", "will get", "🚑", "gets"],
-                    ["the makeup is realistic", "the monster ___ terrifying", "looks", "looked", "🧟", "looks"],
-                    ["the script is funny", "the cast ___ during practice", "laughs", "laugh", "😆", "laughs"],
-                    ["a sequel is announced", "fans ___ excited", "get", "will get", "🤩", "get"],
-                    ["the hero has a flaw", "the character ___ relatable", "feels", "will feel", "❤️", "feels"],
-                    ["the villain is clever", "the hero ___ more", "struggles", "will struggle", "🧠", "struggles"],
-                    ["the setting is isolated", "the tension ___ faster", "builds", "will build", "🏚️", "builds"],
-                    ["a trope is overused", "the plot ___ predictable", "becomes", "became", "🥱", "becomes"],
-                    ["the editing is fast", "the action ___ quicker", "seems", "seem", "✂️", "seems"]
+                    ["a horror movie uses suspense", "the audience ___ nervous", "feels", "will feel", "👻"],
+                    ["a superhero loses their powers", "the story ___", "changes", "will change", "🦸"],
+                    ["a detective finds evidence", "the mystery ___ clearer", "becomes", "became", "🔍"],
+                    ["a comedy uses misunderstandings", "people ___", "laugh", "laughed", "😂"],
+                    ["a sci-fi movie includes advanced tech", "viewers ___ futuristic settings", "expect", "expected", "🛸"],
+                    ["a movie has a villain", "the hero usually ___ conflict", "faces", "will face", "🦹"],
+                    ["a performer practices regularly", "performances ___", "improve", "improves", "🎭"],
+                    ["audiences connect with characters", "they ___ the film more", "enjoy", "enjoyed", "🍿"],
+                    ["the plot is confusing", "the audience ___ interest", "loses", "will lose", "❓"],
+                    ["the camera breaks", "filming ___ completely", "stops", "will stop", "🎥"],
+                    ["an actor forgets lines", "the director ___ cut", "yells", "will yell", "🎬"],
+                    ["it rains on a film set", "the crew ___ indoors", "moves", "will move", "🌧️"],
+                    ["the budget runs out", "the production ___ down", "shuts", "will shut", "💸"],
+                    ["a movie wins an Oscar", "ticket sales ___", "increase", "will increase", "🏆"],
+                    ["the lighting is too dark", "the scene ___ scary", "looks", "will look", "💡"],
+                    ["the soundtrack is loud", "the scene ___ intense", "feels", "will feel", "🎧"],
+                    ["a stunt goes wrong", "the actor ___ injured", "gets", "will get", "🚑"],
+                    ["the makeup is realistic", "the monster ___ terrifying", "looks", "looked", "🧟"],
+                    ["the script is funny", "the cast ___ during practice", "laughs", "laugh", "😆"],
+                    ["a sequel is announced", "fans ___ excited", "get", "will get", "🤩"],
+                    ["the hero has a flaw", "the character ___ relatable", "feels", "will feel", "❤️"],
+                    ["the villain is clever", "the hero ___ more", "struggles", "will struggle", "🧠"],
+                    ["the setting is isolated", "the tension ___ faster", "builds", "will build", "🏚️"],
+                    ["a trope is overused", "the plot ___ predictable", "becomes", "became", "🥱"],
+                    ["the editing is fast", "the action ___ quicker", "seems", "seem", "✂️"]
                 ];
                 q = s3.map(item => ({
                     text: `<span class="clue-condition">If</span> ${item[0]}, ${item[1].replace('___', '<span class="fixed-gap">___</span>')} ${item[4]}`,
@@ -369,7 +418,7 @@
                     correctIndex: 0
                 }));
             } else if (categoryId === 4) {
-                // Fixed blank logic for First Conditional
+                // First Conditional
                 const s4 = [
                     ["the hero finds the treasure map", "he ___ the quest", "will begin", "begins", "🗺️"],
                     ["the detective discovers the clue", "she ___ the mystery", "will solve", "solves", "🔍"],
@@ -398,7 +447,7 @@
                     ["the performer sings perfectly", "the crowd ___", "will cheer", "cheers", "🎤"]
                 ];
                 q = s4.map(item => ({
-                    text: `<span class="clue-condition">If</span> ${item[0]}, ${item[1].replace('___', '<span class="fixed-gap">___</span>')} ${item[4]}`,
+                    text: `<span class="clue-condition">If</span> ${item[0]}, ${item[1].replace('___', '<span class="fixed-gap text-transparent">___</span>')} ${item[4]}`,
                     plainText: `If ${item[0]}, ${item[1].replace("___", "blank")}.`,
                     options: [item[2], item[3]],
                     correctIndex: 0
@@ -443,7 +492,6 @@
                     };
                 });
             } else if (categoryId === 6) {
-                // Modified to remove the verb choices for infinitives, keeping grammar focus on to/not to/although
                 const s6 = [
                     ["Although", "the hero was afraid, he entered the haunted house.", "Because", "👻"],
                     ["Although", "the detective lacked evidence, she continued the investigation.", "So", "🔍"],
@@ -475,10 +523,10 @@
                     let txt = "";
                     let plain = "";
                     if(item[0] === "Although") {
-                        txt = `<span class="fixed-gap">___</span> <span class="clue-condition">${item[1]}</span> ${item[3]}`;
+                        txt = `<span class="fixed-gap text-transparent">___</span> <span class="clue-condition">${item[1]}</span> ${item[3]}`;
                         plain = `Blank ${item[1]}`;
                     } else {
-                        txt = item[1].replace("___", `<span class="fixed-gap">___</span>`) + ` ${item[3]}`;
+                        txt = item[1].replace("___", `<span class="fixed-gap text-transparent">___</span>`) + ` ${item[3]}`;
                         plain = item[1].replace("___", "blank");
                     }
                     return {
@@ -490,8 +538,8 @@
                 });
             }
             
-            // For categories 1-6, shuffle answers so correct isn't always first, then shuffle questions
-            if (categoryId !== 7) {
+            // Shuffle
+            if (categoryId !== 7 && categoryId !== 8) {
                 q.forEach(item => {
                     if(Math.random() > 0.5) {
                         item.options.reverse();
@@ -506,44 +554,62 @@
         const reviewsData = [
             {
                 title: "1. Fantasy Review: The Cursed Kingdom ⭐⭐⭐⭐☆",
-                text: "The fan [has] enjoyed fantasy movies [for] many years. The hero has lived in the magical kingdom [since] childhood. [Although] he is brave [enough] to face dragons, he is [too] impatient to listen to his wise mentor. The hero trains [to] defeat the Dark Wizard. If he finds the magic crown, he [will] save the kingdom."
+                text: "I [have] enjoyed fantasy movies [for] many years.<br>The hero has lived in the magical kingdom [since] childhood.<br>[Although] he is brave [enough] to face dragons, he is [too] impatient to listen to his wise mentor.<br>The hero trains [to] defeat the Dark Wizard.<br>If he finds the magic crown, he [will] save the kingdom."
             },
             {
                 title: "2. Sci-Fi Review: AI Station ⭐⭐⭐⭐⭐",
-                text: "The scientist [has] worked on the space station [for] five years. [Although] she is intelligent [enough] to understand the evil AI, she is [too] arrogant to trust the crew. She works hard [to] save humanity. If she shuts down the AI, people [will] survive."
+                text: "The scientist [has] worked on the space station [for] five years.<br>[Although] she is intelligent [enough] to understand the evil AI, she is [too] arrogant to trust the crew.<br>She works hard [to] save humanity.<br>If she shuts down the AI, people [will] survive."
             },
             {
                 title: "3. Horror Review: Shadows in the Cabin ⭐⭐⭐⭐☆",
-                text: "The survivors have stayed in the haunted cabin [since] Friday. I [have] watched horror films [for] several years. [Although] the main character is fearless [enough] to investigate strange noises, some teenagers are [too] curious to stay safe. They enter the forest [to] discover the truth. If they ignore the warnings, they [will] face danger."
+                text: "The survivors have stayed in the haunted cabin [since] Friday.<br>I [have] watched horror films [for] several years.<br>[Although] the main character is fearless [enough] to investigate strange noises, some teenagers are [too] curious to stay safe.<br>They enter the forest [to] discover the truth.<br>If they ignore the warnings, they [will] face danger."
             },
             {
                 title: "4. Mystery Review: The Mansion Secret ⭐⭐⭐⭐⭐",
-                text: "The detective [has] investigated the case [for] two weeks. [Although] she is clever [enough] to connect clues, she is sometimes [too] suspicious to trust witnesses. She studies evidence [to] solve the mystery. If she uncovers the final clue, she [will] discover the truth."
+                text: "The detective [has] investigated the case [for] two weeks.<br>[Although] she is clever [enough] to connect clues, she is sometimes [too] suspicious to trust witnesses.<br>She studies evidence [to] solve the mystery.<br>If she uncovers the final clue, she [will] discover the truth."
             },
             {
                 title: "5. Sports Review: Championship Dreams ⭐⭐⭐⭐☆",
-                text: "The athlete [has] trained [since] the beginning of the season. [Although] she is determined [enough] to compete, she is sometimes [too] nervous to believe in herself. She practices every day [to] win the championship. If the team works together, they [will] succeed."
+                text: "The athlete [has] trained [since] the beginning of the season.<br>[Although] she is determined [enough] to compete, she is sometimes [too] nervous to believe in herself.<br>She practices every day [to] win the championship.<br>If the team works together, they [will] succeed."
             },
             {
                 title: "6. Superhero Review: Guardian of Metro City ⭐⭐⭐⭐☆",
-                text: "The superhero has protected the city [for] many years. He [has] hidden his identity [since] becoming a hero. [Although] he is strong [enough] to defeat villains, he is [too] confident to recognize every danger. He fights [to] protect innocent people. If he trusts his team, he [will] become a better hero."
+                text: "The superhero has protected the city [for] many years.<br>He [has] hidden his identity [since] becoming a hero.<br>[Although] he is strong [enough] to defeat villains, he is [too] confident to recognize every danger.<br>He fights [to] protect innocent people.<br>If he trusts his team, he [will] become a better hero."
             },
             {
                 title: "7. Adventure Review: Island of Secrets ⭐⭐⭐⭐☆",
-                text: "The explorer [has] searched for treasure [for] months. [Although] she is resourceful [enough] to solve problems, she is [too] impulsive to follow every clue. She sails across the ocean [to] find an ancient artifact. If she reads the lost map carefully, she [will] reach the hidden island."
+                text: "The explorer [has] searched for treasure [for] months.<br>[Although] she is resourceful [enough] to solve problems, she is [too] impulsive to follow every clue.<br>She sails across the ocean [to] find an ancient artifact.<br>If she reads the lost map carefully, she [will] reach the hidden island."
             },
             {
                 title: "8. Action Review: Race Against Time ⭐⭐⭐⭐⭐",
-                text: "The secret agent [has] pursued the villain [since] Monday. [Although] he is brave [enough] to enter the enemy base, he is [too] reckless to think about every risk. He races across the city [to] stop a disaster. If he finds the bomb, he [will] save thousands of lives."
+                text: "The secret agent [has] pursued the villain [since] Monday.<br>[Although] he is brave [enough] to enter the enemy base, he is [too] reckless to think about every risk.<br>He races across the city [to] stop a disaster.<br>If he finds the bomb, he [will] save thousands of lives."
             },
             {
                 title: "9. Romance Review: City of Hearts ⭐⭐⭐⭐☆",
-                text: "The two characters have known each other [since] elementary school. I [have] enjoyed romance films [for] years. [Although] they are kind [enough] to support each other, they are sometimes [too] shy to express their feelings. They meet every weekend [to] strengthen their relationship. If they tell the truth, they [will] finally be together."
+                text: "The two characters have known each other [since] elementary school.<br>I [have] enjoyed romance films [for] years.<br>[Although] they are kind [enough] to support each other, they are sometimes [too] shy to express their feelings.<br>They meet every weekend [to] strengthen their relationship.<br>If they tell the truth, they [will] finally be together."
             },
             {
                 title: "10. Western Review: Frontier Justice ⭐⭐⭐⭐☆",
-                text: "The sheriff has defended the frontier town [for] twenty years. He [has] fought outlaws [since] he became sheriff. [Although] he is tough [enough] to face danger, he is [too] stubborn to accept help. He rides across the desert [to] protect the town. If he defeats the gang leader, peace [will] return."
+                text: "The sheriff has defended the frontier town [for] twenty years.<br>He [has] fought outlaws [since] he became sheriff.<br>[Although] he is tough [enough] to face danger, he is [too] stubborn to accept help.<br>He rides across the desert [to] protect the town.<br>If he defeats the gang leader, peace [will] return."
             }
+        ];
+
+        const genreData = [
+            { desc: "A magical kingdom filled with ancient castles, mysterious forests, powerful spells, and legendary creatures. Brave heroes travel through enchanted lands while dark forces threaten the realm.", choices: ["Fantasy", "Crime", "Sports"], ans: "Fantasy" },
+            { desc: "A futuristic world with advanced technology, artificial intelligence, flying vehicles, and massive space stations. Scientists explore distant planets and encounter unknown life forms.", choices: ["Romance", "Science Fiction", "Western"], ans: "Science Fiction" },
+            { desc: "A dark and isolated location with strange noises, abandoned buildings, frightening secrets, and a feeling of constant danger. Characters fear what might be hiding in the shadows.", choices: ["Horror", "Comedy", "Musical"], ans: "Horror" },
+            { desc: "A quiet town with hidden secrets, suspicious characters, confusing clues, and an unsolved crime. Someone is searching for the truth behind a puzzling event.", choices: ["Sports", "Mystery", "Fantasy"], ans: "Mystery" },
+            { desc: "A busy modern city filled with explosions, dangerous missions, high-speed chases, secret agents, and powerful enemies threatening public safety.", choices: ["Action", "Family", "Historical"], ans: "Action" },
+            { desc: "An exciting journey through jungles, deserts, mountains, and remote islands. Explorers face dangerous obstacles while searching for a valuable treasure.", choices: ["Adventure", "Drama", "Romance"], ans: "Adventure" },
+            { desc: "A beautiful city where two people from different backgrounds meet and slowly develop feelings for each other while overcoming misunderstandings and obstacles.", choices: ["Crime", "Romance", "Thriller"], ans: "Romance" },
+            { desc: "A dangerous urban environment involving criminals, investigations, illegal activities, organized gangs, and detectives trying to uncover the truth.", choices: ["Crime", "Fantasy", "Musical"], ans: "Crime" },
+            { desc: "A modern city protected by powerful individuals with extraordinary abilities. Secret identities, epic battles, and dangerous villains create constant excitement.", choices: ["Superhero", "Historical", "Adventure"], ans: "Superhero" },
+            { desc: "Large stadiums, intense competitions, rigorous training sessions, determined athletes, and championship matches inspire teamwork and perseverance.", choices: ["Mystery", "Sports", "Horror"], ans: "Sports" },
+            { desc: "A dusty frontier town with horses, ranches, deserts, outlaws, sheriffs, and dramatic showdowns beneath the hot sun.", choices: ["Western", "Science Fiction", "Family"], ans: "Western" },
+            { desc: "An ancient society with kings, queens, soldiers, political conflicts, and significant events that shaped the course of history.", choices: ["Historical", "Action", "Superhero"], ans: "Historical" },
+            { desc: "A lively environment filled with singing, dancing, colorful costumes, dramatic performances, and characters expressing emotions through music.", choices: ["Musical", "Crime", "Thriller"], ans: "Musical" },
+            { desc: "A warm community where parents, children, siblings, and friends learn valuable lessons about kindness, responsibility, and cooperation.", choices: ["Horror", "Family", "Action"], ans: "Family" },
+            { desc: "A tense and dangerous situation involving conspiracies, secrecy, constant pressure, shocking twists, and a race against time.", choices: ["Romance", "Thriller", "Sports"], ans: "Thriller" }
         ];
 
         // --- GAME STATE ---
@@ -553,12 +619,10 @@
         let timerInterval;
         let timeLeft = 60;
         let isAnswerRevealed = false;
-
-        // Gap fill state
         let selectedWordBtn = null;
         let gapFillCompleted = false;
 
-        // --- AUDIO (Web Audio API for sounds) ---
+        // --- AUDIO (Web Audio API) ---
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         function playTone(freq, type, duration, vol=0.1) {
             if(audioCtx.state === 'suspended') audioCtx.resume();
@@ -574,9 +638,9 @@
             osc.stop(audioCtx.currentTime + duration);
         }
         function playCorrectSound() {
-            playTone(523.25, 'sine', 0.1); // C5
-            setTimeout(() => playTone(659.25, 'sine', 0.1), 100); // E5
-            setTimeout(() => playTone(783.99, 'sine', 0.3), 200); // G5
+            playTone(523.25, 'sine', 0.1); 
+            setTimeout(() => playTone(659.25, 'sine', 0.1), 100); 
+            setTimeout(() => playTone(783.99, 'sine', 0.3), 200); 
         }
         function playWrongSound() {
             playTone(300, 'sawtooth', 0.3, 0.05);
@@ -590,20 +654,50 @@
             playTone(800, 'sine', 0.05, 0.05);
         }
 
-        // --- TTS ---
+        // --- DYNAMIC TTS VOICES ---
+        function getVoiceForCategory(catId) {
+            const synth = window.speechSynthesis;
+            const voices = synth.getVoices();
+            
+            const voiceMap = {
+                1: ["Emma", "UK English Female", "Google UK English Female"],
+                2: ["Remy", "fr-FR", "Google français"],
+                3: ["Giuseppe", "it-IT", "Google italiano"],
+                4: ["Vivienne", "en-GB", "Daniel"],
+                5: ["Florian", "de-DE", "Google Deutsch"],
+                6: ["Seraphina", "en-US", "Google US English", "Zira"],
+                7: ["Emma", "UK English Female", "Google UK English Female"],
+                8: ["Emma", "Microsoft Hazel", "Google UK English Female"]
+            };
+
+            const preferences = voiceMap[catId] || voiceMap[1];
+            let selectedVoice = null;
+            
+            for (let pref of preferences) {
+                selectedVoice = voices.find(v => v.name.includes(pref) || v.lang.includes(pref));
+                if (selectedVoice) break;
+            }
+            
+            // Fallback to any English voice
+            if (!selectedVoice) {
+                selectedVoice = voices.find(v => v.lang.startsWith("en-"));
+            }
+            return selectedVoice;
+        }
+
         function speak(text, callback) {
             const synth = window.speechSynthesis;
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.rate = 0.95;
             
-            const voices = synth.getVoices();
-            const emmaVoice = voices.find(v => v.name.includes("Emma") || (v.name.includes("Microsoft") && v.lang.startsWith("en-")));
-            if(emmaVoice) {
-                utterance.voice = emmaVoice;
+            if (currentCategory) {
+                const voice = getVoiceForCategory(currentCategory.id);
+                if (voice) utterance.voice = voice;
             }
+
             if(callback) {
                 utterance.onend = callback;
-                setTimeout(callback, text.length * 75); 
+                setTimeout(callback, text.length * 75); // fallback
             }
             synth.speak(utterance);
         }
@@ -612,7 +706,14 @@
             window.speechSynthesis.cancel();
             
             if (currentCategory.id === 7) {
-                speak(`Movie review gap fill challenge for the Boys and Girls! Review number ${questionIndex + 1}.`);
+                speak(`Movie review gap fill challenge! Review number ${questionIndex + 1}.`);
+                return;
+            }
+            
+            if (currentCategory.id === 8) {
+                const q = currentQuestions[questionIndex];
+                const intro = `Listen closely ${currentGirl} and ${currentBoy}! ${q.desc}`;
+                speak(intro);
                 return;
             }
 
@@ -633,7 +734,7 @@
             const menuGrid = document.querySelector('#main-menu .grid');
             categories.forEach(cat => {
                 const btn = document.createElement('button');
-                btn.className = `glass-panel btn-hover bg-gradient-to-br ${cat.color} rounded-3xl p-8 text-white text-2xl font-bold shadow-xl flex items-center justify-center h-48 text-center`;
+                btn.className = `glass-panel btn-hover bg-gradient-to-br ${cat.color} rounded-2xl p-4 text-white text-xl font-bold shadow-xl flex items-center justify-center h-24 text-center leading-tight`;
                 btn.innerHTML = `<span>${cat.title}</span>`;
                 btn.onclick = () => startGame(cat.id);
                 menuGrid.appendChild(btn);
@@ -669,20 +770,26 @@
             
             currentCategory = cat;
             
+            // Hide all boxes first
+            document.getElementById('standard-question-box').classList.add('hidden');
+            document.getElementById('gap-fill-box').classList.add('hidden');
+            document.getElementById('gap-fill-box').classList.remove('flex');
+            document.getElementById('genre-box').classList.add('hidden');
+            document.getElementById('check-gap-answers').classList.add('hidden');
+            
             if(categoryId === 7) {
                 currentQuestions = reviewsData;
-                document.getElementById('standard-question-box').classList.add('hidden');
                 document.getElementById('gap-fill-box').classList.remove('hidden');
                 document.getElementById('gap-fill-box').classList.add('flex');
+            } else if (categoryId === 8) {
+                currentQuestions = shuffleArray(genreData);
+                document.getElementById('genre-box').classList.remove('hidden');
             } else {
                 currentQuestions = generateQuestions(categoryId);
                 document.getElementById('standard-question-box').classList.remove('hidden');
-                document.getElementById('gap-fill-box').classList.add('hidden');
-                document.getElementById('gap-fill-box').classList.remove('flex');
             }
 
             questionIndex = 0;
-            
             scores = { girl: 0, boy: 0 };
             updateScoreUI();
             document.getElementById('girl-badges').innerHTML = '';
@@ -712,15 +819,25 @@
             
             document.getElementById('q-counter').innerText = `${questionIndex + 1} / ${currentQuestions.length}`;
             
-            if(currentCategory.id !== 7) {
+            if (currentCategory.id === 7 || currentCategory.id === 8) {
+                document.getElementById('girl-name').innerText = "Girls";
+                document.getElementById('boy-name').innerText = "Boys";
+                currentGirl = "Girls";
+                currentBoy = "Boys";
+            } else {
                 currentGirl = getNextPlayer('girl');
                 currentBoy = getNextPlayer('boy');
                 document.getElementById('girl-name').innerText = currentGirl;
                 document.getElementById('boy-name').innerText = currentBoy;
+            }
 
+            if(currentCategory.id === 7) {
+                loadGapFillReview();
+            } else if (currentCategory.id === 8) {
+                loadGenreQuestion();
+            } else {
                 const q = currentQuestions[questionIndex];
                 document.getElementById('question-text').innerHTML = q.text;
-
                 const optsContainer = document.getElementById('options-container');
                 optsContainer.innerHTML = '';
                 
@@ -731,11 +848,6 @@
                     btn.onclick = () => revealAnswer(idx, btn);
                     optsContainer.appendChild(btn);
                 });
-            } else {
-                // Gap Fill Category
-                document.getElementById('girl-name').innerText = "Girls";
-                document.getElementById('boy-name').innerText = "Boys";
-                loadGapFillReview();
             }
 
             startTimer();
@@ -748,7 +860,6 @@
             document.getElementById('review-title').innerText = review.title;
             document.getElementById('check-gap-answers').classList.remove('hidden');
             
-            // Extract answers and build text
             let htmlText = review.text;
             let expectedAnswers = [];
             
@@ -759,7 +870,6 @@
             
             document.getElementById('gap-fill-text').innerHTML = htmlText;
 
-            // Build word bank
             const wordBankEl = document.getElementById('word-bank');
             wordBankEl.innerHTML = '';
             
@@ -768,7 +878,6 @@
                 const btn = document.createElement('div');
                 btn.className = "word-bank-btn";
                 btn.innerText = word;
-                btn.dataset.originalId = 'word_' + idx;
                 btn.onclick = () => handleWordBankClick(btn);
                 wordBankEl.appendChild(btn);
             });
@@ -777,9 +886,7 @@
         function handleWordBankClick(btn) {
             if (gapFillCompleted) return;
             playPopSound();
-            if(selectedWordBtn) {
-                selectedWordBtn.classList.remove('selected');
-            }
+            if(selectedWordBtn) selectedWordBtn.classList.remove('selected');
             if(selectedWordBtn !== btn) {
                 selectedWordBtn = btn;
                 btn.classList.add('selected');
@@ -791,14 +898,12 @@
         function handleGapClick(gapSpan) {
             if (gapFillCompleted) return;
             
-            // If gap is already filled, remove the word and put it back in the bank
             if (gapSpan.classList.contains('filled')) {
                 playPopSound();
                 const word = gapSpan.innerText;
                 gapSpan.innerText = '___';
                 gapSpan.classList.remove('filled', 'correct', 'wrong');
                 
-                // Unhide the corresponding button in the bank
                 const bankBtns = document.querySelectorAll('#word-bank .word-bank-btn');
                 for(let btn of bankBtns) {
                     if(btn.innerText === word && btn.classList.contains('hidden')) {
@@ -809,7 +914,6 @@
                 return;
             }
 
-            // Fill gap with selected word
             if (selectedWordBtn) {
                 playPopSound();
                 gapSpan.innerText = selectedWordBtn.innerText;
@@ -830,13 +934,11 @@
             let allFilled = true;
 
             gaps.forEach(gap => {
-                if(gap.innerText === '___') {
-                    allFilled = false;
-                }
+                if(gap.innerText === '___') allFilled = false;
             });
 
             if(!allFilled) {
-                alert("Please fill all the blanks first!");
+                speak("Please fill all the blanks first!");
                 return;
             }
 
@@ -856,15 +958,52 @@
                 playCorrectSound();
                 createConfetti();
                 document.getElementById('check-gap-answers').classList.add('hidden');
-                speak("Perfect! A masterpiece review. Award points to the winner!");
+                speak("Perfect! Award points to the winner!");
             } else {
                 playWrongSound();
             }
         }
 
+        // --- GENRE MATCHING LOGIC ---
+        function loadGenreQuestion() {
+            const q = currentQuestions[questionIndex];
+            document.getElementById('genre-description').innerText = q.desc;
+            
+            const optsContainer = document.getElementById('genre-options');
+            optsContainer.innerHTML = '';
+            
+            q.choices.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = "bg-white text-indigo-900 px-8 py-4 rounded-2xl text-2xl font-bold shadow-md btn-hover border-4 border-transparent flex-1";
+                btn.innerText = opt;
+                btn.onclick = () => {
+                    if (isAnswerRevealed) return;
+                    isAnswerRevealed = true;
+                    clearInterval(timerInterval);
+                    
+                    if (opt === q.ans) {
+                        btn.classList.add('bg-green-500', 'text-white', 'border-green-300', 'scale-110');
+                        playCorrectSound();
+                        speak("Correct! Award the points!");
+                    } else {
+                        btn.classList.add('bg-red-500', 'text-white', 'border-red-300');
+                        playWrongSound();
+                        // highlight correct
+                        Array.from(optsContainer.children).forEach(child => {
+                            if(child.innerText === q.ans) {
+                                child.classList.add('bg-green-500', 'text-white');
+                            }
+                        });
+                    }
+                };
+                optsContainer.appendChild(btn);
+            });
+        }
+
+        // --- TIMER & REVEAL ---
         function startTimer() {
             clearInterval(timerInterval);
-            timeLeft = 60; // 60s for all modes
+            timeLeft = 60;
             const bar = document.getElementById('timer-bar');
             bar.style.width = '100%';
             bar.classList.remove('timer-warning');
@@ -874,14 +1013,12 @@
                 const pct = (timeLeft / 60) * 100;
                 bar.style.width = `${pct}%`;
                 
-                if(timeLeft <= 15) {
-                    bar.classList.add('timer-warning');
-                }
+                if(timeLeft <= 15) bar.classList.add('timer-warning');
 
                 if(timeLeft <= 0) {
                     clearInterval(timerInterval);
                     playWrongSound();
-                    if(currentCategory.id !== 7 && !isAnswerRevealed) {
+                    if(currentCategory.id !== 7 && currentCategory.id !== 8 && !isAnswerRevealed) {
                         revealAnswer(-1, null);
                     }
                 }
@@ -920,7 +1057,12 @@
             }
 
             const correctText = q.options[q.correctIndex];
-            document.getElementById('question-text').innerHTML = document.getElementById('question-text').innerHTML.replace('<span class="fixed-gap">___</span>', `<span class="bg-green-500 text-white px-3 py-1 rounded-lg">${correctText}</span>`);
+            // Reveal text cleanly without losing fixed gap sizing
+            const qtext = document.getElementById('question-text');
+            qtext.innerHTML = qtext.innerHTML.replace(
+                /<span class="fixed-gap[^>]*>___<\/span>/, 
+                `<span class="fixed-gap revealed bg-green-500 text-white">${correctText}</span>`
+            );
             
             if (isCorrect) {
                 speak("Correct! Award the points!");
@@ -928,13 +1070,16 @@
         }
 
         function awardPoint(team) {
-            // Prevent awarding points multiple times per question in standard mode
-            if (currentCategory.id !== 7 && !isAnswerRevealed) {
-                alert("Let them answer the question first!");
+            if ((currentCategory.id !== 7 && currentCategory.id !== 8) && !isAnswerRevealed) {
+                speak("Let them answer the question first!");
                 return;
             }
             if (currentCategory.id === 7 && !gapFillCompleted) {
-                alert("Solve the review first!");
+                speak("Solve the review first!");
+                return;
+            }
+            if (currentCategory.id === 8 && !isAnswerRevealed) {
+                speak("Select a genre first!");
                 return;
             }
 
@@ -945,18 +1090,17 @@
                 playCoinSound();
                 createConfetti();
                 checkBadges('girl');
-                speak(currentCategory.id === 7 ? "Ten points for the Girls Team!" : `Ten points for ${currentGirl}!`);
+                speak(`Ten points for ${currentGirl}!`);
             } else if (team === 'boy') {
                 scores.boy += 10;
                 playCoinSound();
                 createConfetti();
                 checkBadges('boy');
-                speak(currentCategory.id === 7 ? "Ten points for the Boys Team!" : `Ten points for ${currentBoy}!`);
+                speak(`Ten points for ${currentBoy}!`);
             }
             
             updateScoreUI();
             
-            // Move to next question automatically after awarding
             setTimeout(() => {
                 questionIndex++;
                 loadQuestion();
@@ -984,7 +1128,7 @@
             container.appendChild(s);
         }
 
-        // --- CONFETTI EFFECT ---
+        // --- FAST CONFETTI EFFECT ---
         const canvas = document.getElementById('confetti');
         const ctx = canvas.getContext('2d');
         let particles = [];
@@ -997,13 +1141,13 @@
         resizeCanvas();
 
         function createConfetti() {
-            for (let i = 0; i < 150; i++) {
+            for (let i = 0; i < 200; i++) {
                 particles.push({
                     x: canvas.width / 2,
                     y: canvas.height / 2,
-                    r: Math.random() * 6 + 4,
-                    dx: Math.random() * 16 - 8,
-                    dy: Math.random() * -20 - 5, // Faster upwards burst
+                    r: Math.random() * 8 + 4,
+                    dx: Math.random() * 20 - 10,
+                    dy: Math.random() * -25 - 5,
                     color: `hsl(${Math.random() * 360}, 100%, 50%)`,
                     tilt: Math.floor(Math.random() * 10) - 10,
                     tiltAngleInc: (Math.random() * 0.1) + 0.05,
@@ -1018,7 +1162,7 @@
                 p.tiltAngle += p.tiltAngleInc;
                 p.y += (Math.cos(p.tiltAngle) + 1 + p.r / 2) / 2;
                 p.x += Math.sin(p.tiltAngle) * 2;
-                p.dy += 0.4; // Stronger gravity for faster fall
+                p.dy += 0.8; 
                 p.y += p.dy;
                 p.x += p.dx;
 
@@ -1029,18 +1173,13 @@
                 ctx.lineTo(p.x + p.tilt, p.y + p.tilt + p.r);
                 ctx.stroke();
 
-                if (p.y > canvas.height) {
-                    particles.splice(index, 1);
-                }
+                if (p.y > canvas.height) particles.splice(index, 1);
             });
             requestAnimationFrame(drawConfetti);
         }
         drawConfetti();
 
-        // Boot
-        window.onload = () => {
-            initMenu();
-        };
+        window.onload = initMenu;
     </script>
 </body>
 </html>
