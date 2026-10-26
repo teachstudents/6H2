@@ -189,38 +189,33 @@
         </div>
 
         <!-- Timer -->
-        <div class="timer-bar-container">
-            <div id="timer-bar" class="timer-bar"></div>
+        <div class="w-full flex items-center gap-4 mb-4">
+            <div id="digital-clock" onclick="toggleTimer()" class="text-3xl font-mono font-black text-indigo-900 cursor-pointer bg-white px-3 py-1 rounded-xl shadow-md border-2 border-indigo-200 hover:bg-gray-100 transition-colors" title="Click to Pause/Resume">
+                60
+            </div>
+            <div class="timer-bar-container flex-grow mb-0">
+                <div id="timer-bar" class="timer-bar"></div>
+            </div>
         </div>
 
-        <!-- Matchup Area -->
-        <div class="w-full grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 mt-2">
+        <!-- Two Player Score Area -->
+        <div class="w-full flex justify-center gap-8 mb-4 mt-2">
+            <!-- Girls Team -->
+            <div onclick="awardPoint('girls')" class="glass-panel p-4 rounded-3xl flex flex-col items-center border-t-4 border-pink-400 min-w-[200px] cursor-pointer hover:scale-105 transition-transform">
+                <div class="text-5xl font-black text-pink-700 mb-1 drop-shadow-md">
+                    <span id="girls-score">0</span>
+                </div>
+                <h3 class="text-xl font-bold text-pink-600 mb-1">👧 <span id="current-girl">Girls</span></h3>
+                <div id="girls-badges" class="flex gap-1 mt-1 text-2xl h-8"></div>
+            </div>
             
-            <!-- Girl Card -->
-            <div class="glass-panel p-3 rounded-3xl flex flex-col items-center border-t-4 border-pink-500 relative">
-                <!-- Clickable Score -->
-                <button onclick="awardPoint('girl')" class="text-4xl md:text-5xl font-black text-purple-900 hover:text-pink-600 mb-1 transition-colors cursor-pointer drop-shadow-md" title="Award Point to Girls">
-                    <span id="girl-score">0</span>
-                </button>
-                <div class="text-4xl mb-1 drop-shadow-md">👧</div>
-                <h3 id="girl-name" class="text-xl font-bold text-pink-600 mb-1">Girls</h3>
-                <div id="girl-badges" class="flex gap-1 mt-1 text-xl h-6"></div>
-            </div>
-
-            <!-- VS -->
-            <div class="flex flex-col items-center justify-center relative">
-                <div class="text-4xl font-black text-blue-900 italic drop-shadow-md">VS</div>
-            </div>
-
-            <!-- Boy Card -->
-            <div class="glass-panel p-3 rounded-3xl flex flex-col items-center border-t-4 border-blue-500 relative">
-                <!-- Clickable Score -->
-                <button onclick="awardPoint('boy')" class="text-4xl md:text-5xl font-black text-purple-900 hover:text-blue-600 mb-1 transition-colors cursor-pointer drop-shadow-md" title="Award Point to Boys">
-                    <span id="boy-score">0</span>
-                </button>
-                <div class="text-4xl mb-1 drop-shadow-md">👦</div>
-                <h3 id="boy-name" class="text-xl font-bold text-blue-600 mb-1">Boys</h3>
-                <div id="boy-badges" class="flex gap-1 mt-1 text-xl h-6"></div>
+            <!-- Boys Team -->
+            <div onclick="awardPoint('boys')" class="glass-panel p-4 rounded-3xl flex flex-col items-center border-t-4 border-blue-400 min-w-[200px] cursor-pointer hover:scale-105 transition-transform">
+                <div class="text-5xl font-black text-blue-700 mb-1 drop-shadow-md">
+                    <span id="boys-score">0</span>
+                </div>
+                <h3 class="text-xl font-bold text-blue-600 mb-1">👦 <span id="current-boy">Boys</span></h3>
+                <div id="boys-badges" class="flex gap-1 mt-1 text-2xl h-8"></div>
             </div>
         </div>
 
@@ -238,11 +233,11 @@
         <!-- Gap Fill Box (Category 7) -->
         <div id="gap-fill-box" class="w-full glass-panel p-8 rounded-3xl mb-8 shadow-xl hidden flex-col items-center">
             <h3 id="review-title" class="text-3xl font-black text-purple-700 mb-6 text-center"></h3>
-            <p id="gap-fill-text" class="text-2xl md:text-3xl leading-relaxed font-medium mb-10 text-left w-full max-w-4xl mx-auto text-black">
+            <p id="gap-fill-text" class="text-2xl md:text-3xl leading-relaxed font-medium mb-10 text-left w-full max-w-full px-2 mx-auto text-black">
                 <!-- Gap fill injected here -->
             </p>
             
-            <div id="word-bank" class="flex flex-wrap justify-center gap-4 mb-4 w-full max-w-4xl mx-auto bg-white bg-opacity-70 p-6 rounded-2xl border border-blue-300">
+            <div id="word-bank" class="flex flex-wrap justify-center gap-4 mb-4 w-full max-w-full mx-auto bg-white bg-opacity-70 p-6 rounded-2xl border border-blue-300">
                 <!-- Word bank buttons injected here -->
             </div>
         </div>
@@ -262,15 +257,19 @@
     <!-- Audio & Scripts -->
     <script>
         // --- DATA & CONFIG ---
-        const girlsList = ["Elsa", "Lily", "Florence", "Yao", "Miya", "Nadiia", "Amara", "Hitomi", "Alice", "Karina", "Winnie", "Bella", "Sonia", "Albee", "Abby"];
-        const boysList = ["Martin", "Noah", "Eric", "Eden", "Dominic", "Austin", "Charles", "Hoho", "Anders", "Jimmy", "Ming", "Jason", "Brendan", "Charlie", "Sky", "Ryan", "Ian", "Biscuit"];
+        let girlScore = 0;
+        let boyScore = 0;
+        let isTimerPaused = false;
         
-        let girlsQueue = [];
-        let boysQueue = [];
-
-        let scores = { girl: 0, boy: 0 };
-        let currentGirl = "";
-        let currentBoy = "";
+        let girls = ["Elsa", "Lily", "Florence", "Yao", "Miya", "Nadiia", "Amara", "Hitomi", "Alice", "Karina", "Winnie", "Bella", "Sonia", "Albee", "Abby"];
+        let boys = ["Martin", "Noah", "Eric", "Eden", "Dominic", "Austin", "Charles", "Hoho", "Anders", "Jimmy", "Ming", "Jason", "Brendan", "Charlie", "Sky", "Ryan", "Ian", "Biscuit"];
+        
+        let currentGirlIndex = 0;
+        let currentBoyIndex = 0;
+        let isGirlsTurn = true; 
+        let currentStudentName = "";
+        let activeGirlName = "";
+        let activeBoyName = "";
 
         const categories = [
             { id: 1, title: "1. Since vs. For ⏱️", color: "from-green-400 to-emerald-600" },
@@ -344,7 +343,7 @@
             if (categoryId === 1) {
                 q = sinceFor50.map(item => ({
                     text: `${item[0]} <span class="fixed-gap">___</span> <span class="clue-time">${item[1]}</span>. ${item[3]}`,
-                    plainText: `${item[0]} blank ${item[1]}.`,
+                    plainText: `${item[0]}, ${item[1]}.`,
                     options: ["since", "for"],
                     correctIndex: item[2] ? 0 : 1
                 }));
@@ -378,7 +377,7 @@
                 ];
                 q = s2.map(item => ({
                     text: `${item[0]} <span class="fixed-gap">___</span> <span class="clue-verb">${item[1]}</span> ${item[2]}. ${item[5]} <b>${item[6]}</b>`,
-                    plainText: `${item[0]} blank ${item[1]} ${item[2]}.`,
+                    plainText: `${item[0]}, ${item[1]} ${item[2]}.`,
                     options: [item[3], item[4]],
                     correctIndex: 0
                 }));
@@ -413,7 +412,7 @@
                 ];
                 q = s3.map(item => ({
                     text: `<span class="clue-condition">If</span> ${item[0]}, ${item[1].replace('___', '<span class="fixed-gap">___</span>')} ${item[4]}`,
-                    plainText: `If ${item[0]}, ${item[1].replace('___', 'blank')}.`,
+                    plainText: `If ${item[0]}, ${item[1].replace('___', '')}.`,
                     options: [item[2], item[3]],
                     correctIndex: 0
                 }));
@@ -448,7 +447,7 @@
                 ];
                 q = s4.map(item => ({
                     text: `<span class="clue-condition">If</span> ${item[0]}, ${item[1].replace('___', '<span class="fixed-gap text-transparent">___</span>')} ${item[4]}`,
-                    plainText: `If ${item[0]}, ${item[1].replace("___", "blank")}.`,
+                    plainText: `If ${item[0]}, ${item[1].replace("___", "")}.`,
                     options: [item[2], item[3]],
                     correctIndex: 0
                 }));
@@ -486,7 +485,7 @@
                     let finalHtml = fullStr.replace(item[1], `<span class="fixed-gap">___</span>`);
                     return {
                         text: `${finalHtml} ${item[4]}`,
-                        plainText: `${fullStr.replace(item[1], "blank")} ${item[4]}`.replace(/[^\w\s]/gi, ''),
+                        plainText: `${fullStr.replace(item[1], "")} ${item[4]}`.replace(/[^\w\s\.]/gi, ''),
                         options: [item[1], item[3]],
                         correctIndex: 0
                     };
@@ -524,10 +523,10 @@
                     let plain = "";
                     if(item[0] === "Although") {
                         txt = `<span class="fixed-gap text-transparent">___</span> <span class="clue-condition">${item[1]}</span> ${item[3]}`;
-                        plain = `Blank ${item[1]}`;
+                        plain = `${item[1]}`;
                     } else {
                         txt = item[1].replace("___", `<span class="fixed-gap text-transparent">___</span>`) + ` ${item[3]}`;
-                        plain = item[1].replace("___", "blank");
+                        plain = item[1].replace("___", "");
                     }
                     return {
                         text: txt,
@@ -705,23 +704,24 @@
         function readQuestionAloud() {
             window.speechSynthesis.cancel();
             
+            const praises = ["Excellent idea", "Great job", "Get ready", "Here we go", "Listen closely"];
+            const praise = praises[Math.floor(Math.random() * praises.length)];
+            const intro = `${currentStudentName}, ${praise}!`;
+            
             if (currentCategory.id === 7) {
-                speak(`Movie review gap fill challenge! Review number ${questionIndex + 1}.`);
+                speak(`${intro} Movie review gap fill challenge! Review number ${questionIndex + 1}.`);
                 return;
             }
             
             if (currentCategory.id === 8) {
                 const q = currentQuestions[questionIndex];
-                const intro = `Listen closely ${currentGirl} and ${currentBoy}! ${q.desc}`;
-                speak(intro);
+                speak(`${intro} Listen closely! ${q.desc}`);
                 return;
             }
 
             if(!currentQuestions[questionIndex]) return;
             const text = currentQuestions[questionIndex].plainText;
-            const praises = ["Excellent idea", "Great job", "Get ready", "Here we go", "Listen closely"];
-            const praise = praises[Math.floor(Math.random() * praises.length)];
-            const intro = `${praise} ${currentGirl} and ${currentBoy}!`;
+            
             speak(intro, () => {
                 setTimeout(() => speak(text), 200);
             });
@@ -748,16 +748,6 @@
                 [arr[i], arr[j]] = [arr[j], arr[i]];
             }
             return arr;
-        }
-
-        function getNextPlayer(type) {
-            if (type === 'girl') {
-                if (girlsQueue.length === 0) girlsQueue = shuffleArray(girlsList);
-                return girlsQueue.pop();
-            } else {
-                if (boysQueue.length === 0) boysQueue = shuffleArray(boysList);
-                return boysQueue.pop();
-            }
         }
 
         function startGame(categoryId) {
@@ -790,10 +780,17 @@
             }
 
             questionIndex = 0;
-            scores = { girl: 0, boy: 0 };
+            girlScore = 0;
+            boyScore = 0;
+            girls = shuffleArray(girls);
+            boys = shuffleArray(boys);
+            currentGirlIndex = 0;
+            currentBoyIndex = 0;
+            activeGirlName = girls[0];
+            activeBoyName = boys[0];
             updateScoreUI();
-            document.getElementById('girl-badges').innerHTML = '';
-            document.getElementById('boy-badges').innerHTML = '';
+            document.getElementById('girls-badges').innerHTML = '';
+            document.getElementById('boys-badges').innerHTML = '';
 
             loadQuestion();
         }
@@ -808,7 +805,7 @@
 
         function loadQuestion() {
             if (questionIndex >= currentQuestions.length) {
-                alert("Category Complete! Great job everyone!");
+                alert("Category Complete! Great job!");
                 returnToMenu();
                 return;
             }
@@ -816,21 +813,46 @@
             isAnswerRevealed = false;
             gapFillCompleted = false;
             selectedWordBtn = null;
+            isTimerPaused = false;
+            
+            // Determine whose turn it is
+            isGirlsTurn = (questionIndex % 2 === 0);
+            
+            if (currentCategory.id === 7 || currentCategory.id === 8) {
+                currentStudentName = isGirlsTurn ? "Girls Team" : "Boys Team";
+                document.getElementById('current-girl').innerText = "Girls Team";
+                document.getElementById('current-boy').innerText = "Boys Team";
+            } else {
+                activeGirlName = girls[currentGirlIndex];
+                activeBoyName = boys[currentBoyIndex];
+                
+                if (isGirlsTurn) {
+                    currentStudentName = activeGirlName;
+                } else {
+                    currentStudentName = activeBoyName;
+                }
+                
+                currentGirlIndex = (currentGirlIndex + 1) % girls.length;
+                currentBoyIndex = (currentBoyIndex + 1) % boys.length;
+
+                document.getElementById('current-girl').innerText = activeGirlName;
+                document.getElementById('current-boy').innerText = activeBoyName;
+            }
+
+            // Visual indicator of whose turn it is
+            const girlBox = document.getElementById('current-girl').closest('.glass-panel');
+            const boyBox = document.getElementById('current-boy').closest('.glass-panel');
+            
+            if (isGirlsTurn) {
+                girlBox.classList.add('ring-4', 'ring-yellow-400');
+                boyBox.classList.remove('ring-4', 'ring-yellow-400');
+            } else {
+                boyBox.classList.add('ring-4', 'ring-yellow-400');
+                girlBox.classList.remove('ring-4', 'ring-yellow-400');
+            }
             
             document.getElementById('q-counter').innerText = `${questionIndex + 1} / ${currentQuestions.length}`;
             
-            if (currentCategory.id === 7 || currentCategory.id === 8) {
-                document.getElementById('girl-name').innerText = "Girls";
-                document.getElementById('boy-name').innerText = "Boys";
-                currentGirl = "Girls";
-                currentBoy = "Boys";
-            } else {
-                currentGirl = getNextPlayer('girl');
-                currentBoy = getNextPlayer('boy');
-                document.getElementById('girl-name').innerText = currentGirl;
-                document.getElementById('boy-name').innerText = currentBoy;
-            }
-
             if(currentCategory.id === 7) {
                 loadGapFillReview();
             } else if (currentCategory.id === 8) {
@@ -958,7 +980,8 @@
                 playCorrectSound();
                 createConfetti();
                 document.getElementById('check-gap-answers').classList.add('hidden');
-                speak("Perfect! Award points to the winner!");
+                speak("Perfect! Great job!");
+                addPoints();
             } else {
                 playWrongSound();
             }
@@ -984,7 +1007,8 @@
                     if (opt === q.ans) {
                         btn.classList.add('bg-green-500', 'text-white', 'border-green-300', 'scale-110');
                         playCorrectSound();
-                        speak("Correct! Award the points!");
+                        speak("Correct!");
+                        addPoints();
                     } else {
                         btn.classList.add('bg-red-500', 'text-white', 'border-red-300');
                         playWrongSound();
@@ -994,6 +1018,7 @@
                                 child.classList.add('bg-green-500', 'text-white');
                             }
                         });
+                        setTimeout(nextQuestion, 3000);
                     }
                 };
                 optsContainer.appendChild(btn);
@@ -1001,15 +1026,36 @@
         }
 
         // --- TIMER & REVEAL ---
+        function toggleTimer() {
+            isTimerPaused = !isTimerPaused;
+            const clockEl = document.getElementById('digital-clock');
+            if(isTimerPaused) {
+                clockEl.classList.add('bg-yellow-300');
+                clockEl.classList.remove('bg-white');
+            } else {
+                clockEl.classList.remove('bg-yellow-300');
+                clockEl.classList.add('bg-white');
+            }
+        }
+
         function startTimer() {
             clearInterval(timerInterval);
             timeLeft = 60;
+            isTimerPaused = false;
+            
             const bar = document.getElementById('timer-bar');
+            const clockEl = document.getElementById('digital-clock');
             bar.style.width = '100%';
             bar.classList.remove('timer-warning');
+            clockEl.innerText = timeLeft;
+            clockEl.classList.remove('bg-yellow-300');
+            clockEl.classList.add('bg-white');
 
             timerInterval = setInterval(() => {
+                if (isTimerPaused) return; // Skip execution if paused
+                
                 timeLeft--;
+                clockEl.innerText = timeLeft;
                 const pct = (timeLeft / 60) * 100;
                 bar.style.width = `${pct}%`;
                 
@@ -1020,6 +1066,8 @@
                     playWrongSound();
                     if(currentCategory.id !== 7 && currentCategory.id !== 8 && !isAnswerRevealed) {
                         revealAnswer(-1, null);
+                    } else if (!isAnswerRevealed && !gapFillCompleted) {
+                        setTimeout(nextQuestion, 3000);
                     }
                 }
             }, 1000);
@@ -1065,60 +1113,65 @@
             );
             
             if (isCorrect) {
-                speak("Correct! Award the points!");
+                speak("Correct!");
+                addPoints();
+            } else {
+                setTimeout(nextQuestion, 3000);
             }
         }
 
         function awardPoint(team) {
-            if ((currentCategory.id !== 7 && currentCategory.id !== 8) && !isAnswerRevealed) {
-                speak("Let them answer the question first!");
-                return;
+            let isTeamGame = (currentCategory.id === 7 || currentCategory.id === 8);
+            if (team === 'girls') {
+                girlScore += 10;
+                if (isTeamGame) speak(`Point for the girls team!`);
+                else speak(`${currentStudentName} gets a point for the girls!`);
+            } else {
+                boyScore += 10;
+                if (isTeamGame) speak(`Point for the boys team!`);
+                else speak(`${currentStudentName} gets a point for the boys!`);
             }
-            if (currentCategory.id === 7 && !gapFillCompleted) {
-                speak("Solve the review first!");
-                return;
-            }
-            if (currentCategory.id === 8 && !isAnswerRevealed) {
-                speak("Select a genre first!");
-                return;
-            }
-
-            window.speechSynthesis.cancel();
-            
-            if (team === 'girl') {
-                scores.girl += 10;
-                playCoinSound();
-                createConfetti();
-                checkBadges('girl');
-                speak(`Ten points for ${currentGirl}!`);
-            } else if (team === 'boy') {
-                scores.boy += 10;
-                playCoinSound();
-                createConfetti();
-                checkBadges('boy');
-                speak(`Ten points for ${currentBoy}!`);
-            }
-            
+            playCoinSound();
+            createConfetti();
+            checkBadges();
             updateScoreUI();
-            
-            setTimeout(() => {
-                questionIndex++;
-                loadQuestion();
-            }, 2500);
+        }
+
+        function addPoints() {
+            // Auto award to the current turn's team
+            if(isGirlsTurn) {
+                awardPoint('girls');
+            } else {
+                awardPoint('boys');
+            }
+            setTimeout(nextQuestion, 2500);
+        }
+
+        function nextQuestion() {
+            questionIndex++;
+            loadQuestion();
         }
 
         function updateScoreUI() {
-            document.getElementById('girl-score').innerText = scores.girl;
-            document.getElementById('boy-score').innerText = scores.boy;
+            document.getElementById('girls-score').innerText = girlScore;
+            document.getElementById('boys-score').innerText = boyScore;
         }
 
-        function checkBadges(team) {
-            const score = scores[team];
-            let badgeContainer = document.getElementById(`${team}-badges`);
+        function checkBadges() {
+            let gContainer = document.getElementById('girls-badges');
+            let bContainer = document.getElementById('boys-badges');
             
-            if (score === 30 && badgeContainer.children.length < 1) addBadge(badgeContainer, '⭐');
-            if (score === 60 && badgeContainer.children.length < 2) addBadge(badgeContainer, '🔥');
-            if (score === 100 && badgeContainer.children.length < 3) addBadge(badgeContainer, '👑');
+            if (girlScore === 30 && gContainer.children.length < 1) addBadge(gContainer, '⭐');
+            if (girlScore === 60 && gContainer.children.length < 2) addBadge(gContainer, '🔥');
+            if (girlScore === 100 && gContainer.children.length < 3) addBadge(gContainer, '👑');
+            if (girlScore === 150 && gContainer.children.length < 4) addBadge(gContainer, '🏆');
+            if (girlScore === 200 && gContainer.children.length < 5) addBadge(gContainer, '🌟');
+
+            if (boyScore === 30 && bContainer.children.length < 1) addBadge(bContainer, '⭐');
+            if (boyScore === 60 && bContainer.children.length < 2) addBadge(bContainer, '🔥');
+            if (boyScore === 100 && bContainer.children.length < 3) addBadge(bContainer, '👑');
+            if (boyScore === 150 && bContainer.children.length < 4) addBadge(bContainer, '🏆');
+            if (boyScore === 200 && bContainer.children.length < 5) addBadge(bContainer, '🌟');
         }
 
         function addBadge(container, emoji) {
