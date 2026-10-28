@@ -415,32 +415,113 @@
         function playStartSound() { if (!soundInitialized) return; try { const now = Tone.now() + 0.02; polySynth.triggerAttackRelease('C5', '16n', now); polySynth.triggerAttackRelease('C5', '16n', now + 0.22); polySynth.triggerAttackRelease('G5', '8n', now + 0.44); } catch (e) {} }
         function playLapSound() { if (!soundInitialized) return; try { polySynth.triggerAttackRelease(['E5', 'G5', 'C6'], '16n', Tone.now() + 0.02); } catch (e) {} }
 
-        // --- 5. COMMENTARY ENGINE ---
+               // --- 5. COMMENTARY ENGINE ---
+        let ttsQueue = [];
+        const isEdge = /Edg\//i.test(navigator.userAgent);
+
         function loadVoices() {
-            if (!('speechSynthesis' in window)) return; const voices = window.speechSynthesis.getVoices(); if (!voices.length) return;
-            emmaVoice = voices.find(v => v.name.includes('Emma') && v.name.includes('Natural')) || voices.find(v => v.name.includes('Emma')) || voices.find(v => v.lang.startsWith('en') && v.name.includes('Female')) || voices.find(v => v.lang.startsWith('en'));
-            andrewVoice = voices.find(v => v.name.includes('Andrew') && v.name.includes('Natural')) || voices.find(v => v.name.includes('Andrew')) || voices.find(v => v.lang.startsWith('en') && v !== emmaVoice) || emmaVoice;
+            if (!('speechSynthesis' in window)) return;
+
+            const voices = window.speechSynthesis.getVoices();
+            if (!voices.length) return;
+
+            if (isEdge) {
+                emmaVoice = voices.find(v =>
+                    /microsoft.*aria|microsoft.*jenny|microsoft.*susan|aria|jenny|susan/i.test(v.name)
+                ) || voices.find(v => v.lang.toLowerCase().startsWith('en'));
+
+                andrewVoice = voices.find(v =>
+                    /microsoft.*david|microsoft.*mark|microsoft.*guy|microsoft.*zira|david|mark|guy/i.test(v.name)
+                ) || voices.find(v => v.lang.toLowerCase().startsWith('en'));
+            } else {
+                emmaVoice = voices.find(v =>
+                    v.name.includes('Emma') && v.name.includes('Natural')
+                ) || voices.find(v => v.name.includes('Emma')) || voices.find(v =>
+                    v.lang.startsWith('en') &&
+                    /female|girl|samantha|zira|aria|susan|victoria/i.test(v.name)
+                );
+
+                andrewVoice = voices.find(v =>
+                    v.name.includes('Andrew') && v.name.includes('Natural')
+                ) || voices.find(v => v.name.includes('Andrew')) || voices.find(v =>
+                    v.lang.startsWith('en') &&
+                    /male|boy|david|daniel|mark|guy|simon|john/i.test(v.name)
+                );
+            }
         }
-        if ('speechSynthesis' in window) { loadVoices(); window.speechSynthesis.onvoiceschanged = loadVoices; }
+
+        if ('speechSynthesis' in window) {
+            loadVoices();
+            window.speechSynthesis.onvoiceschanged = loadVoices;
+        }
 
         function speakCommentary(speaker, text, interrupt = false) {
-            if (!('speechSynthesis' in window)) return; loadVoices();
-            const now = performance.now();
-            if (!interrupt && window.speechSynthesis.speaking) { if (now - lastSpeechStartTime > 7500) window.speechSynthesis.cancel(); else return; }
-            if (interrupt) { window.speechSynthesis.cancel(); activeUtterances.length = 0; }
+            if (!('speechSynthesis' in window)) return;
+
+            const synth = window.speechSynthesis;
+            loadVoices();
+
+            if (interrupt) {
+                synth.cancel();
+                ttsQueue = [];
+            }
+
+            if (synth.speaking || synth.pending) {
+                if (!interrupt) {
+                    ttsQueue.push({ speaker, text });
+                    return;
+                }
+            }
 
             const utter = new SpeechSynthesisUtterance(text);
-            utter.volume = 1.0; utter.rate = 1.0; utter.pitch = speaker === 'Emma' ? 1.04 : 0.96;
-            if (speaker === 'Emma' && emmaVoice) utter.voice = emmaVoice; if (speaker === 'Andrew' && andrewVoice) utter.voice = andrewVoice;
-            activeUtterances.push(utter);
+            utter.volume = 1.0;
+            utter.rate = 1.0;
+            utter.pitch = speaker === 'Emma' ? 1.04 : 0.96;
+            utter.lang = 'en-US';
 
-            const cleanup = () => { const idx = activeUtterances.indexOf(utter); if (idx !== -1) activeUtterances.splice(idx, 1); lastSpeechEndTime = performance.now(); setMusicAndHornsDucked(false); };
-            utter.onstart = () => { lastSpeechStartTime = performance.now(); setMusicAndHornsDucked(true); commentaryBanner.classList.remove('hidden'); commentaryText.textContent = `${speaker}: "${text}"`; };
-            utter.onend = cleanup; utter.onerror = cleanup;
-            window.speechSynthesis.speak(utter);
+            if (speaker === 'Emma' && emmaVoice) utter.voice = emmaVoice;
+            if (speaker === 'Andrew' && andrewVoice) utter.voice = andrewVoice;
+
+            utter.onstart = () => {
+                lastSpeechStartTime = performance.now();
+                setMusicAndHornsDucked(true);
+                commentaryBanner.classList.remove('hidden');
+                commentaryText.textContent = `${speaker}: "${text}"`;
+            };
+
+            utter.onend = () => {
+                lastSpeechEndTime = performance.now();
+                setMusicAndHornsDucked(false);
+                commentaryBanner.classList.add('hidden');
+
+                if (ttsQueue.length > 0) {
+                    const next = ttsQueue.shift();
+                    setTimeout(() => speakCommentary(next.speaker, next.text, false), 80);
+                }
+            };
+
+            utter.onerror = () => {
+                lastSpeechEndTime = performance.now();
+                setMusicAndHornsDucked(false);
+                commentaryBanner.classList.add('hidden');
+
+                if (ttsQueue.length > 0) {
+                    const next = ttsQueue.shift();
+                    setTimeout(() => speakCommentary(next.speaker, next.text, false), 80);
+                }
+            };
+
+            try {
+                synth.resume();
+            } catch (e) {}
+
+            synth.speak(utter);
         }
-        function queueUrgentEventAnnouncement(text) { urgentAnnouncementQueue.push(text); if (urgentAnnouncementQueue.length > 3) urgentAnnouncementQueue.shift(); }
 
+        function queueUrgentEventAnnouncement(text) {
+            urgentAnnouncementQueue.push(text);
+            if (urgentAnnouncementQueue.length > 3) urgentAnnouncementQueue.shift();
+        }
         function processLiveCommentary(sortedRacers) {
             if (!('speechSynthesis' in window) || sortedRacers.length === 0) return;
             const now = performance.now();
