@@ -1,45 +1,84 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Class Lap Racer - Ultimate 4-Track Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <style>
-        html, body { height: 100%; overflow: hidden; font-family: 'Inter', sans-serif; touch-action: none; }
-        canvas { background-color: #4d8a3b; border: 3px solid #374151; border-radius: 0.75rem; width: 100%; height: 100%; object-fit: contain; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5); z-index: 1; }
+        html, body {
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Inter', sans-serif;
+            touch-action: none;
+        }
+
+        canvas {
+            background-color: #4d8a3b;
+            border: 3px solid #374151;
+            border-radius: 0.75rem;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            z-index: 1;
+        }
+
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: #1f2937; border-radius: 4px; }
         ::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 4px; }
 
-        .student-card.selected { background: linear-gradient(135deg, #2563eb, #1d4ed8); border-color: #93c5fd; transform: translateY(-1px); }
-        .class-tab.active { background: linear-gradient(135deg, #f59e0b, #d97706); color: #111827; border-color: #fde68a; }
-        .track-btn.active { background: linear-gradient(135deg, #ec4899, #be185d); color: #ffffff; border-color: #f9a8d4; }
-        .time-btn.active { background-color: #10b981; color: #111827; border-color: #6ee7b7; }
+        .student-card.selected {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            border-color: #93c5fd;
+            transform: translateY(-1px);
+        }
+
+        .class-tab.active {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: #111827;
+            border-color: #fde68a;
+        }
+
+        .track-btn.active {
+            background: linear-gradient(135deg, #ec4899, #be185d);
+            color: #ffffff;
+            border-color: #f9a8d4;
+        }
+
+        .time-btn.active {
+            background-color: #10b981;
+            color: #111827;
+            border-color: #6ee7b7;
+        }
 
         .flash-red { animation: flash 0.4s ease-in-out; }
-        @keyframes flash { 0%, 100% { color: #4ade80; transform: scale(1); } 50% { color: #f87171; transform: scale(1.1); } }
+        @keyframes flash {
+            0%, 100% { color: #4ade80; transform: scale(1); }
+            50% { color: #f87171; transform: scale(1.1); }
+        }
 
         @keyframes floatVehicle {
             0%, 100% { transform: translateY(0px) rotate(-3deg) scale(1); }
             50% { transform: translateY(-12px) rotate(4deg) scale(1.08); }
         }
+
         .floating-vehicle {
             display: inline-block;
             animation: floatVehicle 2.2s ease-in-out infinite;
             filter: drop-shadow(0 10px 10px rgba(0, 0, 0, 0.5));
         }
+
         .floating-delay-1 { animation-delay: 0.3s; }
         .floating-delay-2 { animation-delay: 0.6s; }
     </style>
 </head>
 <body class="bg-gray-900 text-white flex flex-col items-center justify-center h-screen p-1.5 md:p-2 select-none">
 
-    <!-- ================= 1. START SCREEN ================= -->
+    <!-- START SCREEN -->
     <div id="selectionScreen" class="w-full max-w-7xl bg-gray-800 border border-gray-700 rounded-2xl p-4 md:p-5 shadow-2xl flex flex-col max-h-[96vh]">
-
         <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-3 gap-3 border-b border-gray-700 pb-3">
             <div>
                 <h1 class="text-2xl md:text-3xl font-black text-yellow-400 tracking-tight flex items-center gap-2">
@@ -97,10 +136,8 @@
         </div>
     </div>
 
-    <!-- ================= 2. GAME SCREEN ================= -->
+    <!-- GAME SCREEN -->
     <div id="gameScreen" class="hidden w-full h-full flex flex-row gap-2 items-stretch justify-center overflow-hidden">
-
-        <!-- LEFT PANEL -->
         <div class="w-36 bg-gray-800 border border-gray-700 rounded-xl p-1.5 flex flex-col h-full shrink-0 shadow-xl z-20">
             <div class="bg-gray-900 rounded-lg p-1.5 mb-1 border border-gray-700 flex flex-col gap-1">
                 <div class="flex items-center justify-between gap-1">
@@ -132,10 +169,10 @@
                     <span class="text-[9px]">🐇</span>
                 </div>
             </div>
+
             <div id="leftRacerList" class="flex-1 overflow-y-auto space-y-1 pr-0.5"></div>
         </div>
 
-        <!-- RIGHT AREA -->
         <div id="trackContainer" class="flex-1 h-full flex items-center justify-center relative overflow-hidden">
             <canvas id="gameCanvas"></canvas>
 
@@ -161,17 +198,15 @@
                 </div>
             </div>
         </div>
-
     </div>
 
     <script>
-        // --- 1. DATA & CONSTANTS ---
         const CLASS_ROSTERS = {
-            "6H2": ["Elsa", "Lily", "Florence", "Yao", "Miya", "Nadiia", "Amara", "Hitomi", "Alice", "Karina", "Winnie", "Bella", "Sonia", "Albee", "Abby", "Martin", "Noah", "Eric", "Eden", "Dominic", "Megan", "Ari", "Nia", "Ava", "Jayden", "Julian", "Mason", "Milo", "Dylan", "Leah", "Owen", "Theo"],
-            "5M2": ["Julia", "Freya", "Anna", "Grace", "Avery", "Yihan", "Emma", "Abigail", "Susie", "Nina", "Kenneth", "Dafa", "Jim", "Charles", "Henry", "Patrick", "Ryan", "David", "Justin", "Jason", "Chris", "Daniel", "Leo", "Oscar"]
+            "6H2": ["Elsa","Lily","Florence","Yao","Miya","Nadiia","Amara","Hitomi","Alice","Karina","Winnie","Bella","Sonia","Albee","Abby","Martin","Noah","Eric","Eden","Dominic","Megan","Ari","Nia","Ava","Jayden","Julian","Mason","Milo","Dylan","Leah","Owen","Theo"],
+            "5M2": ["Julia","Freya","Anna","Grace","Avery","Yihan","Emma","Abigail","Susie","Nina","Kenneth","Dafa","Jim","Charles","Henry","Patrick","Ryan","David","Justin","Jason","Chris","Daniel","Leo","Oscar"]
         };
 
-        const FLEET_VEHICLES = ['🚗', '🚕', '🚙', '🚌', '🚎', '🏎️', '🚓', '🚑', '🚒', '🚐', '🚚', '🚛', '🚜', '🛻', '🏍️', '🛵'];
+        const FLEET_VEHICLES = ['🚗','🚕','🚙','🚌','🚎','🏎️','🚓','🚑','🚒','🚐','🚚','🚛','🚜','🛻','🏍️','🛵'];
         const VEHICLE_NAMES = {
             '🚗':'red car', '🚕':'yellow taxi', '🚙':'blue SUV', '🚌':'school bus',
             '🚎':'trolleybus', '🏎️':'Formula race car', '🚓':'police cruiser',
@@ -180,14 +215,19 @@
         };
 
         const CROSSING_ANIMALS = [
-            { emoji: '🐄', name: 'Cow', speed: 0.013 }, { emoji: '🐖', name: 'Pig', speed: 0.015 },
-            { emoji: '🐑', name: 'Sheep', speed: 0.014 }, { emoji: '🐐', name: 'Goat', speed: 0.018 },
-            { emoji: '🦆', name: 'Duck', speed: 0.013 }, { emoji: '🐢', name: 'Turtle', speed: 0.008 },
-            { emoji: '🐇', name: 'Rabbit', speed: 0.025 }, { emoji: '🐕', name: 'Dog', speed: 0.022 },
+            { emoji: '🐄', name: 'Cow', speed: 0.013 },
+            { emoji: '🐖', name: 'Pig', speed: 0.015 },
+            { emoji: '🐑', name: 'Sheep', speed: 0.014 },
+            { emoji: '🐐', name: 'Goat', speed: 0.018 },
+            { emoji: '🦆', name: 'Duck', speed: 0.013 },
+            { emoji: '🐢', name: 'Turtle', speed: 0.008 },
+            { emoji: '🐇', name: 'Rabbit', speed: 0.025 },
+            { emoji: '🐕', name: 'Dog', speed: 0.022 },
             { emoji: '🐈', name: 'Cat', speed: 0.020 }
         ];
 
-        const EMOJIS = { building: ['🏢', '🏭', '🏤', '🏥', '🏦', '🏫', '🏪'], tree: ['🌳', '🌲', '🌴'], finish: '🏁' };
+        const EMOJIS = { building: ['🏢', '🏭', '🏤', '🏥', '🏦', '🏫', '🏪'], tree: ['🌳','🌲','🌴'], finish: '🏁' };
+
         const MAX_RACERS = 16;
         const cols = 36;
         const rows = 22;
@@ -213,13 +253,13 @@
                 tunnels: [], overpasses: [],
                 waypoints: [
                     { x: 24, y: 1 }, { x: 22, y: 1 }, { x: 22, y: 4 }, { x: 18, y: 4 }, { x: 18, y: 1 },
-                    { x: 14, y: 1 }, { x: 14, y: 4 }, { x: 10, y: 4 }, { x: 10, y: 1 }, { x: 6,  y: 1 },
-                    { x: 6,  y: 4 }, { x: 2,  y: 4 }, { x: 2,  y: 7 }, { x: 7,  y: 7 }, { x: 7,  y: 10 },
+                    { x: 14, y: 1 }, { x: 14, y: 4 }, { x: 10, y: 4 }, { x: 10, y: 1 }, { x: 6, y: 1 },
+                    { x: 6, y: 4 }, { x: 2, y: 4 }, { x: 2, y: 7 }, { x: 7, y: 7 }, { x: 7, y: 10 },
                     { x: 12, y: 10 }, { x: 12, y: 7 }, { x: 17, y: 7 }, { x: 17, y: 10 }, { x: 22, y: 10 },
                     { x: 22, y: 7 }, { x: 27, y: 7 }, { x: 27, y: 10 }, { x: 30, y: 10 }, { x: 30, y: 13 },
                     { x: 25, y: 13 }, { x: 25, y: 16 }, { x: 20, y: 16 }, { x: 20, y: 13 }, { x: 15, y: 13 },
-                    { x: 15, y: 16 }, { x: 10, y: 16 }, { x: 10, y: 13 }, { x: 5,  y: 13 }, { x: 5,  y: 16 },
-                    { x: 2,  y: 16 }, { x: 2,  y: 20 }, { x: 8,  y: 20 }, { x: 8,  y: 18 }, { x: 14, y: 18 },
+                    { x: 15, y: 16 }, { x: 10, y: 16 }, { x: 10, y: 13 }, { x: 5, y: 13 }, { x: 5, y: 16 },
+                    { x: 2, y: 16 }, { x: 2, y: 20 }, { x: 8, y: 20 }, { x: 8, y: 18 }, { x: 14, y: 18 },
                     { x: 14, y: 20 }, { x: 20, y: 20 }, { x: 20, y: 18 }, { x: 26, y: 18 }, { x: 26, y: 20 },
                     { x: 33, y: 20 }, { x: 33, y: 1 }
                 ]
@@ -230,8 +270,8 @@
                 trafficLights: [1, 3, 5, 7, 10, 14, 18],
                 tunnels: [], overpasses: [],
                 waypoints: [
-                    { x: 22, y: 1 }, { x: 2,  y: 1 }, { x: 2,  y: 19 }, { x: 29, y: 19 }, { x: 29, y: 4 },
-                    { x: 6,  y: 4 }, { x: 6,  y: 16 }, { x: 25, y: 16 }, { x: 25, y: 7 }, { x: 10, y: 7 },
+                    { x: 22, y: 1 }, { x: 2, y: 1 }, { x: 2, y: 19 }, { x: 29, y: 19 }, { x: 29, y: 4 },
+                    { x: 6, y: 4 }, { x: 6, y: 16 }, { x: 25, y: 16 }, { x: 25, y: 7 }, { x: 10, y: 7 },
                     { x: 10, y: 13 }, { x: 21, y: 13 }, { x: 21, y: 10 }, { x: 14, y: 10 }, { x: 14, y: 20 },
                     { x: 20, y: 20 }, { x: 20, y: 18 }, { x: 26, y: 18 }, { x: 26, y: 20 }, { x: 33, y: 20 },
                     { x: 33, y: 1 }
@@ -255,78 +295,83 @@
                     { x: 18, y: 14, underWp: 16, overWp: 13 }
                 ],
                 waypoints: [
-                    { x: 20, y: 1 },
-                    { x: 3,  y: 1 },
-                    { x: 3,  y: 9 },
-                    { x: 10, y: 9 },
-                    { x: 10, y: 2 },
-                    { x: 10, y: 18 },
-                    { x: 26, y: 18 },
-                    { x: 26, y: 3 },
-                    { x: 31, y: 3 },
-                    { x: 31, y: 16 },
-                    { x: 22, y: 16 },
-                    { x: 22, y: 5 },
-                    { x: 6,  y: 5 },
-                    { x: 6,  y: 11 },
-                    { x: 29, y: 11 },
-                    { x: 29, y: 14 },
-                    { x: 8,  y: 14 },
-                    { x: 8,  y: 20 },
-                    { x: 18, y: 20 },
-                    { x: 18, y: 3 },
-                    { x: 2,  y: 3 },
-                    { x: 2,  y: 20 },
-                    { x: 33, y: 20 },
-                    { x: 33, y: 1 }
+                    { x: 20, y: 1 }, { x: 3, y: 1 }, { x: 3, y: 9 }, { x: 10, y: 9 }, { x: 10, y: 2 },
+                    { x: 10, y: 18 }, { x: 26, y: 18 }, { x: 26, y: 3 }, { x: 31, y: 3 }, { x: 31, y: 16 },
+                    { x: 22, y: 16 }, { x: 22, y: 5 }, { x: 6, y: 5 }, { x: 6, y: 11 }, { x: 29, y: 11 },
+                    { x: 29, y: 14 }, { x: 8, y: 14 }, { x: 8, y: 20 }, { x: 18, y: 20 }, { x: 18, y: 3 },
+                    { x: 2, y: 3 }, { x: 2, y: 20 }, { x: 33, y: 20 }, { x: 33, y: 1 }
                 ]
             }
         };
 
-        // --- 2. GAME STATE ---
-        let currentClass = "6H2"; let currentTrackId = 1; let selectedStudents = new Set(CLASS_ROSTERS["6H2"].slice(0, MAX_RACERS));
-        let selectedDurationMinutes = 2; let raceDurationMs = selectedDurationMinutes * 60 * 1000;
+        let currentClass = "6H2";
+        let currentTrackId = 1;
+        let selectedStudents = new Set(CLASS_ROSTERS["6H2"].slice(0, MAX_RACERS));
+        let selectedDurationMinutes = 2;
+        let raceDurationMs = selectedDurationMinutes * 60 * 1000;
+
         let map = Array.from({ length: rows }, () => Array(cols).fill(0));
-        let lapWaypoints = TRACK_CONFIGS[1].waypoints; let hazardRoadCandidates = [];
-        let segmentDistances = []; let cumulativeSegmentDist = [0]; let totalLapLength = 1;
-        let finishLinePhase = false; let podiumLocked = [];
-        let racers = []; let activeAnimals = []; let activeRocks = []; let activeTrafficLights = []; let fireworks = [];
+        let lapWaypoints = TRACK_CONFIGS[1].waypoints;
+        let hazardRoadCandidates = [];
+        let segmentDistances = [];
+        let cumulativeSegmentDist = [0];
+        let totalLapLength = 1;
+
+        let finishLinePhase = false;
+        let podiumLocked = [];
+        let racers = [];
+        let activeAnimals = [];
+        let activeRocks = [];
+        let activeTrafficLights = [];
+        let fireworks = [];
         let activeBoosts = [];
-        let emojiMap = []; let TILE_SIZE = 32;
-        let gameRunning = false; let celebrationActive = false; let animationFrameId = null; let simulationSpeed = 1;
-        let raceStartTime = 0; let remainingTimeMs = raceDurationMs; let lastTime = 0; let lastPanelRenderTime = 0;
+        let emojiMap = [];
+        let TILE_SIZE = 32;
 
-        let nextAnimalSpawnTime = 0; let nextRockSpawnTime = 0; let nextBoostSpawnTime = 0; let nextRandomHornTime = 0;
+        let gameRunning = false;
+        let celebrationActive = false;
+        let animationFrameId = null;
+        let simulationSpeed = 1;
+        let raceStartTime = 0;
+        let remainingTimeMs = raceDurationMs;
+        let lastTime = 0;
+        let lastPanelRenderTime = 0;
 
-        // Commentary State
-        let prevTopThreeNames = ["", "", ""]; let lastSpeechStartTime = 0; let lastSpeechEndTime = 0; let commentatorTurn = 0; let commentaryStyleIndex = 0;
-        let urgentAnnouncementQueue = []; let lastCommentaryWasUrgent = false; let emmaVoice = null; let andrewVoice = null; const activeUtterances = [];
+        let nextAnimalSpawnTime = 0;
+        let nextRockSpawnTime = 0;
+        let nextBoostSpawnTime = 0;
+        let nextRandomHornTime = 0;
+
+        let prevTopThreeNames = ["", "", ""];
+        let lastSpeechStartTime = 0;
+        let lastSpeechEndTime = 0;
+        let commentatorTurn = 0;
+        let commentaryStyleIndex = 0;
+        let urgentAnnouncementQueue = [];
+        let lastCommentaryWasUrgent = false;
+        let emmaVoice = null;
+        let andrewVoice = null;
+        const activeUtterances = [];
         let ttsQueue = [];
 
-        // DOM elements
         const commentaryBanner = document.getElementById('commentaryBanner');
         const commentaryText = document.getElementById('commentaryText');
         const hazardBanner = document.getElementById('hazardBanner');
         const hazardBannerIcon = document.getElementById('hazardBannerIcon');
         const hazardBannerText = document.getElementById('hazardBannerText');
-
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         const studentGrid = document.getElementById('studentGrid');
 
-        // --- 3. TRACK BUILDER ---
         function buildActiveTrackMap() {
             const cfg = TRACK_CONFIGS[currentTrackId];
             lapWaypoints = cfg.waypoints;
 
             for (let r = 0; r < rows; r++) {
-                for (let c = 0; c < cols; c++) {
-                    map[r][c] = 0;
-                }
+                for (let c = 0; c < cols; c++) map[r][c] = 0;
             }
 
             const roadCandidateSet = new Set();
-
             segmentDistances = [];
             cumulativeSegmentDist = [0];
             totalLapLength = 0;
@@ -411,7 +456,6 @@
             return [...racers].sort((a, b) => computeRacerExactScore(b) - computeRacerExactScore(a));
         }
 
-        // --- 4. AUDIO ENGINE ---
         let polySynth, bassSynth, hornSawSynth, hornSquareSynth, airHornSynth, fireworkNoise, crashSynth, boostSynth, musicLoop;
         let soundInitialized = false;
 
@@ -420,32 +464,56 @@
             try {
                 await Tone.start();
 
-                polySynth = new Tone.PolySynth(Tone.Synth, { oscillator: { type: 'triangle' }, envelope: { attack: 0.02, decay: 0.1, sustain: 0.2, release: 0.3 } }).toDestination();
+                polySynth = new Tone.PolySynth(Tone.Synth, {
+                    oscillator: { type: 'triangle' },
+                    envelope: { attack: 0.02, decay: 0.1, sustain: 0.2, release: 0.3 }
+                }).toDestination();
                 polySynth.volume.value = -12;
 
-                bassSynth = new Tone.MonoSynth({ oscillator: { type: 'square' }, envelope: { attack: 0.01, decay: 0.15, sustain: 0.1, release: 0.1 } }).toDestination();
+                bassSynth = new Tone.MonoSynth({
+                    oscillator: { type: 'square' },
+                    envelope: { attack: 0.01, decay: 0.15, sustain: 0.1, release: 0.1 }
+                }).toDestination();
                 bassSynth.volume.value = -20;
 
-                hornSawSynth = new Tone.PolySynth(Tone.Synth, { oscillator: { type: 'sawtooth' }, envelope: { attack: 0.01, decay: 0.15, sustain: 0.5, release: 0.12 } }).toDestination();
+                hornSawSynth = new Tone.PolySynth(Tone.Synth, {
+                    oscillator: { type: 'sawtooth' },
+                    envelope: { attack: 0.01, decay: 0.15, sustain: 0.5, release: 0.12 }
+                }).toDestination();
                 hornSawSynth.volume.value = -10;
 
-                hornSquareSynth = new Tone.PolySynth(Tone.Synth, { oscillator: { type: 'square' }, envelope: { attack: 0.005, decay: 0.08, sustain: 0.35, release: 0.08 } }).toDestination();
+                hornSquareSynth = new Tone.PolySynth(Tone.Synth, {
+                    oscillator: { type: 'square' },
+                    envelope: { attack: 0.005, decay: 0.08, sustain: 0.35, release: 0.08 }
+                }).toDestination();
                 hornSquareSynth.volume.value = -12;
 
-                airHornSynth = new Tone.PolySynth(Tone.Synth, { oscillator: { type: 'fatsawtooth', count: 3, spread: 20 }, envelope: { attack: 0.04, decay: 0.25, sustain: 0.6, release: 0.25 } }).toDestination();
+                airHornSynth = new Tone.PolySynth(Tone.Synth, {
+                    oscillator: { type: 'fatsawtooth', count: 3, spread: 20 },
+                    envelope: { attack: 0.04, decay: 0.25, sustain: 0.6, release: 0.25 }
+                }).toDestination();
                 airHornSynth.volume.value = -18;
 
-                fireworkNoise = new Tone.NoiseSynth({ noise: { type: 'pink' }, envelope: { attack: 0.005, decay: 0.35, sustain: 0, release: 0.2 } }).toDestination();
+                fireworkNoise = new Tone.NoiseSynth({
+                    noise: { type: 'pink' },
+                    envelope: { attack: 0.005, decay: 0.35, sustain: 0, release: 0.2 }
+                }).toDestination();
                 fireworkNoise.volume.value = -12;
 
-                crashSynth = new Tone.NoiseSynth({ noise: { type: 'brown' }, envelope: { attack: 0.002, decay: 0.45, sustain: 0.1, release: 0.25 } }).toDestination();
+                crashSynth = new Tone.NoiseSynth({
+                    noise: { type: 'brown' },
+                    envelope: { attack: 0.002, decay: 0.45, sustain: 0.1, release: 0.25 }
+                }).toDestination();
                 crashSynth.volume.value = -18;
 
-                boostSynth = new Tone.NoiseSynth({ noise: { type: 'white' }, envelope: { attack: 0.05, decay: 0.5, sustain: 0.2, release: 1 } }).toDestination();
+                boostSynth = new Tone.NoiseSynth({
+                    noise: { type: 'white' },
+                    envelope: { attack: 0.05, decay: 0.5, sustain: 0.2, release: 1 }
+                }).toDestination();
                 boostSynth.volume.value = -14;
 
-                const melodyNotes = ['C5', 'E5', 'G5', 'E5', 'F5', 'A5', 'G5', 'E5', 'D5', 'F5', 'A5', 'F5', 'G5', 'B5', 'C6', 'G5'];
-                const bassNotes = ['C3', 'C3', 'G2', 'G2', 'F2', 'F2', 'C3', 'C3', 'D2', 'D2', 'A2', 'A2', 'G2', 'G2', 'G2', 'B2'];
+                const melodyNotes = ['C5','E5','G5','E5','F5','A5','G5','E5','D5','F5','A5','F5','G5','B5','C6','G5'];
+                const bassNotes = ['C3','C3','G2','G2','F2','F2','C3','C3','D2','D2','A2','A2','G2','G2','G2','B2'];
                 let step = 0;
 
                 musicLoop = new Tone.Loop((time) => {
@@ -485,13 +553,13 @@
             try {
                 const now = Tone.now() + 0.01;
                 crashSynth.triggerAttackRelease('4n', now);
-                polySynth.triggerAttackRelease(['C2', 'F#2'], '8n', now + 0.1);
+                polySynth.triggerAttackRelease(['C2','F#2'], '8n', now + 0.1);
             } catch (e) {}
         }
 
         function playVariedCarHorn() {
             if (!soundInitialized) return;
-            try { hornSquareSynth.triggerAttackRelease(['A5', 'C#6'], '16n', Tone.now() + 0.01); } catch (e) {}
+            try { hornSquareSynth.triggerAttackRelease(['A5','C#6'], '16n', Tone.now() + 0.01); } catch (e) {}
         }
 
         function playStartSound() {
@@ -505,13 +573,11 @@
 
         function playLapSound() {
             if (!soundInitialized) return;
-            try { polySynth.triggerAttackRelease(['E5', 'G5', 'C6'], '16n', Tone.now() + 0.02); } catch (e) {}
+            try { polySynth.triggerAttackRelease(['E5','G5','C6'], '16n', Tone.now() + 0.02); } catch (e) {}
         }
 
-        // --- 5. COMMENTARY ENGINE + MICROSOFT EDGE VOICES ---
         function loadVoices() {
             if (!('speechSynthesis' in window)) return;
-
             const voices = window.speechSynthesis.getVoices();
             if (!voices.length) return;
 
@@ -586,16 +652,7 @@
                 }
             };
 
-            utter.onerror = () => {
-                lastSpeechEndTime = performance.now();
-                setMusicAndHornsDucked(false);
-                commentaryBanner.classList.add('hidden');
-
-                if (ttsQueue.length > 0) {
-                    const next = ttsQueue.shift();
-                    setTimeout(() => speakCommentary(next.speaker, next.text, false), 80);
-                }
-            };
+            utter.onerror = utter.onend;
 
             try { synth.resume(); } catch (e) {}
             synth.speak(utter);
@@ -608,6 +665,7 @@
 
         function processLiveCommentary(sortedRacers) {
             if (!('speechSynthesis' in window) || sortedRacers.length === 0) return;
+
             const now = performance.now();
             const synth = window.speechSynthesis;
 
@@ -698,14 +756,20 @@
             speakCommentary(speaker, line, false);
         }
 
-        // --- 6. RACER UPDATE & HAZARDS ---
         function updateHazardsAndHorns(now, dt) {
             activeTrafficLights.forEach(light => {
                 light.timer -= dt;
                 if (light.timer <= 0) {
-                    if (light.state === 'green') { light.state = 'yellow'; light.timer = 1400; }
-                    else if (light.state === 'yellow') { light.state = 'red'; light.timer = 3200 + Math.random() * 1800; }
-                    else { light.state = 'green'; light.timer = 4500 + Math.random() * 2000; }
+                    if (light.state === 'green') {
+                        light.state = 'yellow';
+                        light.timer = 1400;
+                    } else if (light.state === 'yellow') {
+                        light.state = 'red';
+                        light.timer = 3200 + Math.random() * 1800;
+                    } else {
+                        light.state = 'green';
+                        light.timer = 4500 + Math.random() * 2000;
+                    }
                 }
             });
 
@@ -715,10 +779,15 @@
                 const dir = Math.random() < 0.5 ? 1 : -1;
 
                 activeAnimals.push({
-                    emoji: animalSpec.emoji, name: animalSpec.name,
-                    tileX: candidate.x + 0.5, tileY: candidate.y + 0.5 - (dir * 0.85),
-                    endY: candidate.y + 0.5 + (dir * 0.85), roadRow: candidate.y,
-                    direction: dir, speed: animalSpec.speed, announced: false
+                    emoji: animalSpec.emoji,
+                    name: animalSpec.name,
+                    tileX: candidate.x + 0.5,
+                    tileY: candidate.y + 0.5 - (dir * 0.85),
+                    endY: candidate.y + 0.5 + (dir * 0.85),
+                    roadRow: candidate.y,
+                    direction: dir,
+                    speed: animalSpec.speed,
+                    announced: false
                 });
 
                 hazardBannerIcon.textContent = animalSpec.emoji;
@@ -795,7 +864,9 @@
                 if (hitBoostIdx !== -1) {
                     activeBoosts.splice(hitBoostIdx, 1);
                     racer.boostUntil = now + 3200;
-                    if (soundInitialized) { try { boostSynth.triggerAttackRelease('8n', Tone.now()); } catch (e) {} }
+                    if (soundInitialized) {
+                        try { boostSynth.triggerAttackRelease('8n', Tone.now()); } catch (e) {}
+                    }
 
                     const vName = VEHICLE_NAMES[racer.emoji] || 'car';
                     const boostPhrases = [
@@ -917,7 +988,9 @@
             if (now - lastPanelRenderTime > 160) {
                 lastPanelRenderTime = now;
                 const currentSorted = getSortedRacers();
-                if (gameRunning && currentSorted.length > 0 && now - raceStartTime > 1000) processLiveCommentary(currentSorted);
+                if (gameRunning && currentSorted.length > 0 && now - raceStartTime > 1000) {
+                    processLiveCommentary(currentSorted);
+                }
                 renderLeftPanelDOM(currentSorted, now);
             }
         }
@@ -938,16 +1011,18 @@
                     ? `🏁#${r.finishRank}`
                     : (isCrashed ? '🪨🔥💥' : (r.stoppedByAnimal ? '🐄' : (r.isStoppedAtLight ? '🔴' : (isBoosted ? '⚡' : `L${r.laps + 1}`))));
 
-                return `<div class="flex items-center justify-between px-1.5 py-0.5 rounded-lg border ${cardBorder}">
-                            <div class="flex items-center gap-1.5 min-w-0">
-                                <span class="w-4 h-4 rounded-full text-[10px] font-black flex items-center justify-center shrink-0 ${badgeColor}">${rank}</span>
-                                <div class="flex flex-col items-start leading-none min-w-0">
-                                    <span class="font-bold text-[11px] text-white truncate max-w-[68px]">${r.name}</span>
-                                    <span class="text-base mt-0.5 leading-none">${r.emoji}</span>
-                                </div>
+                return `
+                    <div class="flex items-center justify-between px-1.5 py-0.5 rounded-lg border ${cardBorder}">
+                        <div class="flex items-center gap-1.5 min-w-0">
+                            <span class="w-4 h-4 rounded-full text-[10px] font-black flex items-center justify-center shrink-0 ${badgeColor}">${rank}</span>
+                            <div class="flex flex-col items-start leading-none min-w-0">
+                                <span class="font-bold text-[11px] text-white truncate max-w-[68px]">${r.name}</span>
+                                <span class="text-base mt-0.5 leading-none">${r.emoji}</span>
                             </div>
-                            <div class="text-right shrink-0"><span class="text-[10px] font-extrabold text-yellow-400">${statusIcon}</span></div>
-                        </div>`;
+                        </div>
+                        <div class="text-right shrink-0"><span class="text-[10px] font-extrabold text-yellow-400">${statusIcon}</span></div>
+                    </div>
+                `;
             }).join('');
         }
 
@@ -989,10 +1064,10 @@
             return [4, 5, 7, 8, 19].includes(racer.waypointIndex);
         }
 
-        // --- 7. RENDERING ---
         function drawTrack() {
             const now = performance.now();
             const cfg = TRACK_CONFIGS[currentTrackId];
+
             ctx.fillStyle = '#4d8a3b';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -1010,19 +1085,18 @@
                         ctx.fillRect(px + TILE_SIZE * 0.38, py + TILE_SIZE * 0.45, TILE_SIZE * 0.22, TILE_SIZE * 0.08);
                     }
 
-                    const centerX = px + TILE_SIZE / 2;
-                    const centerY = py + TILE_SIZE / 2;
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-
                     if (tile === 2 || tile === 3) {
                         ctx.font = `${TILE_SIZE * 0.72}px sans-serif`;
-                        ctx.fillText(emojiMap[y][x], centerX, centerY);
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillText(emojiMap[y][x], px + TILE_SIZE / 2, py + TILE_SIZE / 2);
                     } else if (tile === 4) {
                         ctx.fillStyle = '#facc15';
                         ctx.fillRect(px, py, TILE_SIZE * 0.24, TILE_SIZE);
                         ctx.font = `${TILE_SIZE * 0.82}px sans-serif`;
-                        ctx.fillText(EMOJIS.finish, centerX, centerY);
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillText(EMOJIS.finish, px + TILE_SIZE / 2, py + TILE_SIZE / 2);
                     }
                 }
             }
@@ -1144,11 +1218,12 @@
                 if (celebrationActive && Math.random() < 0.24) {
                     const x = (0.08 + Math.random() * 0.84) * canvas.width;
                     const y = (0.08 + Math.random() * 0.65) * canvas.height;
-                    const colors = ['#facc15', '#f87171', '#60a5fa', '#34d399', '#c084fc', '#fb923c', '#ffffff', '#f472b6'];
+                    const colors = ['#facc15','#f87171','#60a5fa','#34d399','#c084fc','#fb923c','#ffffff','#f472b6'];
 
                     for (let i = 0; i < 55; i++) {
                         fireworks.push({
-                            x, y,
+                            x,
+                            y,
                             vx: Math.cos((Math.PI * 2 * i) / 55 + (Math.random() * 0.25)) * (1.8 + Math.random() * 5.8),
                             vy: Math.sin((Math.PI * 2 * i) / 55 + (Math.random() * 0.25)) * (1.8 + Math.random() * 5.8),
                             color: colors[i % colors.length],
@@ -1160,7 +1235,7 @@
                     if (soundInitialized) {
                         try {
                             fireworkNoise.triggerAttackRelease('8n', Tone.now());
-                            polySynth.triggerAttackRelease(['C5', 'E5', 'G5', 'B5', 'C6', 'D6', 'E6'][Math.floor(Math.random() * 7)], '16n', Tone.now() + 0.04);
+                            polySynth.triggerAttackRelease(['C5','E5','G5','B5','C6','D6','E6'][Math.floor(Math.random() * 7)], '16n', Tone.now() + 0.04);
                         } catch (e) {}
                     }
                 }
@@ -1190,12 +1265,12 @@
             }
         }
 
-        // --- 8. INITIALIZATION & UI ---
         function resizeCanvasOnly() {
             const container = canvas.parentElement;
             const cw = container.clientWidth || 800;
             const ch = container.clientHeight || 500;
             const aspect = cols / rows;
+
             let width = cw;
             let height = cw / aspect;
 
@@ -1237,15 +1312,6 @@
                 const cfg = TRACK_CONFIGS[currentTrackId];
                 const availableVehicles = [...FLEET_VEHICLES].sort(() => 0.5 - Math.random());
                 const chosenNames = Array.from(selectedStudents);
-                const maxSpanCols = Math.max(4, (cols - 4) - cfg.startCol);
-                const spacingCols = Math.min(0.42, maxSpanCols / Math.max(1, chosenNames.length));
-
-                for (let b = 0; b < 3; b++) {
-                    if (hazardRoadCandidates.length > 0) {
-                        const pt = hazardRoadCandidates[Math.floor(Math.random() * hazardRoadCandidates.length)];
-                        activeBoosts.push({ tileX: pt.x + 0.5, tileY: pt.y + 0.5 });
-                    }
-                }
 
                 racers = chosenNames.map((name, idx) => {
                     const laneOffset = ((idx % 5) - 2) * 0.09;
@@ -1253,7 +1319,7 @@
                         id: idx,
                         name,
                         emoji: availableVehicles[idx % availableVehicles.length],
-                        tileX: cfg.startCol + 0.5 + (idx * spacingCols),
+                        tileX: cfg.startCol + 0.5 + (idx * 0.12),
                         tileY: cfg.startRow + 0.5 + laneOffset,
                         baseSpeed: 0.45 + (idx % 7) * 0.025,
                         speed: 0.45 + (idx % 7) * 0.025,
@@ -1345,10 +1411,9 @@
                 for (let b = 0; b < 5; b++) {
                     setTimeout(() => {
                         if (!celebrationActive) return;
-
                         const x = (0.1 + Math.random() * 0.8) * canvas.width;
                         const y = (0.1 + Math.random() * 0.6) * canvas.height;
-                        const colors = ['#facc15', '#f87171', '#60a5fa', '#34d399', '#c084fc', '#fb923c', '#ffffff'];
+                        const colors = ['#facc15','#f87171','#60a5fa','#34d399','#c084fc','#fb923c','#ffffff'];
 
                         for (let i = 0; i < 60; i++) {
                             fireworks.push({
@@ -1364,7 +1429,7 @@
                         if (soundInitialized) {
                             try {
                                 fireworkNoise.triggerAttackRelease('8n', Tone.now());
-                                polySynth.triggerAttackRelease(['C5', 'G5', 'C6'], '16n', Tone.now() + 0.04);
+                                polySynth.triggerAttackRelease(['C5','G5','C6'], '16n', Tone.now() + 0.04);
                             } catch (e) {}
                         }
                     }, b * 260);
@@ -1373,8 +1438,8 @@
                 if (soundInitialized) {
                     try {
                         const now = Tone.now() + 0.02;
-                        polySynth.triggerAttackRelease(['C4', 'E4', 'G4', 'C5'], '4n', now);
-                        polySynth.triggerAttackRelease(['E4', 'G4', 'C5', 'E5'], '4n', now + 0.14);
+                        polySynth.triggerAttackRelease(['C4','E4','G4','C5'], '4n', now);
+                        polySynth.triggerAttackRelease(['E4','G4','C5','E5'], '4n', now + 0.14);
                     } catch (e) {}
                 }
 
@@ -1383,6 +1448,13 @@
                 const winLine = `${first.name} wins the race in the ${VEHICLE_NAMES[first.emoji] || 'car'}! Second place goes to ${second.name} in the ${VEHICLE_NAMES[second.emoji] || 'car'}. Third place goes to ${third.name} in the ${VEHICLE_NAMES[third.emoji] || 'car'}.`;
                 speakCommentary('Emma', winLine, true);
             }
+        }
+
+        function formatTime(ms) {
+            const totalSeconds = Math.ceil(ms / 1000);
+            const mins = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
+            const secs = String(totalSeconds % 60).padStart(2, '0');
+            return `${mins}:${secs}`;
         }
 
         function gameLoop(timestamp) {
@@ -1408,13 +1480,6 @@
             } else {
                 drawTrack();
             }
-        }
-
-        function formatTime(ms) {
-            const totalSeconds = Math.ceil(ms / 1000);
-            const mins = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
-            const secs = String(totalSeconds % 60).padStart(2, '0');
-            return `${mins}:${secs}`;
         }
 
         document.getElementById('startButton').addEventListener('click', async () => {
@@ -1445,9 +1510,102 @@
             document.getElementById('gameScreen').classList.add('hidden');
         });
 
+        document.getElementById('goToTrackBtn').addEventListener('click', () => {
+            document.getElementById('selectionScreen').classList.add('hidden');
+            document.getElementById('gameScreen').classList.remove('hidden');
+            startGame();
+        });
+
+        document.querySelectorAll('.class-tab').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.class-tab').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentClass = btn.textContent.split(' ')[0];
+                selectedStudents = new Set(CLASS_ROSTERS[currentClass].slice(0, MAX_RACERS));
+                document.getElementById('activeClassBadge').textContent = `Class ${currentClass}`;
+            });
+        });
+
+        document.querySelectorAll('.track-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.track-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentTrackId = Number(btn.dataset.track);
+                buildActiveTrackMap();
+            });
+        });
+
+        document.querySelectorAll('.time-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                selectedDurationMinutes = Number(btn.dataset.mins);
+                raceDurationMs = selectedDurationMinutes * 60 * 1000;
+                remainingTimeMs = raceDurationMs;
+            });
+        });
+
+        function renderStudentGrid() {
+            const names = Array.from(CLASS_ROSTERS[currentClass]);
+            studentGrid.innerHTML = names.map((name, index) => {
+                const selected = selectedStudents.has(name);
+                return `
+                    <button type="button" data-name="${name}" class="student-card ${selected ? 'selected' : ''} bg-gray-700 hover:bg-gray-600 text-white border border-gray-600 rounded-xl px-2 py-2 text-center transition text-xs font-bold">
+                        ${name}
+                    </button>
+                `;
+            }).join('');
+
+            studentGrid.querySelectorAll('.student-card').forEach(button => {
+                button.addEventListener('click', () => {
+                    const name = button.dataset.name;
+                    if (selectedStudents.has(name)) {
+                        selectedStudents.delete(name);
+                    } else {
+                        if (selectedStudents.size < MAX_RACERS) {
+                            selectedStudents.add(name);
+                        }
+                    }
+                    renderStudentGrid();
+                    document.getElementById('selectedCountBadge').textContent = `${selectedStudents.size} / ${MAX_RACERS}`;
+                });
+            });
+        }
+
+        document.getElementById('btnFirst16').addEventListener('click', () => {
+            selectedStudents = new Set(CLASS_ROSTERS[currentClass].slice(0, MAX_RACERS));
+            renderStudentGrid();
+            document.getElementById('selectedCountBadge').textContent = `${selectedStudents.size} / ${MAX_RACERS}`;
+        });
+
+        document.getElementById('btnRemaining').addEventListener('click', () => {
+            const all = CLASS_ROSTERS[currentClass];
+            const selected = Array.from(selectedStudents);
+            const remaining = all.filter(name => !selected.includes(name)).slice(0, MAX_RACERS);
+            remaining.forEach(name => selectedStudents.add(name));
+            renderStudentGrid();
+            document.getElementById('selectedCountBadge').textContent = `${selectedStudents.size} / ${MAX_RACERS}`;
+        });
+
+        document.getElementById('btnRandom16').addEventListener('click', () => {
+            const all = CLASS_ROSTERS[currentClass];
+            const shuffled = [...all].sort(() => Math.random() - 0.5);
+            selectedStudents = new Set(shuffled.slice(0, MAX_RACERS));
+            renderStudentGrid();
+            document.getElementById('selectedCountBadge').textContent = `${selectedStudents.size} / ${MAX_RACERS}`;
+        });
+
+        document.getElementById('btnClearAll').addEventListener('click', () => {
+            selectedStudents = new Set();
+            renderStudentGrid();
+            document.getElementById('selectedCountBadge').textContent = `${selectedStudents.size} / ${MAX_RACERS}`;
+        });
+
         resizeCanvasOnly();
         buildActiveTrackMap();
-        renderLeftPanelDOM(getSortedRacers());
+        renderStudentGrid();
+        document.getElementById('selectedCountBadge').textContent = `${selectedStudents.size} / ${MAX_RACERS}`;
+        renderLeftPanelDOM([]);
         drawTrack();
     </script>
 </body>
