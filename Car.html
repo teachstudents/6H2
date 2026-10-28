@@ -8,7 +8,18 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
   <style>
-    :root { --bg:#111827; --panel:#1f2937; --line:#374151; --green:#22c55e; --amber:#fbbf24; --red:#ef4444; --blue:#60a5fa; --purple:#a78bfa; --text:#f3f4f6; --muted:#9ca3af; }
+    :root {
+      --bg: #111827;
+      --panel: #1f2937;
+      --line: #374151;
+      --green: #22c55e;
+      --amber: #fbbf24;
+      --red: #ef4444;
+      --blue: #60a5fa;
+      --purple: #a78bfa;
+      --text: #f3f4f6;
+      --muted: #9ca3af;
+    }
 
     html, body {
       margin: 0;
@@ -23,12 +34,12 @@
     * { box-sizing: border-box; }
 
     canvas {
-      width: 100%;
-      height: 100%;
       display: block;
       background: #4d8a3b;
       border: 3px solid #374151;
       border-radius: 0.75rem;
+      width: 100%;
+      height: 100%;
       box-shadow: 0 10px 25px rgba(0,0,0,0.5);
     }
 
@@ -57,21 +68,21 @@
     }
 
     @keyframes flash {
-      0%,100% { color:#4ade80; transform: scale(1); }
-      50% { color:#f87171; transform: scale(1.12); }
+      0%, 100% { color: #4ade80; transform: scale(1); }
+      50% { color: #f87171; transform: scale(1.12); }
     }
 
     .flash-red { animation: flash 0.45s ease-in-out; }
 
     @keyframes floatVehicle {
-      0%,100% { transform: translateY(0px) rotate(-3deg) scale(1); }
-      50% { transform: translateY(-10px) rotate(4deg) scale(1.08); }
+      0%, 100% { transform: translateY(0px) rotate(-3deg) scale(1); }
+      50% { transform: translateY(-12px) rotate(4deg) scale(1.08); }
     }
 
     .floating-vehicle {
       display: inline-block;
       animation: floatVehicle 2.2s ease-in-out infinite;
-      filter: drop-shadow(0 10px 10px rgba(0,0,0,0.5));
+      filter: drop-shadow(0 10px 10px rgba(0, 0, 0, 0.5));
     }
   </style>
 </head>
@@ -85,7 +96,7 @@
           <span id="activeClassBadge" class="text-sm bg-yellow-500/20 text-yellow-300 border border-yellow-500/40 px-2.5 py-0.5 rounded-full font-bold">Class 6H2</span>
         </h1>
         <p class="text-gray-300 text-xs md:text-sm mt-0.5">
-          4 circuits with boosts, crashes, traffic lights, and <span class="text-blue-300 font-semibold">Andrew & Emma</span> commentary!
+          4 circuits with boosts, crashes, and <span class="text-blue-300 font-semibold">Andrew & Emma</span> live commentary!
         </p>
       </div>
 
@@ -296,8 +307,9 @@
     const MAX_RACERS = 16;
     const cols = 36;
     const rows = 22;
-    let TILE_SIZE = 32;
+    const trackMap = Array.from({ length: rows }, () => Array(cols).fill(0));
 
+    let TILE_SIZE = 32;
     let currentClass = "6H2";
     let currentTrackId = 1;
     let selectedDurationMinutes = 2;
@@ -312,6 +324,7 @@
     let cumulativeLengths = [0];
     let finishLinePhase = false;
     let podiumLocked = [];
+
     let activeAnimals = [];
     let activeRocks = [];
     let activeBoosts = [];
@@ -323,12 +336,13 @@
     let raceStartTime = 0;
     let remainingTimeMs = raceDurationMs;
     let lastPanelRenderTime = 0;
+
     let nextAnimalSpawnTime = 0;
     let nextRockSpawnTime = 0;
     let nextBoostSpawnTime = 0;
     let nextRandomHornTime = 0;
 
-    let prevTopThreeNames = ["","",""];
+    let prevTopThreeNames = ["", "", ""];
     let commentatorTurn = 0;
     let commentaryStyleIndex = 0;
     let urgentAnnouncementQueue = [];
@@ -338,7 +352,7 @@
     let emmaVoice = null;
     let andrewVoice = null;
     let ttsQueue = [];
-    let ttsReadyTriggered = false;
+    let nextSpeaker = "Emma";
 
     const selectionScreen = document.getElementById("selectionScreen");
     const gameScreen = document.getElementById("gameScreen");
@@ -417,18 +431,23 @@
     }
 
     function getPointAlongTrack(distanceFromStart) {
-      const total = totalLapLength || 1;
-      const wrapped = ((distanceFromStart % total) + total) % total;
-      let seg = 0;
-      while (seg < cumulativeLengths.length - 1 && wrapped > cumulativeLengths[seg + 1]) seg++;
-      const a = lapWaypoints[seg];
-      const b = lapWaypoints[(seg + 1) % lapWaypoints.length];
-      const segStart = cumulativeLengths[seg];
-      const segEnd = cumulativeLengths[seg + 1];
-      const local = (wrapped - segStart) / Math.max(0.0001, segEnd - segStart);
+      const wrapped = ((distanceFromStart % totalLapLength) + totalLapLength) % totalLapLength;
+      let segIndex = 0;
+
+      while (segIndex < cumulativeLengths.length - 1 && wrapped > cumulativeLengths[segIndex + 1]) {
+        segIndex++;
+      }
+
+      const segStart = cumulativeLengths[segIndex];
+      const segEnd = cumulativeLengths[segIndex + 1];
+      const localT = (wrapped - segStart) / Math.max(0.0001, segEnd - segStart);
+
+      const a = lapWaypoints[segIndex];
+      const b = lapWaypoints[(segIndex + 1) % lapWaypoints.length];
+
       return {
-        x: a.x + (b.x - a.x) * local,
-        y: a.y + (b.y - a.y) * local
+        x: a.x + (b.x - a.x) * localT,
+        y: a.y + (b.y - a.y) * localT
       };
     }
 
@@ -440,26 +459,181 @@
       return getRacerProgress(b) - getRacerProgress(a);
     }
 
+    function setTrackButtons() {
+      document.querySelectorAll('.track-btn').forEach(btn => {
+        const active = Number(btn.dataset.track) === currentTrackId;
+        btn.classList.toggle('active', active);
+        btn.classList.toggle('text-gray-300', !active);
+        btn.classList.toggle('hover:text-white', !active);
+      });
+    }
+
+    function setTimeButtons() {
+      document.querySelectorAll('.time-btn').forEach(btn => {
+        const active = Number(btn.dataset.mins) === selectedDurationMinutes;
+        btn.classList.toggle('active', active);
+        btn.classList.toggle('text-gray-300', !active);
+        btn.classList.toggle('hover:text-white', !active);
+      });
+    }
+
+    function setClassButtons() {
+      const btn6 = document.getElementById('classBtn6H2');
+      const btn5 = document.getElementById('classBtn5M2');
+      btn6.classList.toggle('active', currentClass === '6H2');
+      btn5.classList.toggle('active', currentClass === '5M2');
+      btn6.classList.toggle('text-gray-300', currentClass !== '6H2');
+      btn5.classList.toggle('text-gray-300', currentClass !== '5M2');
+      activeClassBadge.textContent = `Class ${currentClass}`;
+    }
+
+    function updateSelectedBadge() {
+      selectedCountBadge.textContent = `${selectedStudents.size} / 16`;
+    }
+
+    function renderStudentGrid() {
+      const roster = CLASS_ROSTERS[currentClass];
+      studentGrid.innerHTML = roster.map((name) => {
+        const selected = selectedStudents.has(name);
+        return `
+          <button
+            type="button"
+            class="student-card ${selected ? 'selected' : 'bg-gray-700 hover:bg-gray-600'} border text-left px-2 py-2 rounded-xl transition text-xs md:text-sm font-bold ${selected ? 'text-white' : 'text-gray-200'}"
+            data-name="${name}"
+            aria-pressed="${selected}">
+            <span class="block">${name}</span>
+          </button>
+        `;
+      }).join('');
+    }
+
+    function selectFirst16() {
+      const roster = CLASS_ROSTERS[currentClass];
+      selectedStudents = new Set(roster.slice(0, MAX_RACERS));
+      renderStudentGrid();
+      updateSelectedBadge();
+    }
+
+    function selectRemaining() {
+      const roster = CLASS_ROSTERS[currentClass];
+      const setCopy = new Set(selectedStudents);
+
+      for (const name of roster) {
+        if (setCopy.size >= MAX_RACERS) break;
+        if (!setCopy.has(name)) setCopy.add(name);
+      }
+
+      selectedStudents = setCopy;
+      renderStudentGrid();
+      updateSelectedBadge();
+    }
+
+    function selectRandom16() {
+      const roster = CLASS_ROSTERS[currentClass];
+      selectedStudents = new Set([...roster].sort(() => Math.random() - 0.5).slice(0, MAX_RACERS));
+      renderStudentGrid();
+      updateSelectedBadge();
+    }
+
+    function clearAll() {
+      selectedStudents = new Set();
+      renderStudentGrid();
+      updateSelectedBadge();
+    }
+
+    function generateRacers() {
+      const names = Array.from(selectedStudents).slice(0, MAX_RACERS);
+      const startX = TRACK_CONFIGS[currentTrackId].startCol + 0.5;
+      const startY = TRACK_CONFIGS[currentTrackId].startRow + 0.5;
+
+      racers = names.map((name, idx) => {
+        const emoji = FLEET_VEHICLES[idx % FLEET_VEHICLES.length];
+        return {
+          id: `${name}-${idx}`,
+          name,
+          emoji,
+          vehicleName: VEHICLE_NAMES[emoji] || 'car',
+          laps: 0,
+          distanceAlongCurrentLap: 0,
+          baseSpeed: 0.18 + Math.random() * 0.08,
+          speed: 0.22 + Math.random() * 0.08,
+          speedChangeTimer: 0,
+          boostUntil: 0,
+          crashedUntil: 0,
+          stoppedByAnimal: false,
+          isStoppedAtLight: false,
+          finishRank: 0,
+          laneOffset: (Math.random() - 0.5) * 0.8,
+          tileX: startX + (Math.random() - 0.5) * 0.5,
+          tileY: startY + (Math.random() - 0.5) * 0.5,
+          facingRight: true,
+          tiltAngle: 0
+        };
+      });
+    }
+
+    function updateRaceTimerDisplay() {
+      const totalSeconds = Math.max(0, Math.ceil(remainingTimeMs / 1000));
+      const mins = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
+      const secs = String(totalSeconds % 60).padStart(2, '0');
+      raceTimerDisplay.textContent = `${mins}:${secs}`;
+    }
+
+    function resetRaceState() {
+      buildTrackMap();
+      generateRacers();
+
+      urgentAnnouncementQueue = [];
+      lastCommentaryWasUrgent = false;
+      prevTopThreeNames = ["", "", ""];
+      lastSpeechStartTime = 0;
+      lastSpeechEndTime = 0;
+      finishLinePhase = false;
+      podiumLocked = [];
+
+      activeAnimals = [];
+      activeRocks = [];
+      activeBoosts = [];
+      activeTrafficLights = TRACK_CONFIGS[currentTrackId].trafficLights.map((wpIdx, i) => ({
+        wpIdx,
+        x: lapWaypoints[wpIdx].x + 0.5,
+        y: lapWaypoints[wpIdx].y + 0.5,
+        state: 'green',
+        timer: 1800 + i * 250 + Math.random() * 700
+      }));
+
+      nextAnimalSpawnTime = 2000;
+      nextRockSpawnTime = 1800;
+      nextBoostSpawnTime = 2600;
+      nextRandomHornTime = 1250;
+
+      raceStartTime = performance.now();
+      remainingTimeMs = raceDurationMs;
+      updateRaceTimerDisplay();
+    }
+
     function loadVoices() {
-      if (!('speechSynthesis' in window)) return;
+      if (!("speechSynthesis" in window)) return;
+
       const voices = window.speechSynthesis.getVoices();
       if (!voices.length) return;
 
       emmaVoice = voices.find(v =>
-        /microsoft.*emma/i.test(v.name) && /(online|natural)/i.test(v.name)
-      ) || voices.find(v => /microsoft.*emma/i.test(v.name)) || voices.find(v =>
-        /emma/i.test(v.name) && /(online|natural)/i.test(v.name)
-      ) || voices.find(v => /emma/i.test(v.name)) || voices.find(v => v.lang && v.lang.toLowerCase().startsWith('en'));
+        /emma/i.test(v.name) && /^en/i.test(v.lang)
+      ) || voices.find(v => /^en/i.test(v.lang));
 
       andrewVoice = voices.find(v =>
-        /microsoft.*andrew/i.test(v.name) && /(online|natural)/i.test(v.name)
-      ) || voices.find(v => /microsoft.*andrew/i.test(v.name)) || voices.find(v =>
-        /andrew/i.test(v.name) && /(online|natural)/i.test(v.name)
-      ) || voices.find(v => /andrew/i.test(v.name)) || voices.find(v => v.lang && v.lang.toLowerCase().startsWith('en'));
+        /andrew/i.test(v.name) && /^en/i.test(v.lang)
+      ) || voices.find(v => /^en/i.test(v.lang));
+    }
+
+    if ("speechSynthesis" in window) {
+      loadVoices();
+      window.speechSynthesis.onvoiceschanged = loadVoices;
     }
 
     function speakCommentary(speaker, text, interrupt = false) {
-      if (!('speechSynthesis' in window)) return;
+      if (!("speechSynthesis" in window)) return;
       const synth = window.speechSynthesis;
       loadVoices();
 
@@ -476,35 +650,42 @@
       }
 
       const utter = new SpeechSynthesisUtterance(text);
-      utter.volume = 1;
-      utter.rate = 1;
-      utter.pitch = speaker === 'Emma' ? 1.05 : 0.96;
-      utter.lang = 'en-US';
+      utter.volume = 1.0;
+      utter.rate = 1.0;
+      utter.pitch = speaker === "Emma" ? 1.04 : 0.96;
+      utter.lang = "en-US";
 
-      if (speaker === 'Emma' && emmaVoice) utter.voice = emmaVoice;
-      if (speaker === 'Andrew' && andrewVoice) utter.voice = andrewVoice;
+      const preferredVoice = speaker === "Emma" ? emmaVoice : andrewVoice;
+      if (preferredVoice) utter.voice = preferredVoice;
+
+      if (!utter.voice) {
+        const englishVoice = synth.getVoices().find(v => /^en/i.test(v.lang));
+        if (englishVoice) utter.voice = englishVoice;
+      }
 
       utter.onstart = () => {
         lastSpeechStartTime = performance.now();
-        commentaryBanner.classList.remove('hidden');
+        commentaryBanner.classList.remove("hidden");
         commentaryText.textContent = `${speaker}: ${text}`;
       };
 
       utter.onend = () => {
         lastSpeechEndTime = performance.now();
-        commentaryBanner.classList.add('hidden');
+        commentaryBanner.classList.add("hidden");
+
         if (ttsQueue.length > 0) {
           const next = ttsQueue.shift();
-          setTimeout(() => speakCommentary(next.speaker, next.text, false), 100);
+          setTimeout(() => speakCommentary(next.speaker, next.text, false), 120);
         }
       };
 
       utter.onerror = () => {
         lastSpeechEndTime = performance.now();
-        commentaryBanner.classList.add('hidden');
+        commentaryBanner.classList.add("hidden");
+
         if (ttsQueue.length > 0) {
           const next = ttsQueue.shift();
-          setTimeout(() => speakCommentary(next.speaker, next.text, false), 100);
+          setTimeout(() => speakCommentary(next.speaker, next.text, false), 120);
         }
       };
 
@@ -512,26 +693,13 @@
       synth.speak(utter);
     }
 
-    function ensureSpeechReadyAndAnnounce() {
-      if (!('speechSynthesis' in window)) return;
-      const synth = window.speechSynthesis;
-      loadVoices();
-      try { synth.resume(); } catch (e) {}
-
-      if (!ttsReadyTriggered) {
-        ttsReadyTriggered = true;
-        setTimeout(() => speakCommentary('Emma', 'Race starting. Emma and Andrew are live. Cars are on the grid and ready to go.', true), 200);
-      }
-    }
-
     function queueUrgentEventAnnouncement(text) {
       urgentAnnouncementQueue.push(text);
-      if (urgentAnnouncementQueue.length > 5) urgentAnnouncementQueue.shift();
+      if (urgentAnnouncementQueue.length > 8) urgentAnnouncementQueue.shift();
     }
 
     function processLiveCommentary(sortedRacers) {
-      if (!sortedRacers || sortedRacers.length === 0) return;
-      if (!('speechSynthesis' in window)) return;
+      if (!("speechSynthesis" in window) || !sortedRacers || sortedRacers.length === 0) return;
 
       const synth = window.speechSynthesis;
       const now = performance.now();
@@ -553,62 +721,65 @@
       const firstChanged = oldFirst && first && first.name !== oldFirst;
       const secondChanged = second && oldSecond && second.name !== oldSecond;
 
-      if (urgentAnnouncementQueue.length > 0 && !lastCommentaryWasUrgent && (now - lastSpeechEndTime > 220)) {
-        const speaker = commentatorTurn % 2 === 0 ? 'Emma' : 'Andrew';
-        commentatorTurn++;
+      if (urgentAnnouncementQueue.length > 0 && !lastCommentaryWasUrgent && (now - lastSpeechEndTime > 180)) {
+        const line = urgentAnnouncementQueue.shift();
         lastCommentaryWasUrgent = true;
-        speakCommentary(speaker, urgentAnnouncementQueue.shift(), false);
+        speakCommentary(nextSpeaker, line, false);
+        nextSpeaker = nextSpeaker === "Emma" ? "Andrew" : "Emma";
         return;
       }
 
-      if (now - lastSpeechEndTime < (firstChanged ? 180 : 550)) return;
+      if (now - lastSpeechEndTime < (firstChanged ? 220 : 600)) return;
 
       lastCommentaryWasUrgent = false;
       prevTopThreeNames = [first ? first.name : "", second ? second.name : "", third ? third.name : ""];
 
-      const speaker = commentatorTurn % 2 === 0 ? 'Emma' : 'Andrew';
-      commentatorTurn++;
-      commentaryStyleIndex++;
+      const speaker = nextSpeaker;
+      nextSpeaker = nextSpeaker === "Emma" ? "Andrew" : "Emma";
 
-      const v1 = VEHICLE_NAMES[first.emoji] || 'car';
-      const v2 = second ? (VEHICLE_NAMES[second.emoji] || 'car') : 'car';
-      const v3 = third ? (VEHICLE_NAMES[third.emoji] || 'car') : 'car';
+      const v1 = VEHICLE_NAMES[first.emoji] || "car";
+      const v2 = second ? (VEHICLE_NAMES[second.emoji] || "car") : "car";
+      const v3 = third ? (VEHICLE_NAMES[third.emoji] || "car") : "car";
 
       let line = "";
+
       if (finishLinePhase) {
         const finishLines = [
-          `Final sprint! ${first.name} in the ${v1} is leading, with ${second ? second.name + ' in the ' + v2 : 'the field'} closing in.`,
-          `Checkered flag pressure! ${first.name} still leads in the ${v1}, chasing the finish with ${second ? second.name + ' right behind in the ' + v2 : 'the pack'}.`,
-          `The finish is here! ${first.name} is pressing on in the ${v1}, just ahead of ${second ? second.name + ' in the ' + v2 : 'the rest of the field'}.`
+          `Final sprint! ${first.name} in the ${v1} is leading the charge towards the finish line, with ${second ? second.name + " in the " + v2 : "the field"} still chasing.`,
+          `This is the finish! ${first.name} holds the lead in the ${v1}, while ${second ? second.name + " in the " + v2 : "the rest of the field"} pushes for second.`,
+          `${first.name} is pushing hard in the ${v1} as the race reaches the checkered flag. ${second ? second.name + " is right behind in the " + v2 : "The pack is close behind."}`
         ];
         line = finishLines[commentaryStyleIndex % finishLines.length];
       } else if (firstChanged) {
-        const leadLinesEmma = [
-          `What a move! ${first.name} in the ${v1} has blasted into first place, passing ${oldFirst}. ${second.name} is now second in the ${v2}.`,
-          `New leader! ${first.name} charges to the front in the ${v1}. ${second.name} is second in the ${v2}, and ${third.name} holds third in the ${v3}.`,
-          `Amazing overtake! ${first.name} takes the lead in the ${v1}. ${second.name} is chasing in second in the ${v2}.`
+        const leadEmma = [
+          `What a move! ${first.name} in the ${v1} has just taken the lead from ${oldFirst}. ${second.name} is now in second place in the ${v2}.`,
+          `New leader on the track! ${first.name} surges into first in the ${v1}. ${second.name} is chasing hard in the ${v2}.`,
+          `Amazing pass! ${first.name} takes the lead in the ${v1}, leaving ${oldFirst} behind. ${second.name} stays close in second in the ${v2}.`
         ];
-        const leadLinesAndrew = [
-          `That is a huge pass! ${first.name} surges into first in the ${v1}, leaving ${oldFirst} behind. ${second.name} is next in the ${v2}.`,
-          `Top of the field is changing! ${first.name} takes the lead in the ${v1}, with ${second.name} still in second in the ${v2}.`,
-          `Huge move at the front! ${first.name} powers past ${oldFirst} and takes the lead in the ${v1}.`
+
+        const leadAndrew = [
+          `That is a big change at the front! ${first.name} drives the ${v1} into first place, passing ${oldFirst}. ${second.name} is right behind in the ${v2}.`,
+          `Huge move! ${first.name} marches to the front in the ${v1}, and ${second.name} is now chasing in second in the ${v2}.`,
+          `A brilliant overtake! ${first.name} gets ahead in the ${v1}, while ${second.name} stays in second in the ${v2}.`
         ];
-        line = speaker === 'Emma'
-          ? leadLinesEmma[commentaryStyleIndex % leadLinesEmma.length]
-          : leadLinesAndrew[commentaryStyleIndex % leadLinesAndrew.length];
+
+        line = speaker === "Emma"
+          ? leadEmma[commentaryStyleIndex % leadEmma.length]
+          : leadAndrew[commentaryStyleIndex % leadAndrew.length];
       } else if (secondChanged) {
-        line = speaker === 'Emma'
-          ? `Major battle for second! ${second.name} in the ${v2} just moved ahead of ${oldSecond}. ${first.name} still leads in the ${v1}.`
-          : `The podium fight is hot! ${second.name} powers into second in the ${v2}, while ${first.name} remains ahead in the ${v1}.`;
+        line = speaker === "Emma"
+          ? `Big battle for second place! ${second.name} in the ${v2} has moved ahead of ${oldSecond}, while ${first.name} still leads in the ${v1}.`
+          : `The podium battle is heating up! ${second.name} in the ${v2} has moved into second, while ${first.name} remains in front in the ${v1}.`;
       } else {
-        const normalLines = [
-          `${first.name} leads in the ${v1}, with ${second.name} in second in the ${v2} and ${third.name} in third in the ${v3}.`,
-          `Top three are ${first.name} in the ${v1}, ${second.name} in the ${v2}, and ${third.name} in the ${v3}.`,
-          `${first.name} is still out front in the ${v1}. ${second.name} is chasing in the ${v2}, and ${third.name} rounds out the podium in the ${v3}.`
+        const standardLines = [
+          `${first.name} leads the race in the ${v1}, with ${second.name} in second in the ${v2} and ${third.name} in third in the ${v3}.`,
+          `Top three right now: ${first.name} in the ${v1}, ${second.name} in the ${v2}, and ${third.name} in the ${v3}.`,
+          `${first.name} is still out front in the ${v1}. ${second.name} is close behind in the ${v2}, and ${third.name} is holding third in the ${v3}.`
         ];
-        line = normalLines[commentaryStyleIndex % normalLines.length];
+        line = standardLines[commentaryStyleIndex % standardLines.length];
       }
 
+      commentaryStyleIndex++;
       speakCommentary(speaker, line, false);
     }
 
@@ -689,6 +860,13 @@
       } catch (e) {}
     }
 
+    function setMusicAndHornsDucked(isDucked) {
+      if (!soundInitialized) return;
+      try {
+        Tone.Destination.volume.rampTo(isDucked ? -14 : 0, 0.08);
+      } catch (e) {}
+    }
+
     function playCrashSound() {
       if (!soundInitialized) return;
       try {
@@ -728,155 +906,6 @@
       } catch (e) {}
     }
 
-    function renderStudentGrid() {
-      const roster = CLASS_ROSTERS[currentClass];
-      studentGrid.innerHTML = roster.map((name) => {
-        const selected = selectedStudents.has(name);
-        return `
-          <button type="button"
-            class="student-card ${selected ? 'selected' : 'bg-gray-700 hover:bg-gray-600'} border text-left px-2 py-2 rounded-xl transition text-xs md:text-sm font-bold ${selected ? 'text-white' : 'text-gray-200'}"
-            data-name="${name}"
-            aria-pressed="${selected}">
-            <span class="block">${name}</span>
-          </button>
-        `;
-      }).join('');
-    }
-
-    function updateSelectedBadge() {
-      selectedCountBadge.textContent = `${selectedStudents.size} / 16`;
-    }
-
-    function setTrackButtons() {
-      document.querySelectorAll('.track-btn').forEach(btn => {
-        const active = Number(btn.dataset.track) === currentTrackId;
-        btn.classList.toggle('active', active);
-        btn.classList.toggle('text-gray-300', !active);
-        btn.classList.toggle('hover:text-white', !active);
-      });
-    }
-
-    function setTimeButtons() {
-      document.querySelectorAll('.time-btn').forEach(btn => {
-        const active = Number(btn.dataset.mins) === selectedDurationMinutes;
-        btn.classList.toggle('active', active);
-        btn.classList.toggle('text-gray-300', !active);
-        btn.classList.toggle('hover:text-white', !active);
-      });
-    }
-
-    function setClassButtons() {
-      const btn6 = document.getElementById('classBtn6H2');
-      const btn5 = document.getElementById('classBtn5M2');
-      btn6.classList.toggle('active', currentClass === '6H2');
-      btn5.classList.toggle('active', currentClass === '5M2');
-      btn6.classList.toggle('text-gray-300', currentClass !== '6H2');
-      btn5.classList.toggle('text-gray-300', currentClass !== '5M2');
-      activeClassBadge.textContent = `Class ${currentClass}`;
-    }
-
-    function selectFirst16() {
-      const roster = CLASS_ROSTERS[currentClass];
-      selectedStudents = new Set(roster.slice(0, MAX_RACERS));
-      renderStudentGrid();
-      updateSelectedBadge();
-    }
-
-    function selectRemaining() {
-      const roster = CLASS_ROSTERS[currentClass];
-      const setCopy = new Set(selectedStudents);
-      for (const name of roster) {
-        if (setCopy.size >= MAX_RACERS) break;
-        if (!setCopy.has(name)) setCopy.add(name);
-      }
-      selectedStudents = setCopy;
-      renderStudentGrid();
-      updateSelectedBadge();
-    }
-
-    function selectRandom16() {
-      const roster = CLASS_ROSTERS[currentClass];
-      selectedStudents = new Set([...roster].sort(() => Math.random() - 0.5).slice(0, MAX_RACERS));
-      renderStudentGrid();
-      updateSelectedBadge();
-    }
-
-    function clearAll() {
-      selectedStudents = new Set();
-      renderStudentGrid();
-      updateSelectedBadge();
-    }
-
-    function generateRacers() {
-      const names = Array.from(selectedStudents).slice(0, MAX_RACERS);
-      const startX = TRACK_CONFIGS[currentTrackId].startCol + 0.5;
-      const startY = TRACK_CONFIGS[currentTrackId].startRow + 0.5;
-      racers = names.map((name, idx) => {
-        const emoji = FLEET_VEHICLES[idx % FLEET_VEHICLES.length];
-        return {
-          id: `${name}-${idx}`,
-          name,
-          emoji,
-          vehicleName: VEHICLE_NAMES[emoji] || 'car',
-          laps: 0,
-          distanceAlongCurrentLap: 0,
-          baseSpeed: 0.18 + Math.random() * 0.08,
-          speed: 0.22 + Math.random() * 0.08,
-          speedChangeTimer: 0,
-          boostUntil: 0,
-          crashedUntil: 0,
-          stoppedByAnimal: false,
-          isStoppedAtLight: false,
-          finishRank: 0,
-          laneOffset: (Math.random() - 0.5) * 0.8,
-          tileX: startX + (Math.random() - 0.5) * 0.5,
-          tileY: startY + (Math.random() - 0.5) * 0.5,
-          facingRight: true,
-          tiltAngle: 0
-        };
-      });
-    }
-
-    function resetRaceState() {
-      buildTrackMap();
-      generateRacers();
-      urgentAnnouncementQueue = [];
-      lastCommentaryWasUrgent = false;
-      prevTopThreeNames = ["","",""];
-      lastSpeechStartTime = 0;
-      lastSpeechEndTime = 0;
-      finishLinePhase = false;
-      podiumLocked = [];
-      activeAnimals = [];
-      activeRocks = [];
-      activeBoosts = [];
-      activeTrafficLights = TRACK_CONFIGS[currentTrackId].trafficLights.map((wpIdx, i) => ({
-        wpIdx,
-        x: lapWaypoints[wpIdx].x + 0.5,
-        y: lapWaypoints[wpIdx].y + 0.5,
-        state: 'green',
-        timer: 1800 + i * 250 + Math.random() * 700
-      }));
-      nextAnimalSpawnTime = 2000;
-      nextRockSpawnTime = 1800;
-      nextBoostSpawnTime = 2600;
-      nextRandomHornTime = 1250;
-      raceStartTime = performance.now();
-      remainingTimeMs = raceDurationMs;
-      updateRaceTimerDisplay();
-    }
-
-    function getRacerProgressValue(racer) {
-      return getRacerProgress(racer);
-    }
-
-    function updateRaceTimerDisplay() {
-      const totalSeconds = Math.max(0, Math.ceil(remainingTimeMs / 1000));
-      const mins = String(Math.floor(totalSeconds / 60)).padStart(2,'0');
-      const secs = String(totalSeconds % 60).padStart(2,'0');
-      raceTimerDisplay.textContent = `${mins}:${secs}`;
-    }
-
     function updateTrafficLights(dt) {
       activeTrafficLights.forEach(light => {
         light.timer -= dt;
@@ -913,6 +942,7 @@
             speed: animalSpec.speed * 0.9,
             announced: false
           });
+
           hazardBannerIcon.textContent = animalSpec.emoji;
           hazardBannerText.textContent = `${animalSpec.emoji} ${animalSpec.name} crossing the road!`;
           hazardBanner.classList.remove('hidden');
@@ -938,8 +968,8 @@
         const x = Math.floor(Math.random() * cols);
         const y = Math.floor(Math.random() * rows);
         if (map[y] && map[y][x] === 1) {
-          const tooClose = activeBoosts.some(b => Math.hypot(b.tileX - (x + 0.5), b.tileY - (y + 0.5)) < 1.4);
-          if (!tooClose) activeBoosts.push({ tileX: x + 0.5, tileY: y + 0.5 });
+          const alreadyOccupied = activeBoosts.some(b => Math.hypot(b.tileX - (x + 0.5), b.tileY - (y + 0.5)) < 1.4);
+          if (!alreadyOccupied) activeBoosts.push({ tileX: x + 0.5, tileY: y + 0.5 });
         }
         nextBoostSpawnTime = now + 3500 + Math.random() * 2800;
       }
@@ -955,116 +985,9 @@
 
       activeAnimals = activeAnimals.filter(animal => animal.dir > 0 ? animal.tileY < animal.endY : animal.tileY > animal.endY);
       activeRocks = activeRocks.filter(r => now < r.expiresAt);
-      if (activeAnimals.length === 0 && !racers.some(r => now < r.crashedUntil)) hazardBanner.classList.add('hidden');
-    }
 
-    function getPointForRacer(racer) {
-      return getPointAlongTrack(racer.distanceAlongCurrentLap + racer.laps * totalLapLength);
-    }
-
-    function updateRacers(now, dt) {
-      const sorted = racers.slice().sort(compareRacers);
-      const leaderProgress = sorted[0] ? getRacerProgress(sorted[0]) : 0;
-
-      racers.forEach(racer => {
-        if (racer.finishRank > 0) return;
-        if (now < racer.crashedUntil) return;
-
-        const rockHit = activeRocks.find(r => Math.hypot(racer.tileX - r.tileX, racer.tileY - r.tileY) < 0.7);
-        if (rockHit) {
-          activeRocks.splice(activeRocks.indexOf(rockHit), 1);
-          racer.crashedUntil = now + 2200;
-          playCrashSound();
-          queueUrgentEventAnnouncement(`${racer.name} in the ${racer.vehicleName} crashed into a rock!`);
-          hazardBannerIcon.textContent = '🪨🔥💥';
-          hazardBannerText.textContent = `ACCIDENT! ${racer.name} crashed!`;
-          hazardBanner.classList.remove('hidden');
-          return;
-        }
-
-        const boostHit = activeBoosts.find(b => Math.hypot(racer.tileX - b.tileX, racer.tileY - b.tileY) < 0.75);
-        if (boostHit) {
-          activeBoosts.splice(activeBoosts.indexOf(boostHit), 1);
-          racer.boostUntil = now + 2600;
-          playBoostSound();
-          queueUrgentEventAnnouncement(`${racer.name} hit a lightning boost and is charging forward!`);
-        }
-
-        const blockingAnimal = activeAnimals.find(a => Math.hypot(racer.tileX - a.tileX, racer.tileY - a.tileY) < 0.9);
-        if (blockingAnimal) {
-          if (!racer.stoppedByAnimal) {
-            if (!blockingAnimal.announced) {
-              blockingAnimal.announced = true;
-              queueUrgentEventAnnouncement(`${racer.name} in the ${racer.vehicleName} is blocked by a ${blockingAnimal.name} crossing the road!`);
-            }
-          }
-          racer.stoppedByAnimal = true;
-          return;
-        } else {
-          racer.stoppedByAnimal = false;
-        }
-
-        const upcomingLight = activeTrafficLights.find(light => light.wpIdx === (Math.floor((racer.distanceAlongCurrentLap / (totalLapLength || 1)) * lapWaypoints.length) % lapWaypoints.length));
-        if (upcomingLight && (upcomingLight.state === 'red' || upcomingLight.state === 'yellow')) {
-          const dist = Math.hypot(racer.tileX - upcomingLight.x, racer.tileY - upcomingLight.y);
-          if (dist < 1.1) {
-            racer.isStoppedAtLight = true;
-            queueUrgentEventAnnouncement(`${racer.name} is stopping at a ${upcomingLight.state} light in the ${racer.vehicleName}.`);
-            return;
-          }
-        } else {
-          racer.isStoppedAtLight = false;
-        }
-
-        if (now > racer.speedChangeTimer) {
-          const rankIndex = sorted.findIndex(r => r.id === racer.id);
-          const gap = Math.max(0, leaderProgress - getRacerProgress(racer));
-
-          let chaos = 0.78 + Math.random() * 0.65;
-          if (rankIndex === 0) chaos = 0.72 + Math.random() * 0.35;
-          else if (rankIndex <= 5) chaos = 0.92 + Math.random() * 0.7 + Math.min(0.4, gap * 0.02);
-          else chaos = 1.1 + Math.random() * 0.9 + Math.min(0.6, gap * 0.025);
-
-          if (Math.random() < 0.12 && rankIndex > 2) chaos *= 1.35;
-          if (Math.random() < 0.08 && rankIndex === 0) chaos *= 0.7;
-
-          racer.speed = racer.baseSpeed * chaos;
-          racer.speedChangeTimer = now + 500 + Math.random() * 800;
-        }
-
-        let finalSpeed = racer.speed;
-        if (now < racer.boostUntil) finalSpeed *= 2.35;
-        if (finishLinePhase) finalSpeed *= 1.2;
-
-        const moveDistance = finalSpeed * dt * 0.06 * simulationSpeed;
-        racer.distanceAlongCurrentLap += moveDistance;
-
-        while (racer.distanceAlongCurrentLap >= totalLapLength) {
-          racer.distanceAlongCurrentLap -= totalLapLength;
-          racer.laps += 1;
-          playLapSound();
-        }
-
-        if (racer.laps >= 1 && finishLinePhase && racer.finishRank === 0 && racer.distanceAlongCurrentLap < 1.5) {
-          podiumLocked.push(racer);
-          racer.finishRank = podiumLocked.length;
-          if (podiumLocked.length >= 3) {
-            endRace();
-            return;
-          }
-        }
-
-        const pos = getPointForRacer(racer);
-        racer.tileX = pos.x + 0.5;
-        racer.tileY = pos.y + 0.5;
-      });
-
-      const topThree = racers.slice().sort(compareRacers).slice(0, 3);
-      if (gameRunning && topThree.length > 0 && now - raceStartTime > 1000) processLiveCommentary(topThree);
-
-      if (performance.now() - lastPanelRenderTime > 160) {
-        lastPanelRenderTime = performance.now();
-        renderLeftPanelDOM();
+      if (activeAnimals.length === 0 && !racers.some(r => now < r.crashedUntil)) {
+        hazardBanner.classList.add('hidden');
       }
     }
 
@@ -1074,12 +997,14 @@
         const rank = index + 1;
         let badgeColor = 'bg-gray-700 text-gray-200';
         let cardBorder = 'border-gray-700 bg-gray-900/90';
+
         if (rank === 1) { badgeColor = 'bg-yellow-400 text-gray-900'; cardBorder = 'border-yellow-500/80 bg-gray-900'; }
         else if (rank === 2) { badgeColor = 'bg-gray-300 text-gray-900'; }
         else if (rank === 3) { badgeColor = 'bg-amber-600 text-white'; }
 
-        const isCrashed = performance.now() < r.crashedUntil;
-        const isBoosted = performance.now() < r.boostUntil;
+        const now = performance.now();
+        const isCrashed = now < r.crashedUntil;
+        const isBoosted = now < r.boostUntil;
         const statusIcon = r.finishRank > 0
           ? `🏁#${r.finishRank}`
           : (isCrashed ? '🪨🔥💥' : (r.stoppedByAnimal ? '🐄' : (r.isStoppedAtLight ? '🔴' : (isBoosted ? '⚡' : `L${r.laps + 1}`))));
@@ -1128,15 +1053,16 @@
         }
       }
 
-      // road center line
       ctx.strokeStyle = 'rgba(255,255,255,0.2)';
       ctx.lineWidth = 1.1;
       ctx.beginPath();
+
       lapWaypoints.forEach((p, idx) => {
         const next = lapWaypoints[(idx + 1) % lapWaypoints.length];
         ctx.moveTo((p.x + 0.5) * TILE_SIZE, (p.y + 0.5) * TILE_SIZE);
         ctx.lineTo((next.x + 0.5) * TILE_SIZE, (next.y + 0.5) * TILE_SIZE);
       });
+
       ctx.stroke();
 
       activeTrafficLights.forEach(light => {
@@ -1146,7 +1072,7 @@
         ctx.fillStyle = '#111827';
         ctx.fillRect(px - 8, py - 20, 16, 40);
 
-        const colors = { green:'#22c55e', yellow:'#fbbf24', red:'#ef4444' };
+        const colors = { green: '#22c55e', yellow: '#fbbf24', red: '#ef4444' };
         ctx.fillStyle = colors[light.state];
         ctx.beginPath();
         ctx.arc(px, py - 10, 5, 0, Math.PI * 2);
@@ -1209,7 +1135,6 @@
     function updateCanvasSize() {
       const width = canvas.parentElement.clientWidth;
       const height = canvas.parentElement.clientHeight;
-
       canvas.width = Math.max(1, width);
       canvas.height = Math.max(1, height);
       TILE_SIZE = Math.min(canvas.width / cols, canvas.height / rows);
@@ -1220,13 +1145,14 @@
       stopBackgroundMusic();
 
       const ordered = racers.slice().sort(compareRacers);
-      const podium = ordered.slice(0,3);
+      const podium = ordered.slice(0, 3);
 
       if (podium.length > 0) {
         const [first, second, third] = podium;
 
         messageTitle.textContent = `${first.name} wins the race!`;
         winnerEmoji.textContent = '🏆';
+
         podiumDetails.innerHTML = `
           <div class="bg-gray-800/90 rounded-lg p-2 border border-yellow-400">
             <div class="text-[10px] uppercase tracking-wide text-yellow-300 font-black">1st</div>
@@ -1245,16 +1171,151 @@
           </div>
         `;
 
-        const raceSummary = `${first.name} wins the race in the ${first.vehicleName}! Second place goes to ${second ? second.name : 'nobody'} in the ${second ? second.vehicleName : 'vehicle'}, and third place goes to ${third ? third.name : 'nobody'} in the ${third ? third.vehicleName : 'vehicle'}.`;
-        queueUrgentEventAnnouncement(raceSummary);
-        speakCommentary('Emma', raceSummary, true);
+        const summary = `${first.name} wins the race in the ${first.vehicleName}! Second place goes to ${second ? second.name : 'nobody'} in the ${second ? second.vehicleName : 'vehicle'}, and third place goes to ${third ? third.name : 'nobody'} in the ${third ? third.vehicleName : 'vehicle'}.`;
+        queueUrgentEventAnnouncement(summary);
+        if (window.speechSynthesis) {
+          speakCommentary("Emma", summary, true);
+        }
       }
 
-      messageOverlay.classList.remove('hidden');
-      messageOverlay.classList.add('flex');
-      messageOverlay.classList.remove('pointer-events-none');
-      messageOverlay.style.pointerEvents = 'auto';
-      cancelAnimationFrame(animationFrameId);
+      messageOverlay.classList.remove("hidden");
+      messageOverlay.classList.add("flex");
+      messageOverlay.style.pointerEvents = "auto";
+    }
+
+    function updateRacers(now, dt) {
+      const sorted = racers.slice().sort(compareRacers);
+      const leaderProgress = sorted[0] ? getRacerProgress(sorted[0]) : 0;
+
+      racers.forEach(racer => {
+        if (now < racer.crashedUntil) return;
+        if (racer.finishRank > 0) return;
+
+        const rockHit = activeRocks.find(r => Math.hypot(racer.tileX - r.tileX, racer.tileY - r.tileY) < 0.7);
+        if (rockHit) {
+          const idx = activeRocks.indexOf(rockHit);
+          if (idx !== -1) activeRocks.splice(idx, 1);
+          racer.crashedUntil = now + 2200;
+          playCrashSound();
+
+          const crashPhrases = [
+            `Oh no! ${racer.name} in the ${racer.vehicleName} has crashed into a rock and lost time.`,
+            `Disaster on the track! ${racer.name} in the ${racer.vehicleName} clipped a boulder and spun out.`,
+            `That is a brutal hit! ${racer.name} in the ${racer.vehicleName} is struggling after the crash.`
+          ];
+
+          hazardBannerIcon.textContent = '🪨🔥💥';
+          hazardBannerText.textContent = `ACCIDENT! ${racer.name} crashed!`;
+          hazardBanner.classList.remove('hidden');
+
+          queueUrgentEventAnnouncement(crashPhrases[Math.floor(Math.random() * crashPhrases.length)]);
+          return;
+        }
+
+        const boostHit = activeBoosts.find(b => Math.hypot(racer.tileX - b.tileX, racer.tileY - b.tileY) < 0.75);
+        if (boostHit) {
+          const idx = activeBoosts.indexOf(boostHit);
+          if (idx !== -1) activeBoosts.splice(idx, 1);
+          racer.boostUntil = now + 2600;
+          playBoostSound();
+
+          const boostPhrases = [
+            `Maximum boost! ${racer.name} in the ${racer.vehicleName} has activated a lightning turbo.`,
+            `Wow! ${racer.name} hits a power pad and rockets forward in the ${racer.vehicleName}.`,
+            `Electric speed! ${racer.name} is flying through the ${racer.vehicleName} after the boost.`
+          ];
+
+          queueUrgentEventAnnouncement(boostPhrases[Math.floor(Math.random() * boostPhrases.length)]);
+        }
+
+        const blockingAnimal = activeAnimals.find(a => Math.hypot(racer.tileX - a.tileX, racer.tileY - a.tileY) < 0.9);
+        if (blockingAnimal) {
+          if (!blockingAnimal.announced) {
+            blockingAnimal.announced = true;
+            const animalPhrases = [
+              `${racer.name} in the ${racer.vehicleName} is blocked by a ${blockingAnimal.name} crossing the road.`,
+              `Traffic delay! ${racer.name} in the ${racer.vehicleName} has to wait for a ${blockingAnimal.name}.`,
+              `Hold on! A ${blockingAnimal.name} is crossing in front of ${racer.name} in the ${racer.vehicleName}.`
+            ];
+            queueUrgentEventAnnouncement(animalPhrases[Math.floor(Math.random() * animalPhrases.length)]);
+          }
+          racer.stoppedByAnimal = true;
+          return;
+        } else {
+          racer.stoppedByAnimal = false;
+        }
+
+        const roadPosition = Math.floor((racer.distanceAlongCurrentLap / totalLapLength) * lapWaypoints.length) % lapWaypoints.length;
+        const upcomingLight = activeTrafficLights.find(light => light.wpIdx === roadPosition);
+
+        if (upcomingLight && (upcomingLight.state === 'red' || upcomingLight.state === 'yellow')) {
+          const dist = Math.hypot(racer.tileX - upcomingLight.x, racer.tileY - upcomingLight.y);
+          if (dist < 1.1) {
+            racer.isStoppedAtLight = true;
+            const lightPhrases = [
+              `${racer.name} is stopping at a red light in the ${racer.vehicleName}.`,
+              `${racer.name} has to wait at a yellow light in the ${racer.vehicleName}.`,
+              `${racer.name} is held at the traffic light in the ${racer.vehicleName}.`
+            ];
+            queueUrgentEventAnnouncement(lightPhrases[Math.floor(Math.random() * lightPhrases.length)]);
+            return;
+          }
+        } else {
+          racer.isStoppedAtLight = false;
+        }
+
+        if (now > racer.speedChangeTimer) {
+          const rankIndex = sorted.findIndex(r => r.id === racer.id);
+          const gap = Math.max(0, leaderProgress - getRacerProgress(racer));
+
+          let chaos = 0.78 + Math.random() * 0.65;
+          if (rankIndex === 0) chaos = 0.72 + Math.random() * 0.35;
+          else if (rankIndex <= 5) chaos = 0.92 + Math.random() * 0.7 + Math.min(0.4, gap * 0.02);
+          else chaos = 1.1 + Math.random() * 0.9 + Math.min(0.6, gap * 0.025);
+
+          if (Math.random() < 0.12 && rankIndex > 2) chaos *= 1.35;
+          if (Math.random() < 0.08 && rankIndex === 0) chaos *= 0.7;
+
+          racer.speed = racer.baseSpeed * chaos;
+          racer.speedChangeTimer = now + 500 + Math.random() * 800;
+        }
+
+        let finalSpeed = racer.speed;
+        if (now < racer.boostUntil) finalSpeed *= 2.35;
+        if (finishLinePhase) finalSpeed *= 1.2;
+
+        const moveDistance = finalSpeed * dt * 0.06 * simulationSpeed;
+        racer.distanceAlongCurrentLap += moveDistance;
+
+        while (racer.distanceAlongCurrentLap >= totalLapLength) {
+          racer.distanceAlongCurrentLap -= totalLapLength;
+          racer.laps += 1;
+          playLapSound();
+        }
+
+        if (racer.laps >= 1 && finishLinePhase && racer.finishRank === 0 && racer.distanceAlongCurrentLap < 1.5) {
+          podiumLocked.push(racer);
+          racer.finishRank = podiumLocked.length;
+          if (podiumLocked.length >= 3) {
+            endRace();
+            return;
+          }
+        }
+
+        const pos = getPointAlongTrack(racer.distanceAlongCurrentLap + racer.laps * totalLapLength);
+        racer.tileX = pos.x + 0.5;
+        racer.tileY = pos.y + 0.5;
+      });
+
+      const topThree = racers.slice().sort(compareRacers).slice(0, 3);
+      if (gameRunning && topThree.length > 0 && now - raceStartTime > 1000) {
+        processLiveCommentary(topThree);
+      }
+
+      if (performance.now() - lastPanelRenderTime > 160) {
+        lastPanelRenderTime = performance.now();
+        renderLeftPanelDOM();
+      }
     }
 
     async function startGame() {
@@ -1262,16 +1323,23 @@
         selectedStudents = new Set(CLASS_ROSTERS[currentClass].slice(0, MAX_RACERS));
       }
 
-      selectionScreen.classList.add('hidden');
-      gameScreen.classList.remove('hidden');
-      gameScreen.classList.add('flex');
+      selectionScreen.classList.add("hidden");
+      gameScreen.classList.remove("hidden");
+      gameScreen.classList.add("flex");
 
       await initAudioEngine();
       startBackgroundMusic();
+
       resetRaceState();
       gameRunning = true;
-      ttsReadyTriggered = false;
-      ensureSpeechReadyAndAnnounce();
+
+      if ("speechSynthesis" in window) {
+        loadVoices();
+        try { window.speechSynthesis.resume(); } catch (e) {}
+      }
+
+      const intro = "Race starting. Emma and Andrew are live. Cars are on the grid and ready to go.";
+      speakCommentary("Emma", intro, true);
 
       lastTime = performance.now();
       cancelAnimationFrame(animationFrameId);
@@ -1283,6 +1351,7 @@
 
       const dt = Math.min(32, ts - lastTime || 16);
       lastTime = ts;
+
       remainingTimeMs = Math.max(0, raceDurationMs - (ts - raceStartTime));
       updateRaceTimerDisplay();
 
@@ -1342,14 +1411,17 @@
         const button = event.target.closest('[data-name]');
         if (!button) return;
         const name = button.dataset.name;
+
         if (selectedStudents.has(name)) {
           selectedStudents.delete(name);
         } else {
           if (selectedStudents.size >= MAX_RACERS) {
-            selectedStudents.delete([...selectedStudents][0]);
+            const first = [...selectedStudents][0];
+            selectedStudents.delete(first);
           }
           selectedStudents.add(name);
         }
+
         renderStudentGrid();
         updateSelectedBadge();
       });
@@ -1364,12 +1436,12 @@
       });
 
       document.getElementById('backButton').addEventListener('click', () => {
-        gameRunning = false;
         cancelAnimationFrame(animationFrameId);
+        gameRunning = false;
+        stopBackgroundMusic();
         selectionScreen.classList.remove('hidden');
         gameScreen.classList.add('hidden');
         gameScreen.classList.remove('flex');
-        stopBackgroundMusic();
       });
 
       document.getElementById('quickSwitchClassBtn').addEventListener('click', () => {
@@ -1392,14 +1464,11 @@
         gameScreen.classList.remove('flex');
       });
 
-      const speedSlider = document.getElementById('speedSlider');
-      if (speedSlider) {
-        speedSlider.addEventListener('input', (e) => {
-          simulationSpeed = Number(e.target.value);
-        });
-      }
+      document.getElementById('speedSlider').addEventListener('input', (e) => {
+        simulationSpeed = Number(e.target.value);
+      });
 
-      if ('speechSynthesis' in window) {
+      if ("speechSynthesis" in window) {
         window.speechSynthesis.onvoiceschanged = loadVoices;
       }
     }
@@ -1416,7 +1485,7 @@
       updateCanvasSize();
       drawTrack();
       window.addEventListener('resize', updateCanvasSize);
-      if ('speechSynthesis' in window) {
+      if ("speechSynthesis" in window) {
         loadVoices();
       }
     }
