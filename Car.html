@@ -1,1612 +1,1608 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Class Lap Racer - Ultimate 4-Track Edition</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-    <style>
-        html, body {
-            height: 100%;
-            overflow: hidden;
-            font-family: 'Inter', sans-serif;
-            touch-action: none;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ultimate Lap Racer</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #111827;
+      --panel: #1f2937;
+      --panel-2: #111827;
+      --line: #374151;
+      --green: #22c55e;
+      --amber: #fbbf24;
+      --red: #ef4444;
+      --blue: #60a5fa;
+      --purple: #a78bfa;
+      --text: #f3f4f6;
+      --muted: #9ca3af;
+    }
 
-        canvas {
-            background-color: #4d8a3b;
-            border: 3px solid #374151;
-            border-radius: 0.75rem;
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-            z-index: 1;
-        }
+    html, body {
+      margin: 0;
+      height: 100%;
+      overflow: hidden;
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      touch-action: none;
+    }
 
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-track { background: #1f2937; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 4px; }
+    * { box-sizing: border-box; }
 
-        .student-card.selected {
-            background: linear-gradient(135deg, #2563eb, #1d4ed8);
-            border-color: #93c5fd;
-            transform: translateY(-1px);
-        }
+    canvas {
+      width: 100%;
+      height: 100%;
+      background: #4d8a3b;
+      border: 3px solid #374151;
+      border-radius: 0.75rem;
+      box-shadow: 0 10px 25px rgba(0,0,0,.5);
+      display: block;
+    }
 
-        .class-tab.active {
-            background: linear-gradient(135deg, #f59e0b, #d97706);
-            color: #111827;
-            border-color: #fde68a;
-        }
+    .student-card.selected {
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      border-color: #93c5fd;
+      transform: translateY(-1px);
+    }
 
-        .track-btn.active {
-            background: linear-gradient(135deg, #ec4899, #be185d);
-            color: #ffffff;
-            border-color: #f9a8d4;
-        }
+    .class-tab.active {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      color: #111827;
+      border-color: #fde68a;
+    }
 
-        .time-btn.active {
-            background-color: #10b981;
-            color: #111827;
-            border-color: #6ee7b7;
-        }
+    .track-btn.active {
+      background: linear-gradient(135deg, #ec4899, #be185d);
+      color: white;
+      border-color: #f9a8d4;
+    }
 
-        .flash-red { animation: flash 0.4s ease-in-out; }
-        @keyframes flash {
-            0%, 100% { color: #4ade80; transform: scale(1); }
-            50% { color: #f87171; transform: scale(1.1); }
-        }
+    .time-btn.active {
+      background-color: #10b981;
+      color: #111827;
+      border-color: #6ee7b7;
+    }
 
-        @keyframes floatVehicle {
-            0%, 100% { transform: translateY(0px) rotate(-3deg) scale(1); }
-            50% { transform: translateY(-12px) rotate(4deg) scale(1.08); }
-        }
+    @keyframes flash { 
+      0%,100% { color:#4ade80; transform: scale(1); }
+      50% { color:#f87171; transform: scale(1.12); }
+    }
 
-        .floating-vehicle {
-            display: inline-block;
-            animation: floatVehicle 2.2s ease-in-out infinite;
-            filter: drop-shadow(0 10px 10px rgba(0, 0, 0, 0.5));
-        }
+    .flash-red { animation: flash 0.45s ease-in-out; }
 
-        .floating-delay-1 { animation-delay: 0.3s; }
-        .floating-delay-2 { animation-delay: 0.6s; }
-    </style>
+    @keyframes floatVehicle {
+      0%,100% { transform: translateY(0px) rotate(-3deg) scale(1); }
+      50% { transform: translateY(-10px) rotate(4deg) scale(1.08); }
+    }
+
+    .floating-vehicle {
+      display: inline-block;
+      animation: floatVehicle 2.2s ease-in-out infinite;
+      filter: drop-shadow(0 10px 10px rgba(0,0,0,.5));
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px; height: 1px;
+      padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0);
+      white-space: nowrap; border: 0;
+    }
+  </style>
 </head>
-<body class="bg-gray-900 text-white flex flex-col items-center justify-center h-screen p-1.5 md:p-2 select-none">
+<body class="bg-gray-900 text-white flex items-center justify-center h-screen p-1.5 md:p-2 select-none">
 
-    <!-- START SCREEN -->
-    <div id="selectionScreen" class="w-full max-w-7xl bg-gray-800 border border-gray-700 rounded-2xl p-4 md:p-5 shadow-2xl flex flex-col max-h-[96vh]">
-        <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-3 gap-3 border-b border-gray-700 pb-3">
-            <div>
-                <h1 class="text-2xl md:text-3xl font-black text-yellow-400 tracking-tight flex items-center gap-2">
-                    🏁 Ultimate Lap Racer
-                    <span id="activeClassBadge" class="text-sm bg-yellow-500/20 text-yellow-300 border border-yellow-500/40 px-2.5 py-0.5 rounded-full font-bold">Class 6H2</span>
-                </h1>
-                <p class="text-gray-300 text-xs md:text-sm mt-0.5">
-                    4 Circuits with Boosts (⚡), Crashes, and <span class="text-blue-300 font-semibold">Andrew & Emma</span> commentary!
-                </p>
-            </div>
+  <!-- START SCREEN -->
+  <div id="selectionScreen" class="w-full max-w-7xl bg-gray-800 border border-gray-700 rounded-2xl p-4 md:p-5 shadow-2xl flex flex-col max-h-[96vh]">
+    <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-3 gap-3 border-b border-gray-700 pb-3">
+      <div>
+        <h1 class="text-2xl md:text-3xl font-black text-yellow-400 tracking-tight flex items-center gap-2">
+          🏁 Ultimate Lap Racer
+          <span id="activeClassBadge" class="text-sm bg-yellow-500/20 text-yellow-300 border border-yellow-500/40 px-2.5 py-0.5 rounded-full font-bold">Class 6H2</span>
+        </h1>
+        <p class="text-gray-300 text-xs md:text-sm mt-0.5">
+          4 circuits with boosts, crashes, traffic lights, and <span class="text-blue-300 font-semibold">Andrew & Emma</span> commentary!
+        </p>
+      </div>
 
-            <div class="flex flex-wrap items-center gap-2.5">
-                <div class="flex items-center bg-gray-900 p-1 rounded-xl border border-gray-700">
-                    <span class="text-xs text-gray-400 px-2 font-semibold">Class:</span>
-                    <button id="classBtn6H2" type="button" class="class-tab active font-extrabold text-xs px-2.5 py-1.5 rounded-lg border border-transparent transition">6H2 (33)</button>
-                    <button id="classBtn5M2" type="button" class="class-tab font-extrabold text-xs px-2.5 py-1.5 rounded-lg border border-transparent text-gray-300 hover:text-white transition">5M2 (23)</button>
-                </div>
-
-                <div class="flex items-center bg-gray-900 p-1 rounded-xl border border-gray-700">
-                    <span class="text-xs text-gray-400 px-2 font-semibold">Track:</span>
-                    <button data-track="1" type="button" class="track-btn active font-extrabold text-xs px-2 py-1.5 rounded-lg border border-transparent transition">T1</button>
-                    <button data-track="2" type="button" class="track-btn font-extrabold text-xs px-2 py-1.5 rounded-lg border border-transparent text-gray-300 hover:text-white transition">T2</button>
-                    <button data-track="3" type="button" class="track-btn font-extrabold text-xs px-2 py-1.5 rounded-lg border border-transparent text-gray-300 hover:text-white transition">T3</button>
-                    <button data-track="4" type="button" class="track-btn font-extrabold text-xs px-2 py-1.5 rounded-lg border border-transparent text-gray-300 hover:text-white transition">T4</button>
-                </div>
-
-                <div class="flex items-center bg-gray-900 p-1 rounded-xl border border-gray-700">
-                    <span class="text-xs text-gray-400 px-2 font-semibold">Time:</span>
-                    <button data-mins="1" type="button" class="time-btn font-bold text-xs px-2 py-1.5 rounded-lg border border-transparent text-gray-300 hover:text-white transition">1m</button>
-                    <button data-mins="2" type="button" class="time-btn active font-bold text-xs px-2 py-1.5 rounded-lg border border-transparent transition">2m</button>
-                    <button data-mins="3" type="button" class="time-btn font-bold text-xs px-2 py-1.5 rounded-lg border border-transparent text-gray-300 hover:text-white transition">3m</button>
-                </div>
-
-                <div class="flex items-center gap-1.5 bg-gray-900 px-3 py-1.5 rounded-xl border border-gray-700">
-                    <span id="selectedCountBadge" class="text-base font-black text-green-400">16 / 16</span>
-                </div>
-            </div>
+      <div class="flex flex-wrap items-center gap-2.5">
+        <div class="flex items-center bg-gray-900 p-1 rounded-xl border border-gray-700">
+          <span class="text-xs text-gray-400 px-2 font-semibold">Class:</span>
+          <button id="classBtn6H2" type="button" class="class-tab active font-extrabold text-xs px-2.5 py-1.5 rounded-lg border border-transparent transition">6H2 (33)</button>
+          <button id="classBtn5M2" type="button" class="class-tab font-extrabold text-xs px-2.5 py-1.5 rounded-lg border border-transparent text-gray-300 hover:text-white transition">5M2 (23)</button>
         </div>
 
-        <div class="flex flex-wrap gap-2 mb-3">
-            <button id="btnFirst16" type="button" class="bg-blue-600 hover:bg-blue-500 text-white font-semibold py-1.5 px-3 rounded-lg text-xs transition">Select First 16</button>
-            <button id="btnRemaining" type="button" class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-1.5 px-3 rounded-lg text-xs transition">Select Next 16</button>
-            <button id="btnRandom16" type="button" class="bg-purple-600 hover:bg-purple-500 text-white font-semibold py-1.5 px-3 rounded-lg text-xs transition">🎲 Random 16</button>
-            <button id="btnClearAll" type="button" class="bg-gray-700 hover:bg-gray-600 text-gray-200 font-semibold py-1.5 px-3 rounded-lg text-xs transition">✖ Clear All</button>
+        <div class="flex items-center bg-gray-900 p-1 rounded-xl border border-gray-700">
+          <span class="text-xs text-gray-400 px-2 font-semibold">Track:</span>
+          <button data-track="1" type="button" class="track-btn active font-extrabold text-xs px-2 py-1.5 rounded-lg border border-transparent transition">T1</button>
+          <button data-track="2" type="button" class="track-btn font-extrabold text-xs px-2 py-1.5 rounded-lg border border-transparent text-gray-300 hover:text-white transition">T2</button>
+          <button data-track="3" type="button" class="track-btn font-extrabold text-xs px-2 py-1.5 rounded-lg border border-transparent text-gray-300 hover:text-white transition">T3</button>
+          <button data-track="4" type="button" class="track-btn font-extrabold text-xs px-2 py-1.5 rounded-lg border border-transparent text-gray-300 hover:text-white transition">T4</button>
         </div>
 
-        <div id="studentGrid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2 overflow-y-auto pr-1 flex-1 py-1"></div>
-
-        <div class="mt-3 pt-3 border-t border-gray-700 flex flex-col sm:flex-row items-center justify-between gap-3">
-            <div class="text-xs text-gray-400 flex flex-wrap gap-1.5 items-center">
-                <span class="font-semibold text-gray-300">16 Vehicles:</span>
-                <span class="text-base tracking-widest bg-gray-900 px-2.5 py-1 rounded-lg border border-gray-700">🚗 🚕 🚙 🚌 🚎 🏎️ 🚓 🚑 🚒 🚐 🚚 🚛 🚜 🛻 🏍️ 🛵</span>
-            </div>
-            <button id="goToTrackBtn" type="button" class="w-full sm:w-auto bg-green-500 hover:bg-green-400 disabled:bg-gray-600 disabled:text-gray-400 text-gray-900 font-black py-2.5 px-7 rounded-xl shadow-lg transition transform hover:scale-[1.02]">Go To Track</button>
+        <div class="flex items-center bg-gray-900 p-1 rounded-xl border border-gray-700">
+          <span class="text-xs text-gray-400 px-2 font-semibold">Time:</span>
+          <button data-mins="1" type="button" class="time-btn font-bold text-xs px-2 py-1.5 rounded-lg border border-transparent text-gray-300 hover:text-white transition">1m</button>
+          <button data-mins="2" type="button" class="time-btn active font-bold text-xs px-2 py-1.5 rounded-lg border border-transparent transition">2m</button>
+          <button data-mins="3" type="button" class="time-btn font-bold text-xs px-2 py-1.5 rounded-lg border border-transparent text-gray-300 hover:text-white transition">3m</button>
         </div>
+
+        <div class="flex items-center gap-1.5 bg-gray-900 px-3 py-1.5 rounded-xl border border-gray-700">
+          <span id="selectedCountBadge" class="text-base font-black text-green-400">16 / 16</span>
+        </div>
+      </div>
     </div>
 
-    <!-- GAME SCREEN -->
-    <div id="gameScreen" class="hidden w-full h-full flex flex-row gap-2 items-stretch justify-center overflow-hidden">
-        <div class="w-36 bg-gray-800 border border-gray-700 rounded-xl p-1.5 flex flex-col h-full shrink-0 shadow-xl z-20">
-            <div class="bg-gray-900 rounded-lg p-1.5 mb-1 border border-gray-700 flex flex-col gap-1">
-                <div class="flex items-center justify-between gap-1">
-                    <span id="raceTimerDisplay" class="text-sm font-black text-yellow-400 font-mono leading-none">02:00</span>
-                    <div class="flex items-center gap-1">
-                        <button id="startButton" type="button" class="bg-green-500 hover:bg-green-400 text-gray-900 font-black px-1.5 py-0.5 rounded text-xs shadow transition">▶️</button>
-                        <button id="backButton" type="button" class="bg-gray-700 hover:bg-gray-600 text-white font-bold px-1.5 py-0.5 rounded text-xs transition">📋</button>
-                        <button id="quickSwitchClassBtn" type="button" class="bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold px-1 py-0.5 rounded text-[9px] transition">5M2</button>
-                    </div>
-                </div>
-
-                <div class="flex items-center justify-between gap-1">
-                    <div class="flex gap-0.5">
-                        <button data-track="1" type="button" class="track-btn active text-[9px] font-extrabold px-1 py-0.5 rounded bg-gray-800 border border-gray-700">T1</button>
-                        <button data-track="2" type="button" class="track-btn text-[9px] font-extrabold px-1 py-0.5 rounded bg-gray-800 text-gray-300 border border-gray-700">T2</button>
-                        <button data-track="3" type="button" class="track-btn text-[9px] font-extrabold px-1 py-0.5 rounded bg-gray-800 text-gray-300 border border-gray-700">T3</button>
-                        <button data-track="4" type="button" class="track-btn text-[9px] font-extrabold px-1 py-0.5 rounded bg-gray-800 text-gray-300 border border-gray-700">T4</button>
-                    </div>
-                    <div class="flex gap-0.5">
-                        <button data-mins="1" type="button" class="time-btn text-[9px] font-bold px-1 py-0.5 rounded bg-gray-800 text-gray-300 border border-gray-700">1m</button>
-                        <button data-mins="2" type="button" class="time-btn active text-[9px] font-bold px-1 py-0.5 rounded bg-gray-800 border border-gray-700">2m</button>
-                        <button data-mins="3" type="button" class="time-btn text-[9px] font-bold px-1 py-0.5 rounded bg-gray-800 text-gray-300 border border-gray-700">3m</button>
-                    </div>
-                </div>
-
-                <div class="flex items-center gap-1">
-                    <span class="text-[9px]">🐢</span>
-                    <input id="speedSlider" type="range" min="0.5" max="2.5" value="1" step="0.1" class="w-full h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer">
-                    <span class="text-[9px]">🐇</span>
-                </div>
-            </div>
-
-            <div id="leftRacerList" class="flex-1 overflow-y-auto space-y-1 pr-0.5"></div>
-        </div>
-
-        <div id="trackContainer" class="flex-1 h-full flex items-center justify-center relative overflow-hidden">
-            <canvas id="gameCanvas"></canvas>
-
-            <div id="commentaryBanner" class="hidden absolute bottom-3 left-1/2 -translate-x-1/2 bg-blue-950/95 text-blue-100 font-bold text-xs md:text-sm px-5 py-2 rounded-full shadow-2xl border-2 border-blue-300/60 backdrop-blur-sm z-30">
-                <span class="text-lg">🎙️</span>
-                <span id="commentaryText">Emma: Welcome to the championship!</span>
-            </div>
-
-            <div id="hazardBanner" class="hidden absolute top-3 left-1/2 -translate-x-1/2 bg-red-600/95 text-white font-black text-xs md:text-sm px-4 py-1.5 rounded-full shadow-lg border-2 border-yellow-300/80 z-30">
-                <span id="hazardBannerIcon" class="text-lg">🪨🔥💥</span>
-                <span id="hazardBannerText">Alert!</span>
-            </div>
-
-            <div id="messageOverlay" class="absolute inset-0 bg-transparent flex flex-col items-center justify-center rounded-xl text-center p-4 hidden z-40 pointer-events-none">
-                <div class="bg-gray-900/80 border-2 border-yellow-400 rounded-2xl p-5 max-w-lg w-full shadow-[0_0_50px_rgba(250,204,21,0.45)] pointer-events-auto">
-                    <div class="text-6xl mb-2 floating-vehicle" id="winnerEmoji">🏆</div>
-                    <h2 id="messageTitle" class="text-2xl md:text-3xl font-black text-yellow-400 mb-3 drop-shadow-md"></h2>
-                    <div id="podiumDetails" class="grid grid-cols-3 gap-2 mb-5 text-left"></div>
-                    <div class="flex flex-wrap gap-3 justify-center">
-                        <button id="overlayRestartBtn" type="button" class="bg-green-500 hover:bg-green-400 text-gray-900 font-extrabold py-2.5 px-6 rounded-xl text-xl shadow-lg transition transform hover:scale-[1.02]">🏁 Restart Race</button>
-                        <button id="overlayRosterBtn" type="button" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2.5 px-6 rounded-xl text-xl shadow-lg transition transform hover:scale-[1.02]">📋 Roster</button>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <div class="flex flex-wrap gap-2 mb-3">
+      <button id="btnFirst16" type="button" class="bg-blue-600 hover:bg-blue-500 text-white font-semibold py-1.5 px-3 rounded-lg text-xs transition">Select First 16</button>
+      <button id="btnRemaining" type="button" class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-1.5 px-3 rounded-lg text-xs transition">Select Next 16</button>
+      <button id="btnRandom16" type="button" class="bg-purple-600 hover:bg-purple-500 text-white font-semibold py-1.5 px-3 rounded-lg text-xs transition">🎲 Random 16</button>
+      <button id="btnClearAll" type="button" class="bg-gray-700 hover:bg-gray-600 text-gray-200 font-semibold py-1.5 px-3 rounded-lg text-xs transition">✖ Clear All</button>
     </div>
 
-    <script>
-        const CLASS_ROSTERS = {
-            "6H2": ["Elsa","Lily","Florence","Yao","Miya","Nadiia","Amara","Hitomi","Alice","Karina","Winnie","Bella","Sonia","Albee","Abby","Martin","Noah","Eric","Eden","Dominic","Megan","Ari","Nia","Ava","Jayden","Julian","Mason","Milo","Dylan","Leah","Owen","Theo"],
-            "5M2": ["Julia","Freya","Anna","Grace","Avery","Yihan","Emma","Abigail","Susie","Nina","Kenneth","Dafa","Jim","Charles","Henry","Patrick","Ryan","David","Justin","Jason","Chris","Daniel","Leo","Oscar"]
-        };
+    <div id="studentGrid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2 overflow-y-auto pr-1 flex-1 py-1"></div>
 
-        const FLEET_VEHICLES = ['🚗','🚕','🚙','🚌','🚎','🏎️','🚓','🚑','🚒','🚐','🚚','🚛','🚜','🛻','🏍️','🛵'];
-        const VEHICLE_NAMES = {
-            '🚗':'red car', '🚕':'yellow taxi', '🚙':'blue SUV', '🚌':'school bus',
-            '🚎':'trolleybus', '🏎️':'Formula race car', '🚓':'police cruiser',
-            '🚑':'ambulance', '🚒':'fire truck', '🚐':'van', '🚚':'delivery truck',
-            '🚛':'semi truck', '🚜':'tractor', '🛻':'pickup truck', '🏍️':'motorbike', '🛵':'scooter'
-        };
+    <div class="mt-3 pt-3 border-t border-gray-700 flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div class="text-xs text-gray-400 flex flex-wrap gap-1.5 items-center">
+        <span class="font-semibold text-gray-300">16 Vehicles:</span>
+        <span class="text-base tracking-widest bg-gray-900 px-2.5 py-1 rounded-lg border border-gray-700">🚗 🚕 🚙 🚌 🚎 🏎️ 🚓 🚑 🚒 🚐 🚚 🚛 🚜 🛻 🏍️ 🛵</span>
+      </div>
+      <button id="goToTrackBtn" type="button" class="w-full sm:w-auto bg-green-500 hover:bg-green-400 disabled:bg-gray-600 disabled:text-gray-400 text-gray-900 font-black py-2.5 px-7 rounded-xl text-lg shadow-lg transition">
+        GO TO TRACK
+      </button>
+    </div>
+  </div>
 
-        const CROSSING_ANIMALS = [
-            { emoji: '🐄', name: 'Cow', speed: 0.013 },
-            { emoji: '🐖', name: 'Pig', speed: 0.015 },
-            { emoji: '🐑', name: 'Sheep', speed: 0.014 },
-            { emoji: '🐐', name: 'Goat', speed: 0.018 },
-            { emoji: '🦆', name: 'Duck', speed: 0.013 },
-            { emoji: '🐢', name: 'Turtle', speed: 0.008 },
-            { emoji: '🐇', name: 'Rabbit', speed: 0.025 },
-            { emoji: '🐕', name: 'Dog', speed: 0.022 },
-            { emoji: '🐈', name: 'Cat', speed: 0.020 }
+  <!-- GAME SCREEN -->
+  <div id="gameScreen" class="hidden w-full h-full flex-row gap-2 items-stretch justify-center overflow-hidden">
+    <!-- LEFT PANEL -->
+    <div class="w-36 bg-gray-800 border border-gray-700 rounded-xl p-1.5 flex flex-col h-full shrink-0 shadow-xl z-20">
+      <div class="bg-gray-900 rounded-lg p-1.5 mb-1 border border-gray-700 flex flex-col gap-1">
+        <div class="flex items-center justify-between gap-1">
+          <span id="raceTimerDisplay" class="text-sm font-black text-yellow-400 font-mono leading-none">02:00</span>
+          <div class="flex items-center gap-1">
+            <button id="startButton" type="button" class="bg-green-500 hover:bg-green-400 text-gray-900 font-black px-1.5 py-0.5 rounded text-xs shadow transition">▶️</button>
+            <button id="backButton" type="button" class="bg-gray-700 hover:bg-gray-600 text-white font-bold px-1.5 py-0.5 rounded text-xs transition">📋</button>
+            <button id="quickSwitchClassBtn" type="button" class="bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold px-1 py-0.5 rounded text-[9px] transition">5M2</button>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between gap-1">
+          <div class="flex gap-0.5">
+            <button data-track="1" type="button" class="track-btn active text-[9px] font-extrabold px-1 py-0.5 rounded bg-gray-800 border border-gray-700">T1</button>
+            <button data-track="2" type="button" class="track-btn text-[9px] font-extrabold px-1 py-0.5 rounded bg-gray-800 text-gray-300 border border-gray-700">T2</button>
+            <button data-track="3" type="button" class="track-btn text-[9px] font-extrabold px-1 py-0.5 rounded bg-gray-800 text-gray-300 border border-gray-700">T3</button>
+            <button data-track="4" type="button" class="track-btn text-[9px] font-extrabold px-1 py-0.5 rounded bg-gray-800 text-gray-300 border border-gray-700">T4</button>
+          </div>
+          <div class="flex gap-0.5">
+            <button data-mins="1" type="button" class="time-btn text-[9px] font-bold px-1 py-0.5 rounded bg-gray-800 text-gray-300 border border-gray-700">1m</button>
+            <button data-mins="2" type="button" class="time-btn active text-[9px] font-bold px-1 py-0.5 rounded bg-gray-800 border border-gray-700">2m</button>
+            <button data-mins="3" type="button" class="time-btn text-[9px] font-bold px-1 py-0.5 rounded bg-gray-800 text-gray-300 border border-gray-700">3m</button>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-1">
+          <span class="text-[9px]">🐢</span>
+          <input id="speedSlider" type="range" min="0.5" max="2.5" value="1" step="0.1" class="w-full h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer" />
+          <span class="text-[9px]">🐇</span>
+        </div>
+      </div>
+
+      <div id="leftRacerList" class="flex-1 overflow-y-auto space-y-1 pr-0.5"></div>
+    </div>
+
+    <!-- RIGHT AREA -->
+    <div id="trackContainer" class="flex-1 h-full flex items-center justify-center relative overflow-hidden">
+      <canvas id="gameCanvas"></canvas>
+
+      <div id="commentaryBanner" class="hidden absolute bottom-3 left-1/2 -translate-x-1/2 bg-blue-950/95 text-blue-100 font-bold text-xs md:text-sm px-5 py-2 rounded-full shadow-2xl border-2 border-blue-400">
+        <span class="text-lg">🎙️</span>
+        <span id="commentaryText">Emma: Welcome to the championship!</span>
+      </div>
+
+      <div id="hazardBanner" class="hidden absolute top-3 left-1/2 -translate-x-1/2 bg-red-600/95 text-white font-black text-xs md:text-sm px-4 py-1.5 rounded-full shadow-lg border-2 border-yellow-300">
+        <span id="hazardBannerIcon" class="text-lg">🪨🔥💥</span>
+        <span id="hazardBannerText">Alert!</span>
+      </div>
+
+      <div id="messageOverlay" class="absolute inset-0 bg-transparent flex flex-col items-center justify-center rounded-xl text-center p-4 hidden z-40 pointer-events-none">
+        <div class="bg-gray-900/80 border-2 border-yellow-400 rounded-2xl p-5 max-w-lg w-full shadow-[0_0_50px_rgba(250,204,21,0.45)] pointer-events-auto">
+          <div class="text-6xl mb-2 floating-vehicle" id="winnerEmoji">🏆</div>
+          <h2 id="messageTitle" class="text-2xl md:text-3xl font-black text-yellow-400 mb-3 drop-shadow-md"></h2>
+          <div id="podiumDetails" class="grid grid-cols-3 gap-2 mb-5 text-left"></div>
+          <div class="flex flex-wrap gap-3 justify-center">
+            <button id="overlayRestartBtn" type="button" class="bg-green-500 hover:bg-green-400 text-gray-900 font-extrabold py-2.5 px-6 rounded-xl text-xl shadow-lg transition">Restart</button>
+            <button id="overlayRosterBtn" type="button" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2.5 px-6 rounded-xl text-xl shadow-lg transition">Roster</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --------------------------
+    // DATA
+    // --------------------------
+    const CLASS_ROSTERS = {
+      "6H2": ["Elsa","Lily","Florence","Yao","Miya","Nadiia","Amara","Hitomi","Alice","Karina","Winnie","Bella","Sonia","Albee","Abby","Martin","Noah","Eric","Eden","Dominic","Ava","Lucas","Milo","Theo","Zoe","Jack","Liam","Harper","Mason","Chloe","Aria","Ethan"],
+      "5M2": ["Julia","Freya","Anna","Grace","Avery","Yihan","Emma","Abigail","Susie","Nina","Kenneth","Dafa","Jim","Charles","Henry","Patrick","Ryan","David","Justin","Jason","Mia","Leo","Oscar","Aiden","Luna","Noel","Maya","Jude","Ivy","Theo","Sam","Nora"]
+    };
+
+    const FLEET_VEHICLES = ['🚗','🚕','🚙','🚌','🚎','🏎️','🚓','🚑','🚒','🚐','🚚','🚛','🚜','🛻','🏍️','🛵'];
+
+    const VEHICLE_NAMES = {
+      '🚗': 'red car',
+      '🚕': 'yellow taxi',
+      '🚙': 'blue SUV',
+      '🚌': 'school bus',
+      '🚎': 'trolleybus',
+      '🏎️': 'Formula race car',
+      '🚓': 'police cruiser',
+      '🚑': 'ambulance',
+      '🚒': 'fire truck',
+      '🚐': 'van',
+      '🚚': 'delivery truck',
+      '🚛': 'semi truck',
+      '🚜': 'tractor',
+      '🛻': 'pickup truck',
+      '🏍️': 'motorbike',
+      '🛵': 'scooter'
+    };
+
+    const CROSSING_ANIMALS = [
+      { emoji:'🐄', name:'cow', speed:0.012 },
+      { emoji:'🐖', name:'pig', speed:0.014 },
+      { emoji:'🐑', name:'sheep', speed:0.013 },
+      { emoji:'🐐', name:'goat', speed:0.017 },
+      { emoji:'🦆', name:'duck', speed:0.011 },
+      { emoji:'🐢', name:'turtle', speed:0.008 },
+      { emoji:'🐇', name:'rabbit', speed:0.024 },
+      { emoji:'🐕', name:'dog', speed:0.02 },
+      { emoji:'🐈', name:'cat', speed:0.018 }
+    ];
+
+    const EMOJIS = {
+      building: ['🏢','🏭','🏤','🏥','🏦','🏫','🏪'],
+      tree: ['🌳','🌲','🌴'],
+      finish: '🏁'
+    };
+
+    const TRACK_CONFIGS = {
+      1: {
+        name: "City Boulevard",
+        startCol: 18, startRow: 1,
+        treeChance: 0.42, buildingChance: 0.35,
+        trafficLights: [1,3,5,7,9,11,13],
+        waypoints: [
+          {x:18,y:1},{x:3,y:1},{x:3,y:4},{x:29,y:4},
+          {x:29,y:7},{x:3,y:7},{x:3,y:10},{x:29,y:10},
+          {x:29,y:13},{x:3,y:13},{x:3,y:16},{x:29,y:16},
+          {x:29,y:19},{x:3,y:19},{x:3,y:20},{x:33,y:20},
+          {x:33,y:1}
+        ]
+      },
+      2: {
+        name: "Sharp Hairpins",
+        startCol: 24, startRow: 1,
+        treeChance: 0.07, buildingChance: 0.14,
+        trafficLights: [2,6,13,17,25,29,37,41],
+        waypoints: [
+          {x:24,y:1},{x:22,y:1},{x:22,y:4},{x:18,y:4},{x:18,y:1},
+          {x:14,y:1},{x:14,y:4},{x:10,y:4},{x:10,y:1},{x:6,y:1},
+          {x:6,y:4},{x:2,y:4},{x:2,y:7},{x:7,y:7},{x:7,y:10},
+          {x:12,y:10},{x:12,y:7},{x:17,y:7},{x:17,y:10},{x:22,y:10},
+          {x:22,y:7},{x:27,y:7},{x:27,y:10},{x:30,y:10},{x:30,y:13},
+          {x:25,y:13},{x:25,y:16},{x:20,y:16},{x:20,y:13},{x:15,y:13},
+          {x:15,y:16},{x:10,y:16},{x:10,y:13},{x:5,y:13},{x:5,y:16},
+          {x:2,y:16},{x:2,y:20},{x:8,y:20},{x:8,y:18},{x:14,y:18},
+          {x:14,y:20},{x:20,y:20},{x:20,y:18},{x:26,y:18},{x:26,y:20},
+          {x:33,y:20},{x:33,y:1}
+        ]
+      },
+      3: {
+        name: "Spiral Vortex",
+        startCol: 22, startRow: 1,
+        treeChance: 0.16, buildingChance: 0.22,
+        trafficLights: [1,3,5,7,10,14,18],
+        waypoints: [
+          {x:22,y:1},{x:2,y:1},{x:2,y:19},{x:29,y:19},{x:29,y:4},
+          {x:6,y:4},{x:6,y:16},{x:25,y:16},{x:25,y:7},{x:10,y:7},
+          {x:10,y:13},{x:21,y:13},{x:21,y:10},{x:14,y:10},{x:14,y:20},
+          {x:20,y:20},{x:20,y:18},{x:26,y:18},{x:26,y:20},{x:33,y:20},
+          {x:33,y:1}
+        ]
+      },
+      4: {
+        name: "Overpass & Tunnel Circuit",
+        startCol: 20, startRow: 1,
+        treeChance: 0.18, buildingChance: 0.20,
+        trafficLights: [1,4,8,12,16,20],
+        waypoints: [
+          {x:20,y:1},{x:3,y:1},{x:3,y:9},{x:10,y:9},{x:10,y:2},{x:10,y:18},
+          {x:26,y:18},{x:26,y:3},{x:31,y:3},{x:31,y:16},{x:22,y:16},{x:22,y:5},
+          {x:6,y:5},{x:6,y:11},{x:29,y:11},{x:29,y:14},{x:8,y:14},{x:8,y:20},
+          {x:18,y:20},{x:18,y:3},{x:2,y:3},{x:2,y:20},{x:33,y:20},{x:33,y:1}
+        ]
+      }
+    };
+
+    const MAX_RACERS = 16;
+    const cols = 36;
+    const rows = 22;
+    const TILE_SIZE = 32;
+
+    // --------------------------
+    // STATE
+    // --------------------------
+    let currentClass = "6H2";
+    let currentTrackId = 1;
+    let selectedDurationMinutes = 2;
+    let raceDurationMs = selectedDurationMinutes * 60 * 1000;
+
+    let selectedStudents = new Set(CLASS_ROSTERS["6H2"].slice(0, MAX_RACERS));
+    let racers = [];
+    let activeHazards = [];
+    let activeAnimals = [];
+    let activeRocks = [];
+    let activeBoosts = [];
+    let activeTrafficLights = [];
+    let fireworks = [];
+
+    let map = Array.from({ length: rows }, () => Array(cols).fill(0));
+    let lapWaypoints = [];
+    let cumulativeLengths = [0];
+    let totalLapLength = 1;
+    let currentTrackName = "City Boulevard";
+    let finishLinePhase = false;
+    let podiumLocked = [];
+    let celebrationActive = false;
+
+    let simulationSpeed = 1;
+    let gameRunning = false;
+    let animationFrameId = null;
+    let lastTime = 0;
+    let raceStartTime = 0;
+    let remainingTimeMs = raceDurationMs;
+    let lastPanelRenderTime = 0;
+
+    let nextAnimalSpawnTime = 0;
+    let nextRockSpawnTime = 0;
+    let nextBoostSpawnTime = 0;
+    let nextRandomHornTime = 0;
+
+    let prevTopThreeNames = ["","",""];
+    let commentatorTurn = 0;
+    let commentaryStyleIndex = 0;
+    let urgentAnnouncementQueue = [];
+    let lastCommentaryWasUrgent = false;
+    let lastSpeechStartTime = 0;
+    let lastSpeechEndTime = 0;
+    let emmaVoice = null;
+    let andrewVoice = null;
+    let ttsQueue = [];
+    let ttsReadyTriggered = false;
+
+    // --------------------------
+    // DOM
+    // --------------------------
+    const selectionScreen = document.getElementById("selectionScreen");
+    const gameScreen = document.getElementById("gameScreen");
+    const studentGrid = document.getElementById("studentGrid");
+    const selectedCountBadge = document.getElementById("selectedCountBadge");
+    const activeClassBadge = document.getElementById("activeClassBadge");
+    const raceTimerDisplay = document.getElementById("raceTimerDisplay");
+    const leftRacerList = document.getElementById("leftRacerList");
+    const commentaryBanner = document.getElementById("commentaryBanner");
+    const commentaryText = document.getElementById("commentaryText");
+    const hazardBanner = document.getElementById("hazardBanner");
+    const hazardBannerIcon = document.getElementById("hazardBannerIcon");
+    const hazardBannerText = document.getElementById("hazardBannerText");
+    const messageOverlay = document.getElementById("messageOverlay");
+    const messageTitle = document.getElementById("messageTitle");
+    const podiumDetails = document.getElementById("podiumDetails");
+    const winnerEmoji = document.getElementById("winnerEmoji");
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+
+    // --------------------------
+    // TRACK BUILD
+    // --------------------------
+    function buildTrackMap() {
+      const cfg = TRACK_CONFIGS[currentTrackId];
+      lapWaypoints = cfg.waypoints;
+      currentTrackName = cfg.name;
+
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          map[r][c] = 0;
+        }
+      }
+
+      cumulativeLengths = [0];
+      totalLapLength = 0;
+
+      for (let i = 0; i < lapWaypoints.length; i++) {
+        const p1 = lapWaypoints[i];
+        const p2 = lapWaypoints[(i + 1) % lapWaypoints.length];
+        const segLen = Math.hypot(p2.x - p1.x, p2.y - p1.y);
+        totalLapLength += segLen;
+        cumulativeLengths.push(totalLapLength);
+      }
+
+      for (let i = 0; i < lapWaypoints.length; i++) {
+        const p1 = lapWaypoints[i];
+        const p2 = lapWaypoints[(i + 1) % lapWaypoints.length];
+        const minX = Math.min(p1.x, p2.x);
+        const maxX = Math.max(p1.x, p2.x);
+        const minY = Math.min(p1.y, p2.y);
+        const maxY = Math.max(p1.y, p2.y);
+
+        for (let r = minY; r <= maxY; r++) {
+          for (let c = minX; c <= maxX; c++) {
+            map[r][c] = 1;
+          }
+        }
+      }
+
+      // background decorations
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          if (map[r][c] === 0) {
+            if (r === 0 || r === rows - 1 || c === 0 || c === cols - 1) {
+              if ((r + c) % 2 === 0) map[r][c] = 3;
+            } else if (Math.random() < cfg.buildingChance) {
+              map[r][c] = 2;
+            } else if (Math.random() < cfg.treeChance) {
+              map[r][c] = 3;
+            }
+          }
+        }
+      }
+    }
+
+    function getPointAlongTrack(distanceFromStart) {
+      const total = totalLapLength;
+      const wrapped = ((distanceFromStart % total) + total) % total;
+      let seg = 0;
+      while (seg < cumulativeLengths.length - 1 && wrapped > cumulativeLengths[seg + 1]) seg++;
+      const a = lapWaypoints[seg];
+      const b = lapWaypoints[(seg + 1) % lapWaypoints.length];
+      const segStart = cumulativeLengths[seg];
+      const segEnd = cumulativeLengths[seg + 1];
+      const local = (wrapped - segStart) / Math.max(0.0001, segEnd - segStart);
+      const x = a.x + (b.x - a.x) * local;
+      const y = a.y + (b.y - a.y) * local;
+      return { x, y, segIndex: seg, local };
+    }
+
+    function getRacerProgress(racer) {
+      return racer.laps * totalLapLength + racer.distanceAlongCurrentLap;
+    }
+
+    function compareRacers(a, b) {
+      return getRacerProgress(b) - getRacerProgress(a);
+    }
+
+    // --------------------------
+    // DID YOU ASK: "USE MICROSOFT ONLINE ENGLISH VOICES EMMA AND ANDREW"?
+    // Yes. This is handled below.
+    // --------------------------
+    function loadVoices() {
+      if (!('speechSynthesis' in window)) return;
+      const voices = window.speechSynthesis.getVoices();
+      if (!voices.length) return;
+
+      emmaVoice = voices.find(v =>
+        /microsoft.*emma/i.test(v.name) && /(online|natural)/i.test(v.name)
+      ) || voices.find(v => /microsoft.*emma/i.test(v.name)) || voices.find(v =>
+        /emma/i.test(v.name) && /(online|natural)/i.test(v.name)
+      ) || voices.find(v => /emma/i.test(v.name)) || voices.find(v => v.lang && v.lang.toLowerCase().startsWith('en'));
+
+      andrewVoice = voices.find(v =>
+        /microsoft.*andrew/i.test(v.name) && /(online|natural)/i.test(v.name)
+      ) || voices.find(v => /microsoft.*andrew/i.test(v.name)) || voices.find(v =>
+        /andrew/i.test(v.name) && /(online|natural)/i.test(v.name)
+      ) || voices.find(v => /andrew/i.test(v.name)) || voices.find(v => v.lang && v.lang.toLowerCase().startsWith('en'));
+    }
+
+    function speakCommentary(speaker, text, interrupt = false) {
+      if (!('speechSynthesis' in window)) return;
+
+      const synth = window.speechSynthesis;
+      loadVoices();
+
+      if (interrupt) {
+        synth.cancel();
+        ttsQueue = [];
+      }
+
+      if (synth.speaking || synth.pending) {
+        if (!interrupt) {
+          ttsQueue.push({ speaker, text });
+          return;
+        }
+      }
+
+      const utter = new SpeechSynthesisUtterance(text);
+      utter.volume = 1;
+      utter.rate = 1;
+      utter.pitch = speaker === 'Emma' ? 1.05 : 0.96;
+      utter.lang = 'en-US';
+
+      if (speaker === 'Emma' && emmaVoice) utter.voice = emmaVoice;
+      if (speaker === 'Andrew' && andrewVoice) utter.voice = andrewVoice;
+
+      utter.onstart = () => {
+        lastSpeechStartTime = performance.now();
+        commentaryBanner.classList.remove('hidden');
+        commentaryText.textContent = `${speaker}: ${text}`;
+      };
+
+      utter.onend = () => {
+        lastSpeechEndTime = performance.now();
+        commentaryBanner.classList.add('hidden');
+        if (ttsQueue.length > 0) {
+          const next = ttsQueue.shift();
+          setTimeout(() => speakCommentary(next.speaker, next.text, false), 120);
+        }
+      };
+
+      utter.onerror = () => {
+        lastSpeechEndTime = performance.now();
+        commentaryBanner.classList.add('hidden');
+        if (ttsQueue.length > 0) {
+          const next = ttsQueue.shift();
+          setTimeout(() => speakCommentary(next.speaker, next.text, false), 120);
+        }
+      };
+
+      try { synth.resume(); } catch (e) {}
+      synth.speak(utter);
+    }
+
+    function ensureSpeechReadyAndAnnounce() {
+      if (!('speechSynthesis' in window)) return;
+      const synth = window.speechSynthesis;
+      loadVoices();
+      try { synth.resume(); } catch (e) {}
+      if (!ttsReadyTriggered) {
+        ttsReadyTriggered = true;
+        setTimeout(() => {
+          speakCommentary('Emma', 'Race starting. Emma and Andrew are live. Cars are on the grid and ready to go.', true);
+        }, 250);
+      }
+    }
+
+    function queueUrgentEventAnnouncement(text) {
+      urgentAnnouncementQueue.push(text);
+      if (urgentAnnouncementQueue.length > 5) urgentAnnouncementQueue.shift();
+    }
+
+    function processLiveCommentary(sortedRacers) {
+      if (!sortedRacers || sortedRacers.length === 0) return;
+      if (!('speechSynthesis' in window)) return;
+
+      const synth = window.speechSynthesis;
+      const now = performance.now();
+
+      if (synth.speaking || synth.pending) {
+        if (now - lastSpeechStartTime > 8500) {
+          synth.cancel();
+        } else {
+          return;
+        }
+      }
+
+      const first = sortedRacers[0];
+      const second = sortedRacers[1];
+      const third = sortedRacers[2];
+      const oldFirst = prevTopThreeNames[0];
+      const oldSecond = prevTopThreeNames[1];
+
+      const firstChanged = oldFirst && first && first.name !== oldFirst;
+      const secondChanged = second && oldSecond && second.name !== oldSecond;
+
+      if (urgentAnnouncementQueue.length > 0 && !lastCommentaryWasUrgent && (now - lastSpeechEndTime > 220)) {
+        const speaker = commentatorTurn % 2 === 0 ? 'Emma' : 'Andrew';
+        commentatorTurn++;
+        lastCommentaryWasUrgent = true;
+        speakCommentary(speaker, urgentAnnouncementQueue.shift(), false);
+        return;
+      }
+
+      if (now - lastSpeechEndTime < (firstChanged ? 180 : 550)) return;
+
+      lastCommentaryWasUrgent = false;
+      prevTopThreeNames = [
+        first ? first.name : "",
+        second ? second.name : "",
+        third ? third.name : ""
+      ];
+
+      const speaker = commentatorTurn % 2 === 0 ? 'Emma' : 'Andrew';
+      commentatorTurn++;
+      commentaryStyleIndex++;
+
+      let line = "";
+      const v1 = VEHICLE_NAMES[first.emoji] || 'car';
+      const v2 = second ? (VEHICLE_NAMES[second.emoji] || 'car') : 'car';
+      const v3 = third ? (VEHICLE_NAMES[third.emoji] || 'car') : 'car';
+
+      if (finishLinePhase) {
+        const finishLines = [
+          `Final sprint! ${first.name} in the ${v1} is leading, with ${second ? second.name + ' in the ' + v2 : 'the field'} closing in.`,
+          `Checkered flag pressure! ${first.name} still leads in the ${v1}, chasing the finish with ${second ? second.name + ' right behind in the ' + v2 : 'the pack'}.`,
+          `The finish is here! ${first.name} is pressing on in the ${v1}, just ahead of ${second ? second.name + ' in the ' + v2 : 'the rest of the field'}.`
         ];
+        line = finishLines[commentaryStyleIndex % finishLines.length];
+      } else if (firstChanged) {
+        const leadLinesEmma = [
+          `What a move! ${first.name} in the ${v1} has blasted into first place, passing ${oldFirst}. ${second.name} is now second in the ${v2}.`,
+          `New leader! ${first.name} charges to the front in the ${v1}. ${second.name} is second in the ${v2}, and ${third.name} holds third in the ${v3}.`,
+          `Amazing overtake! ${first.name} takes the lead in the ${v1}. ${second.name} is chasing in second in the ${v2}. The third-place battle continues.`
+        ];
+        const leadLinesAndrew = [
+          `That is a huge pass! ${first.name} surges into first in the ${v1}, leaving ${oldFirst} behind. ${second.name} is next in the ${v2}.`,
+          `Top of the field is changing! ${first.name} takes the lead in the ${v1}, with ${second.name} still in second in the ${v2}.`,
+          `Huge move at the front! ${first.name} powers past ${oldFirst} and takes the lead in the ${v1}.`
+        ];
+        line = speaker === 'Emma' ? leadLinesEmma[commentaryStyleIndex % leadLinesEmma.length] : leadLinesAndrew[commentaryStyleIndex % leadLinesAndrew.length];
+      } else if (secondChanged) {
+        line = speaker === 'Emma'
+          ? `Major battle for second! ${second.name} in the ${v2} just moved ahead of ${oldSecond}. ${first.name} still leads in the ${v1}.`
+          : `The podium fight is hot! ${second.name} powers into second in the ${v2}, while ${first.name} remains ahead in the ${v1}.`;
+      } else {
+        const normalLines = [
+          `${first.name} leads in the ${v1}, with ${second.name} in second in the ${v2} and ${third.name} in third in the ${v3}.`,
+          `Top three are ${first.name} in the ${v1}, ${second.name} in the ${v2}, and ${third.name} in the ${v3}.`,
+          `${first.name} is still out front in the ${v1}. ${second.name} is chasing in the ${v2}, and ${third.name} rounds out the podium in the ${v3}.`
+        ];
+        line = normalLines[commentaryStyleIndex % normalLines.length];
+      }
 
-        const EMOJIS = { building: ['🏢', '🏭', '🏤', '🏥', '🏦', '🏫', '🏪'], tree: ['🌳','🌲','🌴'], finish: '🏁' };
+      speakCommentary(speaker, line, false);
+    }
 
-        const MAX_RACERS = 16;
-        const cols = 36;
-        const rows = 22;
+    // --------------------------
+    // AUDIO ENGINE
+    // --------------------------
+    let polySynth, bassSynth, hornSquareSynth, airHornSynth, crashSynth, boostSynth, musicLoop;
+    let soundInitialized = false;
 
-        const TRACK_CONFIGS = {
-            1: {
-                name: "City Boulevard",
-                startCol: 18, startRow: 1, treeChance: 0.42, buildingChance: 0.35,
-                trafficLights: [1, 3, 5, 7, 9, 11, 13],
-                tunnels: [], overpasses: [],
-                waypoints: [
-                    { x: 18, y: 1 }, { x: 3, y: 1 }, { x: 3, y: 4 }, { x: 29, y: 4 },
-                    { x: 29, y: 7 }, { x: 3, y: 7 }, { x: 3, y: 10 }, { x: 29, y: 10 },
-                    { x: 29, y: 13 }, { x: 3, y: 13 }, { x: 3, y: 16 }, { x: 29, y: 16 },
-                    { x: 29, y: 19 }, { x: 3, y: 19 }, { x: 3, y: 20 }, { x: 33, y: 20 },
-                    { x: 33, y: 1 }
-                ]
-            },
-            2: {
-                name: "Sharp Hairpins",
-                startCol: 24, startRow: 1, treeChance: 0.07, buildingChance: 0.14,
-                trafficLights: [2, 6, 13, 17, 25, 29, 37, 41],
-                tunnels: [], overpasses: [],
-                waypoints: [
-                    { x: 24, y: 1 }, { x: 22, y: 1 }, { x: 22, y: 4 }, { x: 18, y: 4 }, { x: 18, y: 1 },
-                    { x: 14, y: 1 }, { x: 14, y: 4 }, { x: 10, y: 4 }, { x: 10, y: 1 }, { x: 6, y: 1 },
-                    { x: 6, y: 4 }, { x: 2, y: 4 }, { x: 2, y: 7 }, { x: 7, y: 7 }, { x: 7, y: 10 },
-                    { x: 12, y: 10 }, { x: 12, y: 7 }, { x: 17, y: 7 }, { x: 17, y: 10 }, { x: 22, y: 10 },
-                    { x: 22, y: 7 }, { x: 27, y: 7 }, { x: 27, y: 10 }, { x: 30, y: 10 }, { x: 30, y: 13 },
-                    { x: 25, y: 13 }, { x: 25, y: 16 }, { x: 20, y: 16 }, { x: 20, y: 13 }, { x: 15, y: 13 },
-                    { x: 15, y: 16 }, { x: 10, y: 16 }, { x: 10, y: 13 }, { x: 5, y: 13 }, { x: 5, y: 16 },
-                    { x: 2, y: 16 }, { x: 2, y: 20 }, { x: 8, y: 20 }, { x: 8, y: 18 }, { x: 14, y: 18 },
-                    { x: 14, y: 20 }, { x: 20, y: 20 }, { x: 20, y: 18 }, { x: 26, y: 18 }, { x: 26, y: 20 },
-                    { x: 33, y: 20 }, { x: 33, y: 1 }
-                ]
-            },
-            3: {
-                name: "Spiral Vortex",
-                startCol: 22, startRow: 1, treeChance: 0.16, buildingChance: 0.22,
-                trafficLights: [1, 3, 5, 7, 10, 14, 18],
-                tunnels: [], overpasses: [],
-                waypoints: [
-                    { x: 22, y: 1 }, { x: 2, y: 1 }, { x: 2, y: 19 }, { x: 29, y: 19 }, { x: 29, y: 4 },
-                    { x: 6, y: 4 }, { x: 6, y: 16 }, { x: 25, y: 16 }, { x: 25, y: 7 }, { x: 10, y: 7 },
-                    { x: 10, y: 13 }, { x: 21, y: 13 }, { x: 21, y: 10 }, { x: 14, y: 10 }, { x: 14, y: 20 },
-                    { x: 20, y: 20 }, { x: 20, y: 18 }, { x: 26, y: 18 }, { x: 26, y: 20 }, { x: 33, y: 20 },
-                    { x: 33, y: 1 }
-                ]
-            },
-            4: {
-                name: "Overpass & Tunnel Circuit",
-                startCol: 20, startRow: 1, treeChance: 0.18, buildingChance: 0.20,
-                trafficLights: [1, 4, 8, 12, 16, 20],
-                tunnels: [
-                    { x1: 3, y1: 3, x2: 3, y2: 7, orientation: 'vertical', label: 'TUNNEL 1' },
-                    { x1: 11, y1: 14, x2: 16, y2: 14, orientation: 'horizontal', label: 'MOUNTAIN TUNNEL' },
-                    { x1: 33, y1: 8, x2: 33, y2: 13, orientation: 'vertical', label: 'EAST TUNNEL' }
-                ],
-                overpasses: [
-                    { x: 10, y: 5, underWp: 12, overWp: 3 },
-                    { x: 10, y: 11, underWp: 15, overWp: 3 },
-                    { x: 26, y: 5, underWp: 12, overWp: 8 },
-                    { x: 26, y: 11, underWp: 14, overWp: 9 },
-                    { x: 18, y: 5, underWp: 2, overWp: 14 },
-                    { x: 18, y: 14, underWp: 16, overWp: 13 }
-                ],
-                waypoints: [
-                    { x: 20, y: 1 }, { x: 3, y: 1 }, { x: 3, y: 9 }, { x: 10, y: 9 }, { x: 10, y: 2 },
-                    { x: 10, y: 18 }, { x: 26, y: 18 }, { x: 26, y: 3 }, { x: 31, y: 3 }, { x: 31, y: 16 },
-                    { x: 22, y: 16 }, { x: 22, y: 5 }, { x: 6, y: 5 }, { x: 6, y: 11 }, { x: 29, y: 11 },
-                    { x: 29, y: 14 }, { x: 8, y: 14 }, { x: 8, y: 20 }, { x: 18, y: 20 }, { x: 18, y: 3 },
-                    { x: 2, y: 3 }, { x: 2, y: 20 }, { x: 33, y: 20 }, { x: 33, y: 1 }
-                ]
+    async function initAudioEngine() {
+      if (soundInitialized) return;
+      try {
+        await Tone.start();
+
+        polySynth = new Tone.PolySynth(Tone.Synth, {
+          oscillator: { type: 'triangle' },
+          envelope: { attack: 0.02, decay: 0.12, sustain: 0.2, release: 0.2 }
+        }).toDestination();
+        polySynth.volume.value = -14;
+
+        bassSynth = new Tone.MonoSynth({
+          oscillator: { type: 'square' },
+          envelope: { attack: 0.01, decay: 0.15, sustain: 0.08, release: 0.08 }
+        }).toDestination();
+        bassSynth.volume.value = -20;
+
+        hornSquareSynth = new Tone.PolySynth(Tone.Synth, {
+          oscillator: { type: 'square' },
+          envelope: { attack: 0.005, decay: 0.08, sustain: 0.25, release: 0.08 }
+        }).toDestination();
+        hornSquareSynth.volume.value = -12;
+
+        airHornSynth = new Tone.PolySynth(Tone.Synth, {
+          oscillator: { type: 'fatsawtooth', count: 3, spread: 20 },
+          envelope: { attack: 0.04, decay: 0.24, sustain: 0.4, release: 0.2 }
+        }).toDestination();
+        airHornSynth.volume.value = -18;
+
+        crashSynth = new Tone.NoiseSynth({
+          noise: { type: 'brown' },
+          envelope: { attack: 0.002, decay: 0.5, sustain: 0.05, release: 0.25 }
+        }).toDestination();
+        crashSynth.volume.value = -16;
+
+        boostSynth = new Tone.NoiseSynth({
+          noise: { type: 'white' },
+          envelope: { attack: 0.02, decay: 0.25, sustain: 0.1, release: 0.7 }
+        }).toDestination();
+        boostSynth.volume.value = -14;
+
+        const melodyNotes = ['C5','E5','G5','E5','F5','A5','G5','E5','D5','F5','A5','F5','G5','B5','C6','G5'];
+        const bassNotes = ['C3','C3','G2','G2','F2','F2','C3','C3','D2','D2','A2','A2','G2','G2','G2','B2'];
+        let step = 0;
+
+        musicLoop = new Tone.Loop((time) => {
+          if (!gameRunning) return;
+          polySynth.triggerAttackRelease(melodyNotes[step % melodyNotes.length], '16n', time);
+          bassSynth.triggerAttackRelease(bassNotes[step % bassNotes.length], '8n', time);
+          step++;
+        }, '8n');
+
+        Tone.Transport.bpm.value = 140;
+        soundInitialized = true;
+      } catch (e) {
+        console.warn('Audio init warning:', e);
+      }
+    }
+
+    function startBackgroundMusic() {
+      if (!soundInitialized) return;
+      try {
+        if (Tone.Transport.state !== 'started') Tone.Transport.start();
+        if (musicLoop && !musicLoop.state) musicLoop.start(0);
+      } catch (e) {}
+    }
+
+    function stopBackgroundMusic() {
+      if (!soundInitialized) return;
+      try {
+        if (musicLoop) musicLoop.stop();
+      } catch (e) {}
+    }
+
+    function playCrashSound() {
+      if (!soundInitialized) return;
+      try {
+        const now = Tone.now() + 0.01;
+        crashSynth.triggerAttackRelease('4n', now);
+        polySynth.triggerAttackRelease(['C2','F#2'], '8n', now + 0.1);
+      } catch (e) {}
+    }
+
+    function playVariedCarHorn() {
+      if (!soundInitialized) return;
+      try {
+        hornSquareSynth.triggerAttackRelease(['A5','C#6'], '16n', Tone.now() + 0.01);
+      } catch (e) {}
+    }
+
+    function playStartSound() {
+      if (!soundInitialized) return;
+      try {
+        const now = Tone.now() + 0.02;
+        polySynth.triggerAttackRelease('C5', '16n', now);
+        polySynth.triggerAttackRelease('C5', '16n', now + 0.12);
+      } catch (e) {}
+    }
+
+    function playLapSound() {
+      if (!soundInitialized) return;
+      try {
+        polySynth.triggerAttackRelease(['E5','G5','C6'], '16n', Tone.now() + 0.02);
+      } catch (e) {}
+    }
+
+    function playBoostSound() {
+      if (!soundInitialized) return;
+      try {
+        boostSynth.triggerAttackRelease('8n', Tone.now());
+      } catch (e) {}
+    }
+
+    // --------------------------
+    // UI / SELECTION
+    // --------------------------
+    function getSelectedNames() {
+      return Array.from(selectedStudents);
+    }
+
+    function renderStudentGrid() {
+      const roster = CLASS_ROSTERS[currentClass];
+      studentGrid.innerHTML = roster.map((name) => {
+        const selected = selectedStudents.has(name);
+        return `
+          <button type="button"
+            class="student-card ${selected ? 'selected' : 'bg-gray-700 hover:bg-gray-600'} border text-left px-2 py-2 rounded-xl transition text-xs md:text-sm font-bold ${selected ? 'text-white' : 'text-gray-200'}"
+            data-name="${name}"
+            aria-pressed="${selected}">
+            <span class="block">${name}</span>
+          </button>
+        `;
+      }).join('');
+    }
+
+    function updateSelectedBadge() {
+      const count = selectedStudents.size;
+      selectedCountBadge.textContent = `${count} / 16`;
+    }
+
+    function setTrackButtons() {
+      document.querySelectorAll('.track-btn').forEach(btn => {
+        const active = Number(btn.dataset.track) === currentTrackId;
+        btn.classList.toggle('active', active);
+        btn.classList.toggle('text-gray-300', !active);
+        btn.classList.toggle('hover:text-white', !active);
+      });
+    }
+
+    function setTimeButtons() {
+      document.querySelectorAll('.time-btn').forEach(btn => {
+        const active = Number(btn.dataset.mins) === selectedDurationMinutes;
+        btn.classList.toggle('active', active);
+        btn.classList.toggle('text-gray-300', !active);
+        btn.classList.toggle('hover:text-white', !active);
+      });
+    }
+
+    function setClassButtons() {
+      const btn6 = document.getElementById('classBtn6H2');
+      const btn5 = document.getElementById('classBtn5M2');
+      btn6.classList.toggle('active', currentClass === '6H2');
+      btn5.classList.toggle('active', currentClass === '5M2');
+      btn6.classList.toggle('text-gray-300', currentClass !== '6H2');
+      btn5.classList.toggle('text-gray-300', currentClass !== '5M2');
+      activeClassBadge.textContent = `Class ${currentClass}`;
+    }
+
+    function selectFirst16() {
+      const roster = CLASS_ROSTERS[currentClass];
+      selectedStudents = new Set(roster.slice(0, MAX_RACERS));
+      renderStudentGrid();
+      updateSelectedBadge();
+    }
+
+    function selectRemaining() {
+      const roster = CLASS_ROSTERS[currentClass];
+      const selected = new Set(selectedStudents);
+      for (const name of roster) {
+        if (selected.size >= MAX_RACERS) break;
+        if (!selected.has(name)) selected.add(name);
+      }
+      selectedStudents = selected;
+      renderStudentGrid();
+      updateSelectedBadge();
+    }
+
+    function selectRandom16() {
+      const roster = CLASS_ROSTERS[currentClass];
+      const arr = [...roster].sort(() => Math.random() - 0.5);
+      selectedStudents = new Set(arr.slice(0, MAX_RACERS));
+      renderStudentGrid();
+      updateSelectedBadge();
+    }
+
+    function clearAll() {
+      selectedStudents = new Set();
+      renderStudentGrid();
+      updateSelectedBadge();
+    }
+
+    function updateRosterSelectionByClicks() {
+      studentGrid.addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-name]');
+        if (!btn) return;
+        const name = btn.dataset.name;
+        if (selectedStudents.has(name)) {
+          selectedStudents.delete(name);
+        } else {
+          if (selectedStudents.size >= MAX_RACERS) {
+            selectedStudents.delete([...selectedStudents][0]);
+          }
+          selectedStudents.add(name);
+        }
+        renderStudentGrid();
+        updateSelectedBadge();
+      });
+    }
+
+    // --------------------------
+    // RACERS
+    // --------------------------
+    function generateRacers() {
+      const names = [...selectedStudents];
+      const chosen = names.slice(0, MAX_RACERS);
+      const chosenVehicles = FLEET_VEHICLES.slice(0, chosen.length);
+
+      racers = chosen.map((name, idx) => {
+        const emoji = chosenVehicles[idx];
+        const start = { x: 18, y: 1 };
+        return {
+          id: `${name}-${idx}`,
+          name,
+          emoji,
+          vehicleName: VEHICLE_NAMES[emoji] || 'car',
+          progress: 0,
+          laps: 0,
+          distanceAlongCurrentLap: 0,
+          baseSpeed: 0.18 + Math.random() * 0.08,
+          speed: 0.22 + Math.random() * 0.08,
+          speedChangeTimer: 0,
+          boostUntil: 0,
+          crashedUntil: 0,
+          stoppedByAnimal: false,
+          isStoppedAtLight: false,
+          finishRank: 0,
+          laneOffset: (Math.random() - 0.5) * 0.8,
+          tileX: start.x + 0.5,
+          tileY: start.y + 0.5,
+          facingRight: true,
+          tiltAngle: 0
+        };
+      });
+    }
+
+    function resetRaceState() {
+      buildTrackMap();
+      generateRacers();
+      urgentAnnouncementQueue = [];
+      lastCommentaryWasUrgent = false;
+      prevTopThreeNames = ["","",""];
+      lastSpeechStartTime = 0;
+      lastSpeechEndTime = 0;
+      finishLinePhase = false;
+      podiumLocked = [];
+      celebrationActive = false;
+      lastPanelRenderTime = 0;
+      raceStartTime = performance.now();
+      remainingTimeMs = raceDurationMs;
+      nextAnimalSpawnTime = 2000;
+      nextRockSpawnTime = 1800;
+      nextBoostSpawnTime = 2600;
+      nextRandomHornTime = 1250;
+      activeAnimals = [];
+      activeRocks = [];
+      activeBoosts = [];
+      activeTrafficLights = TRACK_CONFIGS[currentTrackId].trafficLights.map((wpIdx, i) => ({
+        wpIdx,
+        x: lapWaypoints[wpIdx].x + 0.5,
+        y: lapWaypoints[wpIdx].y + 0.5,
+        state: 'green',
+        timer: 1800 + i * 250 + Math.random() * 700
+      }));
+    }
+
+    function updateRaceTimerDisplay() {
+      const totalMs = Math.max(0, remainingTimeMs);
+      const secs = Math.ceil(totalMs / 1000);
+      const minutes = String(Math.floor(secs / 60)).padStart(2, '0');
+      const seconds = String(secs % 60).padStart(2, '0');
+      raceTimerDisplay.textContent = `${minutes}:${seconds}`;
+    }
+
+    function getPodiumList() {
+      return [...racers].sort((a,b) => {
+        if (a.finishRank && b.finishRank) return a.finishRank - b.finishRank;
+        return getRacerProgress(b) - getRacerProgress(a);
+      }).slice(0,3);
+    }
+
+    // --------------------------
+    // HAZARDS / LIGHTS
+    // --------------------------
+    function updateTrafficLights(dt) {
+      activeTrafficLights.forEach(light => {
+        light.timer -= dt;
+        if (light.timer <= 0) {
+          if (light.state === 'green') {
+            light.state = 'yellow';
+            light.timer = 1200 + Math.random() * 600;
+          } else if (light.state === 'yellow') {
+            light.state = 'red';
+            light.timer = 2600 + Math.random() * 1400;
+          } else {
+            light.state = 'green';
+            light.timer = 3500 + Math.random() * 2200;
+          }
+        }
+      });
+    }
+
+    function updateAnimalsAndHazards(now, dt) {
+      if (now > nextAnimalSpawnTime && activeAnimals.length < 4) {
+        const animalSpec = CROSSING_ANIMALS[Math.floor(Math.random() * CROSSING_ANIMALS.length)];
+        const x = Math.floor(Math.random() * cols);
+        const y = Math.floor(Math.random() * rows);
+        const valid = map[y] && map[y][x] === 1;
+
+        if (valid) {
+          const dir = Math.random() < 0.5 ? -1 : 1;
+          activeAnimals.push({
+            emoji: animalSpec.emoji,
+            name: animalSpec.name,
+            tileX: x + 0.5,
+            tileY: y + 0.5,
+            endY: y + 0.5 + dir * 1.2,
+            dir,
+            speed: animalSpec.speed * 0.9,
+            announced: false
+          });
+          hazardBannerIcon.textContent = animalSpec.emoji;
+          hazardBannerText.textContent = `${animalSpec.emoji} ${animalSpec.name} crossing the road!`;
+          hazardBanner.classList.remove('hidden');
+          playVariedCarHorn();
+
+          if (Math.random() < 0.7) {
+            queueUrgentEventAnnouncement(`Heads up! A ${animalSpec.name} is crossing the road!`);
+          }
+        }
+
+        nextAnimalSpawnTime = now + 2200 + Math.random() * 2600;
+      }
+
+      if (now > nextRockSpawnTime && activeRocks.length < 5) {
+        const x = Math.floor(Math.random() * cols);
+        const y = Math.floor(Math.random() * rows);
+        if (map[y] && map[y][x] === 1) {
+          activeRocks.push({
+            tileX: x + 0.5,
+            tileY: y + 0.5,
+            expiresAt: now + 10000
+          });
+          nextRockSpawnTime = now + 2800 + Math.random() * 2200;
+        }
+      }
+
+      if (now > nextBoostSpawnTime && activeBoosts.length < 4) {
+        const x = Math.floor(Math.random() * cols);
+        const y = Math.floor(Math.random() * rows);
+        if (map[y] && map[y][x] === 1) {
+          const tooClose = activeBoosts.some(b => Math.hypot(b.tileX - (x + 0.5), b.tileY - (y + 0.5)) < 1.2);
+          if (!tooClose) {
+            activeBoosts.push({ tileX: x + 0.5, tileY: y + 0.5 });
+          }
+        }
+        nextBoostSpawnTime = now + 3500 + Math.random() * 2800;
+      }
+
+      if (now > nextRandomHornTime) {
+        playVariedCarHorn();
+        nextRandomHornTime = now + 1800 + Math.random() * 2600;
+      }
+
+      activeAnimals.forEach(animal => {
+        animal.tileY += animal.dir * animal.speed * dt * 0.06;
+      });
+
+      activeAnimals = activeAnimals.filter(animal => {
+        return animal.dir > 0 ? animal.tileY < animal.endY : animal.tileY > animal.endY;
+      });
+
+      activeRocks = activeRocks.filter(r => now < r.expiresAt);
+
+      if (activeAnimals.length === 0 && !racers.some(r => now < r.crashedUntil)) {
+        hazardBanner.classList.add('hidden');
+      }
+    }
+
+    function computeRacerPosition(racer) {
+      const p = getPointAlongTrack(racer.distanceAlongCurrentLap + racer.laps * totalLapLength);
+      return { x: p.x + 0.5, y: p.y + 0.5 };
+    }
+
+    // --------------------------
+    // RACE LOOP
+    // --------------------------
+    function updateRacers(now, dt) {
+      const sorted = racers.slice().sort(compareRacers);
+      const leader = sorted[0];
+
+      const leadProgress = leader ? getRacerProgress(leader) : 0;
+
+      racers.forEach((racer) => {
+        if (racer.finishRank > 0) return;
+
+        if (now < racer.crashedUntil) return;
+
+        // crash into rock
+        const rockHit = activeRocks.find(r => Math.hypot(racer.tileX - r.tileX, racer.tileY - r.tileY) < 0.7);
+        if (rockHit) {
+          activeRocks.splice(activeRocks.indexOf(rockHit), 1);
+          racer.crashedUntil = now + 2200;
+          playCrashSound();
+
+          const phrase = `${racer.name} in the ${racer.vehicleName} smashed into a rock and crashed!`;
+          queueUrgentEventAnnouncement(phrase);
+
+          hazardBannerIcon.textContent = '🪨🔥💥';
+          hazardBannerText.textContent = `ACCIDENT! ${racer.name} crashed!`;
+          hazardBanner.classList.remove('hidden');
+          return;
+        }
+
+        // boost pad
+        const boostHit = activeBoosts.find(b => Math.hypot(racer.tileX - b.tileX, racer.tileY - b.tileY) < 0.75);
+        if (boostHit) {
+          activeBoosts.splice(activeBoosts.indexOf(boostHit), 1);
+          racer.boostUntil = now + 2600;
+          playBoostSound();
+
+          const boostText = `${racer.name} hit a lightning boost and is ripping through the field!`;
+          queueUrgentEventAnnouncement(boostText);
+        }
+
+        // animal blocking
+        const blockedAnimal = activeAnimals.find(a => Math.hypot(racer.tileX - a.tileX, racer.tileY - a.tileY) < 0.9);
+        if (blockedAnimal) {
+          if (!racer.stoppedByAnimal) {
+            if (!blockedAnimal.announced) {
+              blockedAnimal.announced = true;
+              const animalText = `${racer.name} in the ${racer.vehicleName} is stopped by a ${blockedAnimal.name} crossing the track!`;
+              queueUrgentEventAnnouncement(animalText);
             }
+          }
+          racer.stoppedByAnimal = true;
+          return;
+        } else {
+          racer.stoppedByAnimal = false;
+        }
+
+        // red / yellow light
+        const nextLight = activeTrafficLights.find(light => light.wpIdx === racer.nextWaypointIndex || light.wpIdx === racer.closestWaypointIndex);
+        if (nextLight && (nextLight.state === 'red' || nextLight.state === 'yellow')) {
+          const dist = Math.hypot(racer.tileX - nextLight.x, racer.tileY - nextLight.y);
+          if (dist < 1.2) {
+            racer.isStoppedAtLight = true;
+            const lightText = `${racer.name} is stopping for a ${nextLight.state} light in the ${racer.vehicleName}.`;
+            queueUrgentEventAnnouncement(lightText);
+            return;
+          }
+        } else {
+          racer.isStoppedAtLight = false;
+        }
+
+        // speed update
+        if (now > racer.speedChangeTimer) {
+          const rankIndex = sorted.findIndex((r) => r.id === racer.id);
+          const gap = Math.max(0, leadProgress - getRacerProgress(racer));
+
+          let chaos = 0.78 + Math.random() * 0.65;
+          if (rankIndex === 0) chaos = 0.72 + Math.random() * 0.35;
+          else if (rankIndex <= 5) chaos = 0.92 + Math.random() * 0.7 + Math.min(0.4, gap * 0.02);
+          else chaos = 1.1 + Math.random() * 0.9 + Math.min(0.6, gap * 0.025);
+
+          if (Math.random() < 0.12 && rankIndex > 2) chaos *= 1.35;
+          if (Math.random() < 0.08 && rankIndex === 0) chaos *= 0.7;
+
+          racer.speed = racer.baseSpeed * chaos;
+          racer.speedChangeTimer = now + 500 + Math.random() * 800;
+        }
+
+        let finalSpeed = racer.speed;
+        if (now < racer.boostUntil) finalSpeed *= 2.35;
+        if (finishLinePhase) finalSpeed *= 1.2;
+
+        const moveDistance = finalSpeed * dt * 0.06 * simulationSpeed;
+        racer.distanceAlongCurrentLap += moveDistance;
+
+        while (racer.distanceAlongCurrentLap >= totalLapLength) {
+          racer.distanceAlongCurrentLap -= totalLapLength;
+          racer.laps += 1;
+          playLapSound();
+
+          // if near finish line and not already locked, start finish line phase
+          const elapsed = performance.now() - raceStartTime;
+          if (elapsed > raceDurationMs * 0.8) {
+            finishLinePhase = true;
+          }
+        }
+
+        // check finish line crossing
+        if (racer.laps > 0 && racer.distanceAlongCurrentLap < 1.5 && racer.finishRank === 0 && finishLinePhase) {
+          podiumLocked.push(racer);
+          racer.finishRank = podiumLocked.length;
+          if (podiumLocked.length >= 3) {
+            endRace(true);
+            return;
+          }
+        }
+
+        const pos = computeRacerPosition(racer);
+        racer.tileX = pos.x;
+        racer.tileY = pos.y;
+
+        const nextWpIndex = Math.floor((racer.distanceAlongCurrentLap % totalLapLength) / (totalLapLength / lapWaypoints.length));
+        racer.closestWaypointIndex = nextWpIndex;
+        racer.nextWaypointIndex = (nextWpIndex + 1) % lapWaypoints.length;
+
+        if (racer.laps >= 1 && activityWindowReached(racer)) {
+          const top3 = racers.slice().sort(compareRacers).slice(0,3);
+          processLiveCommentary(top3);
+        }
+      });
+
+      const nowMs = performance.now();
+      if (nowMs - lastPanelRenderTime > 160) {
+        lastPanelRenderTime = nowMs;
+        renderLeftPanelDOM();
+      }
+    }
+
+    function activityWindowReached(racer) {
+      return true;
+    }
+
+    function renderLeftPanelDOM() {
+      const ordered = racers.slice().sort(compareRacers);
+      leftRacerList.innerHTML = ordered.map((r, index) => {
+        const rank = index + 1;
+        let badgeColor = 'bg-gray-700 text-gray-200';
+        let cardBorder = 'border-gray-700 bg-gray-900/90';
+        if (rank === 1) { badgeColor = 'bg-yellow-400 text-gray-900'; cardBorder = 'border-yellow-500/80 bg-gray-900'; }
+        else if (rank === 2) { badgeColor = 'bg-gray-300 text-gray-900'; }
+        else if (rank === 3) { badgeColor = 'bg-amber-600 text-white'; }
+
+        const statusIcon = r.finishRank > 0
+          ? `🏁#${r.finishRank}`
+          : (nowOrCrashes(r) ? '🪨🔥💥' : (r.stoppedByAnimal ? '🐄' : (r.isStoppedAtLight ? '🔴' : (nowIsBoosted(r) ? '⚡' : `L${r.laps + 1}`))));
+
+        return `
+          <div class="flex items-center justify-between px-1.5 py-0.5 rounded-lg border ${cardBorder}">
+            <div class="flex items-center gap-1.5 min-w-0">
+              <span class="w-4 h-4 rounded-full text-[10px] font-black flex items-center justify-center shrink-0 ${badgeColor}">${rank}</span>
+              <div class="flex flex-col items-start leading-none min-w-0">
+                <span class="font-bold text-[11px] text-white truncate max-w-[68px]">${r.name}</span>
+                <span class="text-base mt-0.5 leading-none">${r.emoji}</span>
+              </div>
+            </div>
+            <div class="text-right shrink-0">
+              <span class="text-[10px] font-extrabold text-yellow-400">${statusIcon}</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function nowOrCrashes(r) {
+      return performance.now() < r.crashedUntil;
+    }
+
+    function nowIsBoosted(r) {
+      return performance.now() < r.boostUntil;
+    }
+
+    // --------------------------
+    // DRAW
+    // --------------------------
+    function drawTrack() {
+      const now = performance.now();
+      ctx.fillStyle = '#4d8a3b';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      canvas.width = canvas.clientWidth;
+      canvas.height = canvas.clientHeight;
+
+      for (let y = 0; y < rows; y++) {
+        for (let x = 0; x < cols; x++) {
+          const tile = map[y][x];
+          if (tile === 2) {
+            ctx.fillStyle = '#374151';
+            ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+            ctx.font = `${TILE_SIZE * 0.7}px sans-serif`;
+            ctx.fillText(EMOJIS.building[Math.floor(Math.random() * EMOJIS.building.length)], x * TILE_SIZE + 8, y * TILE_SIZE + 22);
+          } else if (tile === 3) {
+            ctx.fillStyle = '#2d5a2a';
+            ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+            ctx.font = `${TILE_SIZE * 0.7}px sans-serif`;
+            ctx.fillText(EMOJIS.tree[Math.floor(Math.random() * EMOJIS.tree.length)], x * TILE_SIZE + 8, y * TILE_SIZE + 22);
+          } else if (tile === 1) {
+            ctx.fillStyle = '#6d8b47';
+            ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+          } else {
+            ctx.fillStyle = '#2d7d46';
+            ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+          }
+        }
+      }
+
+      // road center line
+      ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      for (let i = 0; i < lapWaypoints.length; i++) {
+        const p1 = lapWaypoints[i];
+        const p2 = lapWaypoints[(i + 1) % lapWaypoints.length];
+        ctx.moveTo((p1.x + 0.5) * TILE_SIZE, (p1.y + 0.5) * TILE_SIZE);
+        ctx.lineTo((p2.x + 0.5) * TILE_SIZE, (p2.y + 0.5) * TILE_SIZE);
+      }
+      ctx.stroke();
+
+      // lights
+      activeTrafficLights.forEach(light => {
+        const px = (light.x + 0.5) * TILE_SIZE;
+        const py = (light.y + 0.5) * TILE_SIZE;
+
+        ctx.fillStyle = '#111827';
+        ctx.fillRect(px - 8, py - 20, 16, 40);
+
+        const colors = {
+          green: '#22c55e',
+          yellow: '#fbbf24',
+          red: '#ef4444'
         };
 
-        let currentClass = "6H2";
-        let currentTrackId = 1;
-        let selectedStudents = new Set(CLASS_ROSTERS["6H2"].slice(0, MAX_RACERS));
-        let selectedDurationMinutes = 2;
-        let raceDurationMs = selectedDurationMinutes * 60 * 1000;
+        ctx.fillStyle = colors[light.state];
+        ctx.beginPath();
+        ctx.arc(px, py - 10, 5, 0, Math.PI * 2);
+        ctx.fill();
 
-        let map = Array.from({ length: rows }, () => Array(cols).fill(0));
-        let lapWaypoints = TRACK_CONFIGS[1].waypoints;
-        let hazardRoadCandidates = [];
-        let segmentDistances = [];
-        let cumulativeSegmentDist = [0];
-        let totalLapLength = 1;
+        ctx.fillStyle = '#4b5563';
+        ctx.beginPath();
+        ctx.arc(px, py + 10, 5, 0, Math.PI * 2);
+        ctx.fill();
+      });
 
-        let finishLinePhase = false;
-        let podiumLocked = [];
-        let racers = [];
-        let activeAnimals = [];
-        let activeRocks = [];
-        let activeTrafficLights = [];
-        let fireworks = [];
-        let activeBoosts = [];
-        let emojiMap = [];
-        let TILE_SIZE = 32;
+      // hazards
+      activeAnimals.forEach(animal => {
+        ctx.font = `${TILE_SIZE * 0.8}px sans-serif`;
+        ctx.fillText(animal.emoji, animal.tileX * TILE_SIZE, animal.tileY * TILE_SIZE);
+      });
 
-        let gameRunning = false;
-        let celebrationActive = false;
-        let animationFrameId = null;
-        let simulationSpeed = 1;
-        let raceStartTime = 0;
-        let remainingTimeMs = raceDurationMs;
-        let lastTime = 0;
-        let lastPanelRenderTime = 0;
+      activeRocks.forEach(rock => {
+        ctx.font = `${TILE_SIZE * 0.8}px sans-serif`;
+        ctx.fillText('🪨', rock.tileX * TILE_SIZE, rock.tileY * TILE_SIZE);
+      });
 
-        let nextAnimalSpawnTime = 0;
-        let nextRockSpawnTime = 0;
-        let nextBoostSpawnTime = 0;
-        let nextRandomHornTime = 0;
+      activeBoosts.forEach(boost => {
+        ctx.font = `${TILE_SIZE * 0.9}px sans-serif`;
+        ctx.fillText('⚡', boost.tileX * TILE_SIZE, boost.tileY * TILE_SIZE);
+      });
 
-        let prevTopThreeNames = ["", "", ""];
-        let lastSpeechStartTime = 0;
-        let lastSpeechEndTime = 0;
-        let commentatorTurn = 0;
-        let commentaryStyleIndex = 0;
-        let urgentAnnouncementQueue = [];
-        let lastCommentaryWasUrgent = false;
-        let emmaVoice = null;
-        let andrewVoice = null;
-        const activeUtterances = [];
-        let ttsQueue = [];
+      // racers
+      racers.forEach(racer => {
+        const rx = racer.tileX * TILE_SIZE;
+        const ry = racer.tileY * TILE_SIZE;
 
-        const commentaryBanner = document.getElementById('commentaryBanner');
-        const commentaryText = document.getElementById('commentaryText');
-        const hazardBanner = document.getElementById('hazardBanner');
-        const hazardBannerIcon = document.getElementById('hazardBannerIcon');
-        const hazardBannerText = document.getElementById('hazardBannerText');
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-        const studentGrid = document.getElementById('studentGrid');
+        ctx.save();
+        ctx.translate(rx, ry);
 
-        function buildActiveTrackMap() {
-            const cfg = TRACK_CONFIGS[currentTrackId];
-            lapWaypoints = cfg.waypoints;
+        if (racer.facingRight) ctx.scale(-1, 1);
+        if (performance.now() < racer.crashedUntil) ctx.rotate((now * 0.014) % (Math.PI * 2));
+        else if (racer.tiltAngle) ctx.rotate(racer.tiltAngle);
 
-            for (let r = 0; r < rows; r++) {
-                for (let c = 0; c < cols; c++) map[r][c] = 0;
-            }
+        ctx.font = `${TILE_SIZE * 0.8}px sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(racer.emoji, 0, 0);
 
-            const roadCandidateSet = new Set();
-            segmentDistances = [];
-            cumulativeSegmentDist = [0];
-            totalLapLength = 0;
-
-            for (let i = 0; i < lapWaypoints.length; i++) {
-                const p1 = lapWaypoints[i];
-                const p2 = lapWaypoints[(i + 1) % lapWaypoints.length];
-                const segLen = Math.hypot(p2.x - p1.x, p2.y - p1.y);
-                segmentDistances.push(segLen);
-                totalLapLength += segLen;
-                cumulativeSegmentDist.push(totalLapLength);
-
-                const minX = Math.min(p1.x, p2.x);
-                const maxX = Math.max(p1.x, p2.x);
-                const minY = Math.min(p1.y, p2.y);
-                const maxY = Math.max(p1.y, p2.y);
-
-                for (let r = minY; r <= maxY; r++) {
-                    for (let c = minX; c <= maxX; c++) {
-                        map[r][c] = 1;
-                        if (!(r === cfg.startRow && c >= cfg.startCol - 2) && c < cols - 2) {
-                            roadCandidateSet.add(`${c},${r}`);
-                        }
-                    }
-                }
-            }
-
-            map[cfg.startRow][cfg.startCol] = 4;
-
-            for (let r = 0; r < rows; r++) {
-                for (let c = 0; c < cols; c++) {
-                    if (map[r][c] === 0) {
-                        if (r === 0 || r === rows - 1 || c === 0 || c === cols - 1) {
-                            if ((r + c) % 2 === 0) map[r][c] = 3;
-                        } else if (Math.random() < cfg.buildingChance) {
-                            map[r][c] = 2;
-                        } else if (Math.random() < cfg.treeChance) {
-                            map[r][c] = 3;
-                        }
-                    }
-                }
-            }
-
-            hazardRoadCandidates = Array.from(roadCandidateSet).map(coord => {
-                const [x, y] = coord.split(',').map(Number);
-                return { x, y };
-            });
-
-            emojiMap = map.map(row => row.map(tile => {
-                if (tile === 2) return EMOJIS.building[Math.floor(Math.random() * EMOJIS.building.length)];
-                if (tile === 3) return EMOJIS.tree[Math.floor(Math.random() * EMOJIS.tree.length)];
-                return null;
-            }));
-
-            activeTrafficLights = cfg.trafficLights.map(wpIdx => {
-                const node = lapWaypoints[wpIdx];
-                return {
-                    wpIdx,
-                    x: node ? node.x : 0,
-                    y: node ? node.y : 0,
-                    state: 'green',
-                    timer: 2000 + Math.random() * 1000
-                };
-            });
+        if (performance.now() < racer.boostUntil && performance.now() >= racer.crashedUntil) {
+          ctx.font = `${TILE_SIZE * 0.45}px sans-serif`;
+          ctx.fillText('💨', TILE_SIZE * 0.65, 0);
         }
 
-        function computeRacerExactScore(racer) {
-            if (racer.finishRank > 0) {
-                return 1000000 - (racer.finishRank * 1000);
-            }
+        ctx.restore();
 
-            const prevWpIdx = (racer.waypointIndex - 1 + lapWaypoints.length) % lapWaypoints.length;
-            const prevNode = lapWaypoints[prevWpIdx];
-            const segLen = segmentDistances[prevWpIdx] || 1;
-            const distFromPrev = Math.min(segLen, Math.hypot(racer.tileX - (prevNode.x + 0.5), racer.tileY - (prevNode.y + 0.5)));
-            const distanceAlongCurrentLap = cumulativeSegmentDist[prevWpIdx] + distFromPrev;
-
-            return (racer.laps * totalLapLength) + distanceAlongCurrentLap;
+        if (performance.now() < racer.crashedUntil) {
+          ctx.font = `${TILE_SIZE * 0.6}px sans-serif`;
+          ctx.fillText('🪨🔥💥', rx, ry - TILE_SIZE * 0.55);
+        } else if (racer.stoppedByAnimal) {
+          ctx.font = `${TILE_SIZE * 0.42}px sans-serif`;
+          ctx.fillText('🛑', rx, ry - TILE_SIZE * 0.48);
         }
-
-        function getSortedRacers() {
-            return [...racers].sort((a, b) => computeRacerExactScore(b) - computeRacerExactScore(a));
-        }
-
-        let polySynth, bassSynth, hornSawSynth, hornSquareSynth, airHornSynth, fireworkNoise, crashSynth, boostSynth, musicLoop;
-        let soundInitialized = false;
-
-        async function initAudioEngine() {
-            if (soundInitialized) return;
-            try {
-                await Tone.start();
-
-                polySynth = new Tone.PolySynth(Tone.Synth, {
-                    oscillator: { type: 'triangle' },
-                    envelope: { attack: 0.02, decay: 0.1, sustain: 0.2, release: 0.3 }
-                }).toDestination();
-                polySynth.volume.value = -12;
-
-                bassSynth = new Tone.MonoSynth({
-                    oscillator: { type: 'square' },
-                    envelope: { attack: 0.01, decay: 0.15, sustain: 0.1, release: 0.1 }
-                }).toDestination();
-                bassSynth.volume.value = -20;
-
-                hornSawSynth = new Tone.PolySynth(Tone.Synth, {
-                    oscillator: { type: 'sawtooth' },
-                    envelope: { attack: 0.01, decay: 0.15, sustain: 0.5, release: 0.12 }
-                }).toDestination();
-                hornSawSynth.volume.value = -10;
-
-                hornSquareSynth = new Tone.PolySynth(Tone.Synth, {
-                    oscillator: { type: 'square' },
-                    envelope: { attack: 0.005, decay: 0.08, sustain: 0.35, release: 0.08 }
-                }).toDestination();
-                hornSquareSynth.volume.value = -12;
-
-                airHornSynth = new Tone.PolySynth(Tone.Synth, {
-                    oscillator: { type: 'fatsawtooth', count: 3, spread: 20 },
-                    envelope: { attack: 0.04, decay: 0.25, sustain: 0.6, release: 0.25 }
-                }).toDestination();
-                airHornSynth.volume.value = -18;
-
-                fireworkNoise = new Tone.NoiseSynth({
-                    noise: { type: 'pink' },
-                    envelope: { attack: 0.005, decay: 0.35, sustain: 0, release: 0.2 }
-                }).toDestination();
-                fireworkNoise.volume.value = -12;
-
-                crashSynth = new Tone.NoiseSynth({
-                    noise: { type: 'brown' },
-                    envelope: { attack: 0.002, decay: 0.45, sustain: 0.1, release: 0.25 }
-                }).toDestination();
-                crashSynth.volume.value = -18;
-
-                boostSynth = new Tone.NoiseSynth({
-                    noise: { type: 'white' },
-                    envelope: { attack: 0.05, decay: 0.5, sustain: 0.2, release: 1 }
-                }).toDestination();
-                boostSynth.volume.value = -14;
-
-                const melodyNotes = ['C5','E5','G5','E5','F5','A5','G5','E5','D5','F5','A5','F5','G5','B5','C6','G5'];
-                const bassNotes = ['C3','C3','G2','G2','F2','F2','C3','C3','D2','D2','A2','A2','G2','G2','G2','B2'];
-                let step = 0;
-
-                musicLoop = new Tone.Loop((time) => {
-                    if (!gameRunning) return;
-                    polySynth.triggerAttackRelease(melodyNotes[step % melodyNotes.length], '16n', time);
-                    bassSynth.triggerAttackRelease(bassNotes[step % bassNotes.length], '8n', time);
-                    step++;
-                }, '8n');
-
-                Tone.Transport.bpm.value = 140;
-                soundInitialized = true;
-            } catch (e) {
-                console.warn('Audio init warning:', e);
-            }
-        }
-
-        function startBackgroundMusic() {
-            if (!soundInitialized) return;
-            try {
-                if (Tone.Transport.state !== 'started') Tone.Transport.start();
-                musicLoop.start(0);
-            } catch (e) {}
-        }
-
-        function stopBackgroundMusic() {
-            if (!soundInitialized) return;
-            try { musicLoop.stop(); } catch (e) {}
-        }
-
-        function setMusicAndHornsDucked(isDucked) {
-            if (!soundInitialized) return;
-            try { Tone.Destination.volume.rampTo(isDucked ? -14 : 0, 0.08); } catch (e) {}
-        }
-
-        function playCrashSound() {
-            if (!soundInitialized) return;
-            try {
-                const now = Tone.now() + 0.01;
-                crashSynth.triggerAttackRelease('4n', now);
-                polySynth.triggerAttackRelease(['C2','F#2'], '8n', now + 0.1);
-            } catch (e) {}
-        }
-
-        function playVariedCarHorn() {
-            if (!soundInitialized) return;
-            try { hornSquareSynth.triggerAttackRelease(['A5','C#6'], '16n', Tone.now() + 0.01); } catch (e) {}
-        }
-
-        function playStartSound() {
-            if (!soundInitialized) return;
-            try {
-                const now = Tone.now() + 0.02;
-                polySynth.triggerAttackRelease('C5', '16n', now);
-                polySynth.triggerAttackRelease('C5', '16n', now + 0.12);
-            } catch (e) {}
-        }
-
-        function playLapSound() {
-            if (!soundInitialized) return;
-            try { polySynth.triggerAttackRelease(['E5','G5','C6'], '16n', Tone.now() + 0.02); } catch (e) {}
-        }
-
-        function loadVoices() {
-            if (!('speechSynthesis' in window)) return;
-            const voices = window.speechSynthesis.getVoices();
-            if (!voices.length) return;
-
-            emmaVoice = voices.find(v =>
-                /microsoft.*emma/i.test(v.name) &&
-                /(online|natural)/i.test(v.name)
-            ) || voices.find(v => /microsoft.*emma/i.test(v.name)) || voices.find(v =>
-                /emma/i.test(v.name) &&
-                /(online|natural)/i.test(v.name)
-            ) || voices.find(v => /emma/i.test(v.name)) || voices.find(v =>
-                v.lang && v.lang.toLowerCase().startsWith('en')
-            );
-
-            andrewVoice = voices.find(v =>
-                /microsoft.*andrew/i.test(v.name) &&
-                /(online|natural)/i.test(v.name)
-            ) || voices.find(v => /microsoft.*andrew/i.test(v.name)) || voices.find(v =>
-                /andrew/i.test(v.name) &&
-                /(online|natural)/i.test(v.name)
-            ) || voices.find(v => /andrew/i.test(v.name)) || voices.find(v =>
-                v.lang && v.lang.toLowerCase().startsWith('en')
-            );
-        }
-
-        if ('speechSynthesis' in window) {
-            loadVoices();
-            window.speechSynthesis.onvoiceschanged = loadVoices;
-        }
-
-        function speakCommentary(speaker, text, interrupt = false) {
-            if (!('speechSynthesis' in window)) return;
-
-            const synth = window.speechSynthesis;
-            loadVoices();
-
-            if (interrupt) {
-                synth.cancel();
-                ttsQueue = [];
-            }
-
-            if (synth.speaking || synth.pending) {
-                if (!interrupt) {
-                    ttsQueue.push({ speaker, text });
-                    return;
-                }
-            }
-
-            const utter = new SpeechSynthesisUtterance(text);
-            utter.volume = 1.0;
-            utter.rate = 1.0;
-            utter.pitch = speaker === 'Emma' ? 1.04 : 0.96;
-            utter.lang = 'en-US';
-
-            if (speaker === 'Emma' && emmaVoice) utter.voice = emmaVoice;
-            if (speaker === 'Andrew' && andrewVoice) utter.voice = andrewVoice;
-
-            utter.onstart = () => {
-                lastSpeechStartTime = performance.now();
-                setMusicAndHornsDucked(true);
-                commentaryBanner.classList.remove('hidden');
-                commentaryText.textContent = `${speaker}: "${text}"`;
-            };
-
-            utter.onend = () => {
-                lastSpeechEndTime = performance.now();
-                setMusicAndHornsDucked(false);
-                commentaryBanner.classList.add('hidden');
-
-                if (ttsQueue.length > 0) {
-                    const next = ttsQueue.shift();
-                    setTimeout(() => speakCommentary(next.speaker, next.text, false), 80);
-                }
-            };
-
-            utter.onerror = utter.onend;
-
-            try { synth.resume(); } catch (e) {}
-            synth.speak(utter);
-        }
-
-        function queueUrgentEventAnnouncement(text) {
-            urgentAnnouncementQueue.push(text);
-            if (urgentAnnouncementQueue.length > 3) urgentAnnouncementQueue.shift();
-        }
-
-        function processLiveCommentary(sortedRacers) {
-            if (!('speechSynthesis' in window) || sortedRacers.length === 0) return;
-
-            const now = performance.now();
-            const synth = window.speechSynthesis;
-
-            if (synth.speaking || synth.pending) {
-                if (now - lastSpeechStartTime > 7500) {
-                    synth.cancel();
-                } else {
-                    return;
-                }
-            }
-
-            const first = sortedRacers[0];
-            const second = sortedRacers[1];
-            const third = sortedRacers[2];
-
-            const v1 = VEHICLE_NAMES[first.emoji] || 'car';
-            const v2 = second ? (VEHICLE_NAMES[second.emoji] || 'car') : '';
-            const v3 = third ? (VEHICLE_NAMES[third.emoji] || 'car') : '';
-
-            const oldFirst = prevTopThreeNames[0];
-            const oldSecond = prevTopThreeNames[1];
-            const firstChanged = oldFirst !== "" && first.name !== oldFirst;
-            const secondChanged = second && oldSecond !== "" && second.name !== oldSecond;
-
-            if (urgentAnnouncementQueue.length > 0 && !lastCommentaryWasUrgent && (now - lastSpeechEndTime > 160)) {
-                const speaker = commentatorTurn % 2 === 0 ? 'Emma' : 'Andrew';
-                commentatorTurn++;
-                lastCommentaryWasUrgent = true;
-                speakCommentary(speaker, urgentAnnouncementQueue.shift(), false);
-                return;
-            }
-
-            if (now - lastSpeechEndTime < (firstChanged ? 150 : 520)) return;
-
-            lastCommentaryWasUrgent = false;
-            prevTopThreeNames = [first ? first.name : "", second ? second.name : "", third ? third.name : ""];
-
-            const speaker = commentatorTurn % 2 === 0 ? 'Emma' : 'Andrew';
-            commentatorTurn++;
-            commentaryStyleIndex++;
-
-            let line = "";
-
-            if (finishLinePhase) {
-                const sprintLines = [
-                    `Final sprint to the checkered flag! ${first.name} in the ${v1} is leading the charge toward the finish line, with ${second ? second.name + ' in the ' + v2 : 'the pack'} right on their tail!`,
-                    `The clock is at zero! Who will cross the line first? Right now ${first.name} in the ${v1} has the edge over ${second ? second.name + ' in the ' + v2 : 'the field'}!`,
-                    `Heart-pounding finish! ${first.name} is flooring the gas in the ${v1}, trying to hold off ${second ? second.name + ' in the ' + v2 : 'everyone'} at the checkered flag!`
-                ];
-                line = sprintLines[commentaryStyleIndex % sprintLines.length];
-            } else if (second && third) {
-                if (firstChanged) {
-                    const overtakeLinesEmma = [
-                        `Incredible overtake for the lead! ${first.name} in the ${v1} just blasted past ${oldFirst} to claim first place! ${second.name} is now second in the ${v2}, and ${third.name} is third in the ${v3}!`,
-                        `We have a brand new leader! ${first.name} wheels the ${v1} into the number one spot! ${second.name} chases in second in the ${v2}, with ${third.name} holding third in the ${v3}!`,
-                        `What a fearless move! ${first.name} surges to the front in the ${v1}, leaving ${oldFirst} behind! ${second.name} is second in the ${v2} and ${third.name} is third in the ${v3}!`,
-                        `Sensational pass! ${first.name} takes command of the race in the ${v1}! Second place is ${second.name} in the ${v2}, and third is ${third.name} in the ${v3}!`
-                    ];
-                    const overtakeLinesAndrew = [
-                        `Unbelievable pass! ${first.name} grabs the lead in the ${v1}, overtaking ${oldFirst}! ${second.name} holds second in the ${v2}, and ${third.name} is third in the ${v3}!`,
-                        `Shake-up at the top! ${first.name} muscles the ${v1} into first place! ${second.name} is right behind in second in the ${v2}, and ${third.name} is third in the ${v3}!`,
-                        `Look at that speed! ${first.name} rockets past ${oldFirst} in the ${v1} to take number one! ${second.name} is second in the ${v2}, and ${third.name} is in third in the ${v3}!`,
-                        `New leader alert! ${first.name} is now out front driving the ${v1}, followed closely by ${second.name} in the ${v2} and ${third.name} in the ${v3}!`
-                    ];
-                    const pool = speaker === 'Emma' ? overtakeLinesEmma : overtakeLinesAndrew;
-                    line = pool[commentaryStyleIndex % pool.length];
-                } else if (secondChanged) {
-                    line = speaker === 'Emma'
-                        ? `Big move for second place! While ${first.name} leads in the ${v1}, ${second.name} in the ${v2} just passed ${oldSecond} for second, with ${third.name} in third in the ${v3}!`
-                        : `Battle for the podium! ${first.name} holds first in the ${v1}, but ${second.name} just charged into second place in the ${v2}, ahead of ${third.name} in the ${v3}!`;
-                } else {
-                    const templates = [
-                        `In first place right now is ${first.name} driving the ${v1}! Second is ${second.name} in the ${v2}, and third is ${third.name} in the ${v3}!`,
-                        `Top three check: ${first.name} leads the pack in the ${v1}, ${second.name} chases in second in the ${v2}, and ${third.name} holds third in the ${v3}!`,
-                        `What a wild race! ${first.name} is out front in the ${v1}, followed by ${second.name} in the ${v2} and ${third.name} in the ${v3}!`,
-                        `${first.name} is putting on a driving clinic in the ${v1} at number one! ${second.name} is closing the gap in second in the ${v2}, and ${third.name} is right there in third in the ${v3}!`,
-                        `Bumper-to-bumper action! ${first.name} commands first place in the ${v1}, ${second.name} is hungry for the lead in second in the ${v2}, and ${third.name} is third in the ${v3}!`,
-                        `Listen to those engines roar! ${first.name} is pacing the field in the ${v1}, with ${second.name} in second in the ${v2} and ${third.name} rounding out the top three in the ${v3}!`
-                    ];
-                    line = templates[commentaryStyleIndex % templates.length];
-                }
-            } else if (second) {
-                line = `${first.name} leads in first in the ${v1}, with ${second.name} chasing in second in the ${v2}!`;
-            } else {
-                line = `${first.name} is in first place in the ${v1}!`;
-            }
-
-            speakCommentary(speaker, line, false);
-        }
-
-        function updateHazardsAndHorns(now, dt) {
-            activeTrafficLights.forEach(light => {
-                light.timer -= dt;
-                if (light.timer <= 0) {
-                    if (light.state === 'green') {
-                        light.state = 'yellow';
-                        light.timer = 1400;
-                    } else if (light.state === 'yellow') {
-                        light.state = 'red';
-                        light.timer = 3200 + Math.random() * 1800;
-                    } else {
-                        light.state = 'green';
-                        light.timer = 4500 + Math.random() * 2000;
-                    }
-                }
-            });
-
-            if (now > nextAnimalSpawnTime && activeAnimals.length < 4 && hazardRoadCandidates.length > 0) {
-                const animalSpec = CROSSING_ANIMALS[Math.floor(Math.random() * CROSSING_ANIMALS.length)];
-                const candidate = hazardRoadCandidates[Math.floor(Math.random() * hazardRoadCandidates.length)];
-                const dir = Math.random() < 0.5 ? 1 : -1;
-
-                activeAnimals.push({
-                    emoji: animalSpec.emoji,
-                    name: animalSpec.name,
-                    tileX: candidate.x + 0.5,
-                    tileY: candidate.y + 0.5 - (dir * 0.85),
-                    endY: candidate.y + 0.5 + (dir * 0.85),
-                    roadRow: candidate.y,
-                    direction: dir,
-                    speed: animalSpec.speed,
-                    announced: false
-                });
-
-                hazardBannerIcon.textContent = animalSpec.emoji;
-                hazardBannerText.textContent = `${animalSpec.emoji} ${animalSpec.name} crossing the road!`;
-                hazardBanner.classList.remove('hidden');
-                playVariedCarHorn();
-
-                if (Math.random() < 0.65) {
-                    queueUrgentEventAnnouncement(`Heads up! A ${animalSpec.name} is wandering across the track!`);
-                }
-                nextAnimalSpawnTime = now + 2600 + Math.random() * 2400;
-            }
-
-            if (now > nextRockSpawnTime && activeRocks.length < 5 && hazardRoadCandidates.length > 0) {
-                const pt = hazardRoadCandidates[Math.floor(Math.random() * hazardRoadCandidates.length)];
-                activeRocks.push({ tileX: pt.x + 0.5, tileY: pt.y + 0.5, expiresAt: now + 11000 });
-                nextRockSpawnTime = now + 2800 + Math.random() * 2500;
-            }
-
-            if (now > nextBoostSpawnTime && activeBoosts.length < 4 && hazardRoadCandidates.length > 0) {
-                const pt = hazardRoadCandidates[Math.floor(Math.random() * hazardRoadCandidates.length)];
-                const alreadyOccupied = activeBoosts.some(b => Math.hypot(b.tileX - (pt.x + 0.5), b.tileY - (pt.y + 0.5)) < 1.2);
-                if (!alreadyOccupied) {
-                    activeBoosts.push({ tileX: pt.x + 0.5, tileY: pt.y + 0.5 });
-                }
-                nextBoostSpawnTime = now + 3500 + Math.random() * 3000;
-            }
-
-            if (now > nextRandomHornTime) {
-                playVariedCarHorn();
-                nextRandomHornTime = now + 2000 + Math.random() * 2800;
-            }
-
-            activeAnimals.forEach(a => a.tileY += a.direction * a.speed * simulationSpeed);
-            activeAnimals = activeAnimals.filter(a => a.direction > 0 ? a.tileY < a.endY : a.tileY > a.endY);
-            activeRocks = activeRocks.filter(r => now < r.expiresAt);
-
-            if (activeAnimals.length === 0 && !racers.some(r => now < r.crashedUntil)) {
-                hazardBanner.classList.add('hidden');
-            }
-        }
-
-        function updateRacers(now, dt) {
-            const sortedByProgress = getSortedRacers();
-            const leadScore = sortedByProgress.length > 0 ? computeRacerExactScore(sortedByProgress[0]) : 0;
-
-            racers.forEach(racer => {
-                if (now < racer.crashedUntil) return;
-                if (racer.finishRank > 0) return;
-
-                const hitRockIdx = activeRocks.findIndex(rock => Math.hypot(racer.tileX - rock.tileX, racer.tileY - rock.tileY) < 0.72);
-                if (hitRockIdx !== -1) {
-                    activeRocks.splice(hitRockIdx, 1);
-                    racer.crashedUntil = now + 2100;
-                    playCrashSound();
-
-                    const vName = VEHICLE_NAMES[racer.emoji] || 'car';
-                    hazardBannerIcon.textContent = '🪨🔥💥';
-                    hazardBannerText.textContent = `ACCIDENT! ${racer.name} (${racer.emoji}) crashed into a rock!`;
-                    hazardBanner.classList.remove('hidden');
-
-                    const crashPhrases = [
-                        `Oh no, what a heartbreak! ${racer.name} in the ${vName} just smashed straight into a boulder with flames and an explosion! That is so disappointing for ${racer.name}!`,
-                        `Disaster on the track! ${racer.name} was looking so strong in the ${vName}, but just crashed into a rock! Tough luck!`,
-                        `Ouch! Heartbreaking accident for ${racer.name}! The ${vName} clipped a giant rock and burst into flames, costing them precious positions!`,
-                        `Oh, you hate to see that happen! ${racer.name} in the ${vName} just spun out in a fiery rock crash! What a disappointing setback!`,
-                        `Crunch! ${racer.name} had nowhere to go in the ${vName} and slammed right into a boulder! So disappointing!`
-                    ];
-                    queueUrgentEventAnnouncement(crashPhrases[Math.floor(Math.random() * crashPhrases.length)]);
-                    return;
-                }
-
-                const hitBoostIdx = activeBoosts.findIndex(b => Math.hypot(racer.tileX - b.tileX, racer.tileY - b.tileY) < 0.78);
-                if (hitBoostIdx !== -1) {
-                    activeBoosts.splice(hitBoostIdx, 1);
-                    racer.boostUntil = now + 3200;
-                    if (soundInitialized) {
-                        try { boostSynth.triggerAttackRelease('8n', Tone.now()); } catch (e) {}
-                    }
-
-                    const vName = VEHICLE_NAMES[racer.emoji] || 'car';
-                    const boostPhrases = [
-                        `Maximum overdrive! ${racer.name} in the ${vName} just hit a lightning power boost and is rocketing past the competition at supersonic speed!`,
-                        `Boom! Electric turbo boost activated for ${racer.name}! Look at that ${vName} fly down the track!`,
-                        `What a massive power-up! ${racer.name} ran right over a lightning bolt in the ${vName} and is blasting forward like a jet!`,
-                        `High voltage speed! ${racer.name} grabs the lightning boost pad and the ${vName} is absolutely scorching the asphalt!`,
-                        `Hold onto your hats! ${racer.name} just triggered a nitro lightning boost in the ${vName}! Unbelievable acceleration!`
-                    ];
-                    queueUrgentEventAnnouncement(boostPhrases[Math.floor(Math.random() * boostPhrases.length)]);
-                }
-
-                const blockingAnimal = activeAnimals.find(a => Math.hypot(racer.tileX - a.tileX, racer.tileY - a.tileY) < 1.1);
-                if (blockingAnimal) {
-                    if (!racer.stoppedByAnimal) {
-                        playVariedCarHorn();
-                        if (!blockingAnimal.announced) {
-                            blockingAnimal.announced = true;
-                            const vName = VEHICLE_NAMES[racer.emoji] || 'car';
-                            const animalPhrases = [
-                                `Animal crossing! A ${blockingAnimal.name} is strolling right across the road and completely blocking ${racer.name} in the ${vName}!`,
-                                `Slam on the brakes! ${racer.name} in the ${vName} is stuck waiting for a ${blockingAnimal.name} to cross the track!`,
-                                `Traffic jam! A ${blockingAnimal.name} has wandered onto the asphalt right in front of ${racer.name} driving the ${vName}!`
-                            ];
-                            queueUrgentEventAnnouncement(animalPhrases[Math.floor(Math.random() * animalPhrases.length)]);
-                        }
-                    }
-                    racer.stoppedByAnimal = true;
-                    return;
-                } else {
-                    racer.stoppedByAnimal = false;
-                }
-
-                const targetNode = lapWaypoints[racer.waypointIndex];
-                const targetTileX = targetNode.x + 0.5 + racer.laneOffset;
-                const targetTileY = targetNode.y + 0.5 + racer.laneOffset;
-
-                let stoppingForLight = false;
-                const upcomingLight = activeTrafficLights.find(l => l.wpIdx === racer.waypointIndex);
-                if (upcomingLight && (upcomingLight.state === 'red' || upcomingLight.state === 'yellow')) {
-                    const distToInter = Math.hypot(targetTileX - racer.tileX, targetTileY - racer.tileY);
-                    if (distToInter < 1.8 && distToInter > 0.4) stoppingForLight = true;
-                }
-
-                if (stoppingForLight) {
-                    racer.isStoppedAtLight = true;
-                    const lightState = upcomingLight.state === 'yellow' ? 'yellow' : 'red';
-                    const lightText = `${racer.name} is stopping at a ${lightState} light in the ${VEHICLE_NAMES[racer.emoji] || 'car'}!`;
-                    queueUrgentEventAnnouncement(lightText);
-                    return;
-                } else {
-                    racer.isStoppedAtLight = false;
-                }
-
-                if (now > racer.speedChangeTimer) {
-                    const rankIndex = sortedByProgress.findIndex(r => r.id === racer.id);
-                    const myScore = computeRacerExactScore(racer);
-                    const gapBehindLeader = Math.max(0, leadScore - myScore);
-
-                    let chaosMultiplier = 0.78 + Math.random() * 0.68;
-                    if (rankIndex === 0) {
-                        chaosMultiplier = 0.68 + Math.random() * 0.35;
-                    } else if (rankIndex <= 5) {
-                        chaosMultiplier = 0.95 + Math.random() * 0.65 + Math.min(0.4, gapBehindLeader * 0.025);
-                    } else {
-                        chaosMultiplier = 1.10 + Math.random() * 0.75 + Math.min(0.55, gapBehindLeader * 0.035);
-                    }
-
-                    if (Math.random() < 0.08 && rankIndex > 1) chaosMultiplier *= 1.45;
-                    else if (Math.random() < 0.05 && rankIndex === 0) chaosMultiplier *= 0.65;
-
-                    racer.speed = racer.baseSpeed * chaosMultiplier;
-                    racer.speedChangeTimer = now + 550 + Math.random() * 850;
-                }
-
-                let finalSpeed = racer.speed;
-                if (now < racer.boostUntil) finalSpeed *= 2.4;
-                if (finishLinePhase) finalSpeed *= 1.35;
-
-                const dx = targetTileX - racer.tileX;
-                const dy = targetTileY - racer.tileY;
-                const distTiles = Math.hypot(dx, dy);
-                const stepTiles = (finalSpeed * simulationSpeed) / 31;
-
-                if (Math.abs(dx) > Math.abs(dy)) {
-                    racer.facingRight = dx > 0;
-                    racer.tiltAngle = 0;
-                } else {
-                    racer.facingRight = false;
-                    racer.tiltAngle = dy > 0 ? -0.42 : 0.42;
-                }
-
-                if (distTiles <= stepTiles) {
-                    const reachedWaypoint = racer.waypointIndex;
-                    racer.tileX = targetTileX;
-                    racer.tileY = targetTileY;
-                    racer.waypointIndex = (racer.waypointIndex + 1) % lapWaypoints.length;
-
-                    if (reachedWaypoint === 0) {
-                        racer.laps++;
-                        playLapSound();
-
-                        if (finishLinePhase && racer.finishRank === 0) {
-                            podiumLocked.push(racer);
-                            racer.finishRank = podiumLocked.length;
-
-                            if (podiumLocked.length >= Math.min(3, racers.length)) {
-                                endGame(true);
-                                return;
-                            }
-                        }
-                    }
-                } else {
-                    racer.tileX += (dx / distTiles) * stepTiles;
-                    racer.tileY += (dy / distTiles) * stepTiles;
-                }
-            });
-
-            if (now - lastPanelRenderTime > 160) {
-                lastPanelRenderTime = now;
-                const currentSorted = getSortedRacers();
-                if (gameRunning && currentSorted.length > 0 && now - raceStartTime > 1000) {
-                    processLiveCommentary(currentSorted);
-                }
-                renderLeftPanelDOM(currentSorted, now);
-            }
-        }
-
-        function renderLeftPanelDOM(sortedList, now = performance.now()) {
-            document.getElementById('leftRacerList').innerHTML = sortedList.map((r, index) => {
-                const rank = index + 1;
-                let badgeColor = 'bg-gray-700 text-gray-200';
-                let cardBorder = 'border-gray-700 bg-gray-900/90';
-
-                if (rank === 1) { badgeColor = 'bg-yellow-400 text-gray-900'; cardBorder = 'border-yellow-500/80 bg-gray-900'; }
-                else if (rank === 2) { badgeColor = 'bg-gray-300 text-gray-900'; }
-                else if (rank === 3) { badgeColor = 'bg-amber-600 text-white'; }
-
-                const isCrashed = now < r.crashedUntil;
-                const isBoosted = now < r.boostUntil;
-                const statusIcon = r.finishRank > 0
-                    ? `🏁#${r.finishRank}`
-                    : (isCrashed ? '🪨🔥💥' : (r.stoppedByAnimal ? '🐄' : (r.isStoppedAtLight ? '🔴' : (isBoosted ? '⚡' : `L${r.laps + 1}`))));
-
-                return `
-                    <div class="flex items-center justify-between px-1.5 py-0.5 rounded-lg border ${cardBorder}">
-                        <div class="flex items-center gap-1.5 min-w-0">
-                            <span class="w-4 h-4 rounded-full text-[10px] font-black flex items-center justify-center shrink-0 ${badgeColor}">${rank}</span>
-                            <div class="flex flex-col items-start leading-none min-w-0">
-                                <span class="font-bold text-[11px] text-white truncate max-w-[68px]">${r.name}</span>
-                                <span class="text-base mt-0.5 leading-none">${r.emoji}</span>
-                            </div>
-                        </div>
-                        <div class="text-right shrink-0"><span class="text-[10px] font-extrabold text-yellow-400">${statusIcon}</span></div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        function drawRacerSprite(racer, now) {
-            const isCrashed = now < racer.crashedUntil;
-            const isBoosted = now < racer.boostUntil;
-            const rx = racer.tileX * TILE_SIZE;
-            const ry = racer.tileY * TILE_SIZE;
-
-            ctx.save();
-            ctx.translate(rx, ry);
-
-            if (racer.facingRight) ctx.scale(-1, 1);
-            if (isCrashed) ctx.rotate((now * 0.015) % (Math.PI * 2));
-            else if (racer.tiltAngle !== 0) ctx.rotate(racer.tiltAngle);
-
-            ctx.font = `${TILE_SIZE * 0.78}px sans-serif`;
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText(racer.emoji, 0, 0);
-
-            if (isBoosted && !isCrashed) {
-                ctx.font = `${TILE_SIZE * 0.5}px sans-serif`;
-                ctx.fillText('💨', TILE_SIZE * 0.6, 0);
-            }
-            ctx.restore();
-
-            if (isCrashed) {
-                ctx.font = `${TILE_SIZE * 0.62}px sans-serif`;
-                ctx.fillText('🪨🔥💥', rx, ry - TILE_SIZE * 0.55);
-            } else if (racer.stoppedByAnimal) {
-                ctx.font = `${TILE_SIZE * 0.42}px sans-serif`;
-                ctx.fillText('🛑', rx, ry - TILE_SIZE * 0.48);
-            }
-        }
-
-        function isRacerOnOverpassBridge(racer) {
-            if (currentTrackId !== 4) return false;
-            return [4, 5, 7, 8, 19].includes(racer.waypointIndex);
-        }
-
-        function drawTrack() {
-            const now = performance.now();
-            const cfg = TRACK_CONFIGS[currentTrackId];
-
-            ctx.fillStyle = '#4d8a3b';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            for (let y = 0; y < rows; y++) {
-                for (let x = 0; x < cols; x++) {
-                    const tile = map[y][x];
-                    const px = x * TILE_SIZE;
-                    const py = y * TILE_SIZE;
-
-                    if (tile === 1 || tile === 4) {
-                        ctx.fillStyle = currentTrackId === 3 ? '#312e81' : (currentTrackId === 4 ? '#1f2937' : '#374151');
-                        ctx.fillRect(px, py, TILE_SIZE + 0.6, TILE_SIZE + 0.6);
-
-                        ctx.fillStyle = currentTrackId === 3 ? '#818cf8' : (currentTrackId === 4 ? '#fbbf24' : '#9ca3af');
-                        ctx.fillRect(px + TILE_SIZE * 0.38, py + TILE_SIZE * 0.45, TILE_SIZE * 0.22, TILE_SIZE * 0.08);
-                    }
-
-                    if (tile === 2 || tile === 3) {
-                        ctx.font = `${TILE_SIZE * 0.72}px sans-serif`;
-                        ctx.textAlign = 'center';
-                        ctx.textBaseline = 'middle';
-                        ctx.fillText(emojiMap[y][x], px + TILE_SIZE / 2, py + TILE_SIZE / 2);
-                    } else if (tile === 4) {
-                        ctx.fillStyle = '#facc15';
-                        ctx.fillRect(px, py, TILE_SIZE * 0.24, TILE_SIZE);
-                        ctx.font = `${TILE_SIZE * 0.82}px sans-serif`;
-                        ctx.textAlign = 'center';
-                        ctx.textBaseline = 'middle';
-                        ctx.fillText(EMOJIS.finish, px + TILE_SIZE / 2, py + TILE_SIZE / 2);
-                    }
-                }
-            }
-
-            activeBoosts.forEach(b => {
-                ctx.save();
-                ctx.font = `${TILE_SIZE * 0.85}px sans-serif`;
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText('⚡', b.tileX * TILE_SIZE, b.tileY * TILE_SIZE);
-                ctx.restore();
-            });
-
-            activeRocks.forEach(r => {
-                ctx.font = `${TILE_SIZE * 0.82}px sans-serif`;
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText('🪨', r.tileX * TILE_SIZE, r.tileY * TILE_SIZE);
-            });
-
-            activeAnimals.forEach(a => {
-                const ax = a.tileX * TILE_SIZE;
-                const ay = a.tileY * TILE_SIZE;
-                const roadCenterY = (a.roadRow + 0.5) * TILE_SIZE;
-
-                ctx.fillStyle = 'rgba(250, 204, 21, 0.55)';
-                for (let s = -0.35; s <= 0.35; s += 0.22) {
-                    ctx.fillRect(ax - TILE_SIZE * 0.35, roadCenterY + s * TILE_SIZE, TILE_SIZE * 0.7, TILE_SIZE * 0.1);
-                }
-
-                ctx.font = `${TILE_SIZE * 0.45}px sans-serif`;
-                ctx.fillText('⚠️', ax, roadCenterY - TILE_SIZE * 0.55);
-                ctx.font = `${TILE_SIZE * 0.85}px sans-serif`;
-                ctx.fillText(a.emoji, ax, ay);
-            });
-
-            racers.forEach(racer => {
-                if (!isRacerOnOverpassBridge(racer)) drawRacerSprite(racer, now);
-            });
-
-            if (cfg.overpasses && cfg.overpasses.length > 0) {
-                cfg.overpasses.forEach(ov => {
-                    const ox = ov.x * TILE_SIZE;
-                    const oy = ov.y * TILE_SIZE;
-
-                    ctx.fillStyle = 'rgba(0, 0, 0, 0.55)';
-                    ctx.fillRect(ox - TILE_SIZE * 0.18, oy, TILE_SIZE * 1.36, TILE_SIZE);
-
-                    ctx.fillStyle = '#4b5563';
-                    ctx.fillRect(ox, oy - TILE_SIZE * 0.1, TILE_SIZE, TILE_SIZE * 1.2);
-
-                    ctx.fillStyle = '#f59e0b';
-                    ctx.fillRect(ox - 2, oy - TILE_SIZE * 0.1, 4, TILE_SIZE * 1.2);
-                    ctx.fillRect(ox + TILE_SIZE - 2, oy - TILE_SIZE * 0.1, 4, TILE_SIZE * 1.2);
-
-                    ctx.fillStyle = '#fef08a';
-                    ctx.fillRect(ox + TILE_SIZE * 0.46, oy + TILE_SIZE * 0.25, TILE_SIZE * 0.08, TILE_SIZE * 0.5);
-                });
-            }
-
-            racers.forEach(racer => {
-                if (isRacerOnOverpassBridge(racer)) drawRacerSprite(racer, now);
-            });
-
-            if (cfg.tunnels && cfg.tunnels.length > 0) {
-                cfg.tunnels.forEach(t => {
-                    const minX = Math.min(t.x1, t.x2) * TILE_SIZE;
-                    const minY = Math.min(t.y1, t.y2) * TILE_SIZE;
-                    const width = (Math.abs(t.x2 - t.x1) + 1) * TILE_SIZE;
-                    const height = (Math.abs(t.y2 - t.y1) + 1) * TILE_SIZE;
-
-                    ctx.fillStyle = 'rgba(17, 24, 39, 0.86)';
-                    ctx.fillRect(minX, minY, width, height);
-                    ctx.strokeStyle = '#9ca3af';
-                    ctx.lineWidth = 3;
-                    ctx.strokeRect(minX, minY, width, height);
-
-                    ctx.fillStyle = '#6b7280';
-                    if (t.orientation === 'vertical') {
-                        ctx.fillRect(minX - 3, minY, width + 6, TILE_SIZE * 0.28);
-                        ctx.fillRect(minX - 3, minY + height - TILE_SIZE * 0.28, width + 6, TILE_SIZE * 0.28);
-                    } else {
-                        ctx.fillRect(minX, minY - 3, TILE_SIZE * 0.28, height + 6);
-                        ctx.fillRect(minX + width - TILE_SIZE * 0.28, minY - 3, TILE_SIZE * 0.28, height + 6);
-                    }
-
-                    ctx.fillStyle = '#fde047';
-                    ctx.font = `bold ${Math.max(9, TILE_SIZE * 0.32)}px Inter, sans-serif`;
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.fillText(`🏔️ ${t.label}`, minX + width / 2, minY + height / 2);
-                });
-            }
-
-            activeTrafficLights.forEach(light => {
-                const lx = (light.x + 0.5) * TILE_SIZE;
-                const ly = (light.y + 0.5) * TILE_SIZE;
-
-                ctx.fillStyle = '#222';
-                ctx.fillRect(lx - TILE_SIZE * 0.25, ly - TILE_SIZE * 1.2, TILE_SIZE * 0.5, TILE_SIZE * 1.05);
-
-                ctx.fillStyle = light.state === 'red' ? '#ff4444' : '#444';
-                ctx.beginPath();
-                ctx.arc(lx, ly - TILE_SIZE * 0.95, TILE_SIZE * 0.12, 0, Math.PI * 2);
-                ctx.fill();
-
-                ctx.fillStyle = light.state === 'yellow' ? '#ffff44' : '#444';
-                ctx.beginPath();
-                ctx.arc(lx, ly - TILE_SIZE * 0.65, TILE_SIZE * 0.12, 0, Math.PI * 2);
-                ctx.fill();
-
-                ctx.fillStyle = light.state === 'green' ? '#44ff44' : '#444';
-                ctx.beginPath();
-                ctx.arc(lx, ly - TILE_SIZE * 0.35, TILE_SIZE * 0.12, 0, Math.PI * 2);
-                ctx.fill();
-            });
-
-            if (celebrationActive || fireworks.length > 0) {
-                if (celebrationActive && Math.random() < 0.24) {
-                    const x = (0.08 + Math.random() * 0.84) * canvas.width;
-                    const y = (0.08 + Math.random() * 0.65) * canvas.height;
-                    const colors = ['#facc15','#f87171','#60a5fa','#34d399','#c084fc','#fb923c','#ffffff','#f472b6'];
-
-                    for (let i = 0; i < 55; i++) {
-                        fireworks.push({
-                            x,
-                            y,
-                            vx: Math.cos((Math.PI * 2 * i) / 55 + (Math.random() * 0.25)) * (1.8 + Math.random() * 5.8),
-                            vy: Math.sin((Math.PI * 2 * i) / 55 + (Math.random() * 0.25)) * (1.8 + Math.random() * 5.8),
-                            color: colors[i % colors.length],
-                            alpha: 1,
-                            size: 3 + Math.random() * 3.5
-                        });
-                    }
-
-                    if (soundInitialized) {
-                        try {
-                            fireworkNoise.triggerAttackRelease('8n', Tone.now());
-                            polySynth.triggerAttackRelease(['C5','E5','G5','B5','C6','D6','E6'][Math.floor(Math.random() * 7)], '16n', Tone.now() + 0.04);
-                        } catch (e) {}
-                    }
-                }
-
-                for (let i = fireworks.length - 1; i >= 0; i--) {
-                    const p = fireworks[i];
-                    p.x += p.vx;
-                    p.y += p.vy;
-                    p.vy += 0.05;
-                    p.alpha -= 0.013;
-
-                    if (p.alpha <= 0) {
-                        fireworks.splice(i, 1);
-                        continue;
-                    }
-
-                    ctx.save();
-                    ctx.globalAlpha = Math.max(0, p.alpha);
-                    ctx.fillStyle = p.color;
-                    ctx.shadowColor = p.color;
-                    ctx.shadowBlur = 8;
-                    ctx.beginPath();
-                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-                    ctx.fill();
-                    ctx.restore();
-                }
-            }
-        }
-
-        function resizeCanvasOnly() {
-            const container = canvas.parentElement;
-            const cw = container.clientWidth || 800;
-            const ch = container.clientHeight || 500;
-            const aspect = cols / rows;
-
-            let width = cw;
-            let height = cw / aspect;
-
-            if (height > ch) {
-                height = ch;
-                width = ch * aspect;
-            }
-
-            canvas.width = Math.max(360, Math.floor(width));
-            canvas.height = Math.max(240, Math.floor(height));
-            TILE_SIZE = canvas.width / cols;
-        }
-
-        async function startGame() {
-            if (gameRunning) return;
-
-            await initAudioEngine();
-            playStartSound();
-
-            if (racers.length === 0 || remainingTimeMs <= 0 || celebrationActive || finishLinePhase) {
-                endGame(false);
-                celebrationActive = false;
-                finishLinePhase = false;
-                podiumLocked = [];
-                fireworks = [];
-                remainingTimeMs = raceDurationMs;
-                activeAnimals = [];
-                activeRocks = [];
-                activeBoosts = [];
-                urgentAnnouncementQueue = [];
-                prevTopThreeNames = ["", "", ""];
-
-                hazardBanner.classList.add('hidden');
-                commentaryBanner.classList.add('hidden');
-
-                buildActiveTrackMap();
-                resizeCanvasOnly();
-
-                const cfg = TRACK_CONFIGS[currentTrackId];
-                const availableVehicles = [...FLEET_VEHICLES].sort(() => 0.5 - Math.random());
-                const chosenNames = Array.from(selectedStudents);
-
-                racers = chosenNames.map((name, idx) => {
-                    const laneOffset = ((idx % 5) - 2) * 0.09;
-                    return {
-                        id: idx,
-                        name,
-                        emoji: availableVehicles[idx % availableVehicles.length],
-                        tileX: cfg.startCol + 0.5 + (idx * 0.12),
-                        tileY: cfg.startRow + 0.5 + laneOffset,
-                        baseSpeed: 0.45 + (idx % 7) * 0.025,
-                        speed: 0.45 + (idx % 7) * 0.025,
-                        waypointIndex: 0,
-                        laps: 0,
-                        laneOffset,
-                        boostUntil: 0,
-                        crashedUntil: 0,
-                        facingRight: true,
-                        tiltAngle: 0,
-                        speedChangeTimer: 0,
-                        finishRank: 0,
-                        stoppedByAnimal: false,
-                        isStoppedAtLight: false
-                    };
-                });
-            }
-
-            celebrationActive = false;
-            fireworks = [];
-            gameRunning = true;
-
-            document.getElementById('messageOverlay').classList.add('hidden');
-            document.getElementById('startButton').textContent = '🔄';
-
-            raceStartTime = performance.now();
-            lastTime = raceStartTime;
-            lastPanelRenderTime = raceStartTime;
-
-            nextAnimalSpawnTime = raceStartTime + 2200;
-            nextRockSpawnTime = raceStartTime + 2000;
-            nextBoostSpawnTime = raceStartTime + 2500;
-            nextRandomHornTime = raceStartTime + 1800;
-            lastSpeechEndTime = raceStartTime;
-
-            const trackIntro = currentTrackId === 4
-                ? `Green light on Track 4, the Overpass and Tunnel Circuit! Watch cars race through the mountain tunnels, underpasses, and bridges!`
-                : `Green light on Track ${currentTrackId}, ${TRACK_CONFIGS[currentTrackId].name}! Watch out for animal crossings, rock crashes, and lightning power boosts!`;
-
-            speakCommentary('Emma', trackIntro, true);
-            startBackgroundMusic();
-            animationFrameId = requestAnimationFrame(gameLoop);
-        }
-
-        function endGame(showWinnerModal = false) {
-            gameRunning = false;
-            finishLinePhase = false;
-            stopBackgroundMusic();
-            setMusicAndHornsDucked(false);
-            document.getElementById('startButton').textContent = '▶️';
-
-            if (!showWinnerModal) {
-                celebrationActive = false;
-                if (animationFrameId) cancelAnimationFrame(animationFrameId);
-                if ('speechSynthesis' in window) {
-                    window.speechSynthesis.cancel();
-                    activeUtterances.length = 0;
-                }
-            }
-
-            if (racers.length > 0) {
-                celebrationActive = true;
-                const sorted = getSortedRacers();
-                renderLeftPanelDOM(sorted);
-
-                const first = sorted[0];
-                const second = sorted[1];
-                const third = sorted[2];
-
-                document.getElementById('winnerEmoji').textContent = first.emoji;
-                document.getElementById('messageTitle').textContent = `🎉 ${first.name} Wins! 🎉`;
-
-                const podiumItems = [
-                    { place: '🥇 1st', racer: first, bg: 'bg-yellow-500/25 border-yellow-400', delayClass: '' },
-                    { place: '🥈 2nd', racer: second, bg: 'bg-gray-400/25 border-gray-300', delayClass: 'floating-delay-1' },
-                    { place: '🥉 3rd', racer: third, bg: 'bg-amber-600/25 border-amber-500', delayClass: 'floating-delay-2' }
-                ].filter(item => item.racer);
-
-                document.getElementById('podiumDetails').innerHTML = podiumItems.map(item => `
-                    <div class="border ${item.bg} rounded-xl p-2.5 text-center flex flex-col items-center shadow-lg">
-                        <span class="text-xs font-black text-white">${item.place}</span>
-                        <span class="text-4xl ${item.delayClass} mt-2">${item.racer.emoji}</span>
-                        <span class="mt-2 text-sm font-bold text-white">${item.racer.name}</span>
-                    </div>
-                `).join('');
-
-                document.getElementById('messageOverlay').classList.remove('hidden');
-
-                for (let b = 0; b < 5; b++) {
-                    setTimeout(() => {
-                        if (!celebrationActive) return;
-                        const x = (0.1 + Math.random() * 0.8) * canvas.width;
-                        const y = (0.1 + Math.random() * 0.6) * canvas.height;
-                        const colors = ['#facc15','#f87171','#60a5fa','#34d399','#c084fc','#fb923c','#ffffff'];
-
-                        for (let i = 0; i < 60; i++) {
-                            fireworks.push({
-                                x, y,
-                                vx: Math.cos((Math.PI * 2 * i) / 60 + Math.random() * 0.2) * (2 + Math.random() * 5.5),
-                                vy: Math.sin((Math.PI * 2 * i) / 60 + Math.random() * 0.2) * (2 + Math.random() * 5.5),
-                                color: colors[i % colors.length],
-                                alpha: 1,
-                                size: 3 + Math.random() * 3.5
-                            });
-                        }
-
-                        if (soundInitialized) {
-                            try {
-                                fireworkNoise.triggerAttackRelease('8n', Tone.now());
-                                polySynth.triggerAttackRelease(['C5','G5','C6'], '16n', Tone.now() + 0.04);
-                            } catch (e) {}
-                        }
-                    }, b * 260);
-                }
-
-                if (soundInitialized) {
-                    try {
-                        const now = Tone.now() + 0.02;
-                        polySynth.triggerAttackRelease(['C4','E4','G4','C5'], '4n', now);
-                        polySynth.triggerAttackRelease(['E4','G4','C5','E5'], '4n', now + 0.14);
-                    } catch (e) {}
-                }
-
-                if (!('speechSynthesis' in window) || sorted.length === 0) return;
-
-                const winLine = `${first.name} wins the race in the ${VEHICLE_NAMES[first.emoji] || 'car'}! Second place goes to ${second.name} in the ${VEHICLE_NAMES[second.emoji] || 'car'}. Third place goes to ${third.name} in the ${VEHICLE_NAMES[third.emoji] || 'car'}.`;
-                speakCommentary('Emma', winLine, true);
-            }
-        }
-
-        function formatTime(ms) {
-            const totalSeconds = Math.ceil(ms / 1000);
-            const mins = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
-            const secs = String(totalSeconds % 60).padStart(2, '0');
-            return `${mins}:${secs}`;
-        }
-
-        function gameLoop(timestamp) {
-            const dt = Math.min(40, timestamp - (lastTime || timestamp));
-            lastTime = timestamp;
-
-            if (gameRunning) {
-                remainingTimeMs = Math.max(0, raceDurationMs - (timestamp - raceStartTime));
-                document.getElementById('raceTimerDisplay').textContent = formatTime(remainingTimeMs);
-
-                if (remainingTimeMs <= 0 && !finishLinePhase) {
-                    finishLinePhase = true;
-                    urgentAnnouncementQueue.push('Final lap! Everyone is sprinting for the finish line!');
-                }
-
-                updateHazardsAndHorns(timestamp, dt * simulationSpeed);
-                updateRacers(timestamp, dt * simulationSpeed);
-                drawTrack();
-
-                if (gameRunning) {
-                    animationFrameId = requestAnimationFrame(gameLoop);
-                }
-            } else {
-                drawTrack();
-            }
-        }
-
-        document.getElementById('startButton').addEventListener('click', async () => {
-            if (!gameRunning) {
-                await startGame();
-            } else {
-                endGame(false);
-                await startGame();
-            }
+      });
+
+      // finish line marker
+      const finish = lapWaypoints[0];
+      ctx.fillStyle = '#f8fafc';
+      ctx.font = 'bold 18px sans-serif';
+      ctx.fillText('🏁', (finish.x + 0.5) * TILE_SIZE, (finish.y + 0.5) * TILE_SIZE);
+    }
+
+    function updateCanvasSize() {
+      const ratio = 1;
+      const width = canvas.parentElement.clientWidth;
+      const height = canvas.parentElement.clientHeight;
+      canvas.width = width * ratio;
+      canvas.height = height * ratio;
+      TILE_SIZE = Math.min(canvas.width / cols, canvas.height / rows);
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+    }
+
+    // --------------------------
+    // GAME FLOW
+    // --------------------------
+    async function startGame() {
+      if (!selectedStudents || selectedStudents.size === 0) {
+        selectedStudents = new Set(CLASS_ROSTERS[currentClass].slice(0, MAX_RACERS));
+      }
+
+      selectionScreen.classList.add('hidden');
+      gameScreen.classList.remove('hidden');
+      gameScreen.classList.add('flex');
+
+      await initAudioEngine();
+      startBackgroundMusic();
+      resetRaceState();
+      gameRunning = true;
+      ttsReadyTriggered = false;
+      ensureSpeechReadyAndAnnounce();
+
+      const now = performance.now();
+      lastTime = now;
+      cancelAnimationFrame(animationFrameId);
+      animationFrameId = requestAnimationFrame(gameLoop);
+    }
+
+    function endRace(wasWinner = false) {
+      gameRunning = false;
+      stopBackgroundMusic();
+
+      const ordered = racers.slice().sort(compareRacers);
+      const podium = ordered.slice(0,3);
+
+      if (podium.length > 0) {
+        const [first, second, third] = podium;
+        const winnerText = `Winner: ${first.name}!`;
+        messageTitle.textContent = winnerText;
+        winnerEmoji.textContent = '🏆';
+        podiumDetails.innerHTML = `
+          <div class="bg-gray-800/90 rounded-lg p-2 border border-yellow-400">
+            <div class="text-[10px] uppercase tracking-wide text-yellow-300 font-black">1st</div>
+            <div class="font-black text-yellow-100">${first.name}</div>
+            <div class="text-lg">${first.emoji}</div>
+          </div>
+          <div class="bg-gray-800/90 rounded-lg p-2 border border-gray-400">
+            <div class="text-[10px] uppercase tracking-wide text-gray-300 font-black">2nd</div>
+            <div class="font-black text-gray-100">${second ? second.name : '-'}</div>
+            <div class="text-lg">${second ? second.emoji : '—'}</div>
+          </div>
+          <div class="bg-gray-800/90 rounded-lg p-2 border border-amber-600">
+            <div class="text-[10px] uppercase tracking-wide text-amber-300 font-black">3rd</div>
+            <div class="font-black text-amber-100">${third ? third.name : '-'}</div>
+            <div class="text-lg">${third ? third.emoji : '—'}</div>
+          </div>
+        `;
+
+        const winText = `${first.name} wins the race in the ${first.vehicleName}! Second place goes to ${second ? second.name : 'nobody'} in the ${second ? second.vehicleName : 'vehicle'}, and third place goes to ${third ? third.name : 'nobody'} in the ${third ? third.vehicleName : 'vehicle'}.`;
+        queueUrgentEventAnnouncement(winText);
+        speakCommentary('Emma', winText, true);
+      }
+
+      messageOverlay.classList.remove('hidden');
+      messageOverlay.classList.add('flex');
+      messageOverlay.classList.remove('pointer-events-none');
+      messageOverlay.style.pointerEvents = 'auto';
+
+      cancelAnimationFrame(animationFrameId);
+    }
+
+    function gameLoop(ts) {
+      if (!gameRunning) return;
+
+      const dt = Math.min(32, ts - lastTime || 16);
+      lastTime = ts;
+      remainingTimeMs = Math.max(0, raceDurationMs - (ts - raceStartTime));
+      updateRaceTimerDisplay();
+
+      const shouldEndByTime = remainingTimeMs <= 0;
+      if (shouldEndByTime) {
+        endRace();
+        return;
+      }
+
+      updateTrafficLights(dt);
+      updateAnimalsAndHazards(ts, dt);
+      updateRacers(ts, dt);
+
+      drawTrack();
+      renderLeftPanelDOM();
+
+      animationFrameId = requestAnimationFrame(gameLoop);
+    }
+
+    // --------------------------
+    // EVENT BINDINGS
+    // --------------------------
+    function bindUI() {
+      document.querySelectorAll('.class-tab').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const className = btn.id.includes('6H2') ? '6H2' : '5M2';
+          currentClass = className;
+          selectedStudents = new Set(CLASS_ROSTERS[currentClass].slice(0, MAX_RACERS));
+          setClassButtons();
+          renderStudentGrid();
+          updateSelectedBadge();
         });
+      });
 
-        document.getElementById('backButton').addEventListener('click', () => {
-            if (gameRunning) {
-                endGame(false);
-            }
-            document.getElementById('selectionScreen').classList.remove('hidden');
-            document.getElementById('gameScreen').classList.add('hidden');
+      document.querySelectorAll('.track-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          currentTrackId = Number(btn.dataset.track);
+          if (!currentTrackId) currentTrackId = 1;
+          setTrackButtons();
+          buildTrackMap();
         });
+      });
 
-        document.getElementById('overlayRestartBtn').addEventListener('click', async () => {
-            if (animationFrameId) cancelAnimationFrame(animationFrameId);
-            await startGame();
+      document.querySelectorAll('.time-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          selectedDurationMinutes = Number(btn.dataset.mins);
+          raceDurationMs = selectedDurationMinutes * 60 * 1000;
+          remainingTimeMs = raceDurationMs;
+          setTimeButtons();
+          updateRaceTimerDisplay();
         });
+      });
 
-        document.getElementById('overlayRosterBtn').addEventListener('click', () => {
-            document.getElementById('messageOverlay').classList.add('hidden');
-            document.getElementById('selectionScreen').classList.remove('hidden');
-            document.getElementById('gameScreen').classList.add('hidden');
-        });
+      document.getElementById('btnFirst16').addEventListener('click', selectFirst16);
+      document.getElementById('btnRemaining').addEventListener('click', selectRemaining);
+      document.getElementById('btnRandom16').addEventListener('click', selectRandom16);
+      document.getElementById('btnClearAll').addEventListener('click', clearAll);
 
-        document.getElementById('goToTrackBtn').addEventListener('click', () => {
-            document.getElementById('selectionScreen').classList.add('hidden');
-            document.getElementById('gameScreen').classList.remove('hidden');
-            startGame();
-        });
+      document.getElementById('goToTrackBtn').addEventListener('click', async () => {
+        await startGame();
+      });
 
-        document.querySelectorAll('.class-tab').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.class-tab').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                currentClass = btn.textContent.split(' ')[0];
-                selectedStudents = new Set(CLASS_ROSTERS[currentClass].slice(0, MAX_RACERS));
-                document.getElementById('activeClassBadge').textContent = `Class ${currentClass}`;
-            });
-        });
-
-        document.querySelectorAll('.track-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.track-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                currentTrackId = Number(btn.dataset.track);
-                buildActiveTrackMap();
-            });
-        });
-
-        document.querySelectorAll('.time-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                selectedDurationMinutes = Number(btn.dataset.mins);
-                raceDurationMs = selectedDurationMinutes * 60 * 1000;
-                remainingTimeMs = raceDurationMs;
-            });
-        });
-
-        function renderStudentGrid() {
-            const names = Array.from(CLASS_ROSTERS[currentClass]);
-            studentGrid.innerHTML = names.map((name, index) => {
-                const selected = selectedStudents.has(name);
-                return `
-                    <button type="button" data-name="${name}" class="student-card ${selected ? 'selected' : ''} bg-gray-700 hover:bg-gray-600 text-white border border-gray-600 rounded-xl px-2 py-2 text-center transition text-xs font-bold">
-                        ${name}
-                    </button>
-                `;
-            }).join('');
-
-            studentGrid.querySelectorAll('.student-card').forEach(button => {
-                button.addEventListener('click', () => {
-                    const name = button.dataset.name;
-                    if (selectedStudents.has(name)) {
-                        selectedStudents.delete(name);
-                    } else {
-                        if (selectedStudents.size < MAX_RACERS) {
-                            selectedStudents.add(name);
-                        }
-                    }
-                    renderStudentGrid();
-                    document.getElementById('selectedCountBadge').textContent = `${selectedStudents.size} / ${MAX_RACERS}`;
-                });
-            });
+      document.getElementById('startButton').addEventListener('click', async () => {
+        if (!gameRunning) {
+          await startGame();
+        } else {
+          endRace(false);
+          await startGame();
         }
+      });
 
-        document.getElementById('btnFirst16').addEventListener('click', () => {
-            selectedStudents = new Set(CLASS_ROSTERS[currentClass].slice(0, MAX_RACERS));
-            renderStudentGrid();
-            document.getElementById('selectedCountBadge').textContent = `${selectedStudents.size} / ${MAX_RACERS}`;
-        });
+      document.getElementById('backButton').addEventListener('click', () => {
+        gameRunning = false;
+        cancelAnimationFrame(animationFrameId);
+        selectionScreen.classList.remove('hidden');
+        gameScreen.classList.add('hidden');
+        gameScreen.classList.remove('flex');
+        stopBackgroundMusic();
+      });
 
-        document.getElementById('btnRemaining').addEventListener('click', () => {
-            const all = CLASS_ROSTERS[currentClass];
-            const selected = Array.from(selectedStudents);
-            const remaining = all.filter(name => !selected.includes(name)).slice(0, MAX_RACERS);
-            remaining.forEach(name => selectedStudents.add(name));
-            renderStudentGrid();
-            document.getElementById('selectedCountBadge').textContent = `${selectedStudents.size} / ${MAX_RACERS}`;
-        });
-
-        document.getElementById('btnRandom16').addEventListener('click', () => {
-            const all = CLASS_ROSTERS[currentClass];
-            const shuffled = [...all].sort(() => Math.random() - 0.5);
-            selectedStudents = new Set(shuffled.slice(0, MAX_RACERS));
-            renderStudentGrid();
-            document.getElementById('selectedCountBadge').textContent = `${selectedStudents.size} / ${MAX_RACERS}`;
-        });
-
-        document.getElementById('btnClearAll').addEventListener('click', () => {
-            selectedStudents = new Set();
-            renderStudentGrid();
-            document.getElementById('selectedCountBadge').textContent = `${selectedStudents.size} / ${MAX_RACERS}`;
-        });
-
-        resizeCanvasOnly();
-        buildActiveTrackMap();
+      document.getElementById('quickSwitchClassBtn').addEventListener('click', () => {
+        currentClass = currentClass === '6H2' ? '5M2' : '6H2';
+        selectedStudents = new Set(CLASS_ROSTERS[currentClass].slice(0, MAX_RACERS));
+        setClassButtons();
         renderStudentGrid();
-        document.getElementById('selectedCountBadge').textContent = `${selectedStudents.size} / ${MAX_RACERS}`;
-        renderLeftPanelDOM([]);
-        drawTrack();
-    </script>
+        updateSelectedBadge();
+      });
+
+      document.getElementById('overlayRestartBtn').addEventListener('click', async () => {
+        messageOverlay.classList.add('hidden');
+        await startGame();
+      });
+
+      document.getElementById('overlayRosterBtn').addEventListener('click', () => {
+        messageOverlay.classList.add('hidden');
+        selectionScreen.classList.remove('hidden');
+        gameScreen.classList.add('hidden');
+        gameScreen.classList.remove('flex');
+      });
+
+      const slider = document.getElementById('speedSlider');
+      if (slider) {
+        slider.addEventListener('input', (e) => {
+          simulationSpeed = Number(e.target.value);
+        });
+      }
+
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.onvoiceschanged = loadVoices;
+      }
+    }
+
+    // --------------------------
+    // INIT
+    // --------------------------
+    function init() {
+      buildTrackMap();
+      setClassButtons();
+      setTrackButtons();
+      setTimeButtons();
+      renderStudentGrid();
+      updateSelectedBadge();
+      updateRosterSelectionByClicks();
+      bindUI();
+      updateRaceTimerDisplay();
+      drawTrack();
+      updateCanvasSize();
+      window.addEventListener('resize', updateCanvasSize);
+      window.addEventListener('load', () => {
+        if ('speechSynthesis' in window) {
+          loadVoices();
+        }
+      });
+    }
+
+    init();
+  </script>
 </body>
 </html>
