@@ -1,0 +1,1101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PKXYS 6H2 Studio Pitch & Movie Generator</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <!-- Tone.js for Sound Effects -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #090d16;
+      color: #f8fafc;
+      overflow: hidden;
+      user-select: none;
+    }
+    h1, h2, h3, .cinematic-font {
+      font-family: 'Outfit', sans-serif;
+    }
+
+    /* Poster Gradients */
+    .theme-gold { background: linear-gradient(135deg, #0f172a 0%, #451a03 50%, #78350f 100%); border-color: #f59e0b; }
+    .theme-cyber { background: linear-gradient(135deg, #090d16 0%, #1e1b4b 50%, #06b6d4 100%); border-color: #22d3ee; }
+    .theme-horror { background: linear-gradient(135deg, #000000 0%, #1f2937 60%, #7f1d1d 100%); border-color: #ef4444; }
+    .theme-fantasy { background: linear-gradient(135deg, #1e1b4b 0%, #581c87 50%, #ec4899 100%); border-color: #f472b6; }
+    .theme-emerald { background: linear-gradient(135deg, #022c22 0%, #065f46 50%, #10b981 100%); border-color: #34d399; }
+    .theme-sunset { background: linear-gradient(135deg, #4c0519 0%, #9a3412 50%, #f97316 100%); border-color: #fb923c; }
+
+    /* Interactive Slot Styling */
+    .drop-slot {
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .drop-slot.active-slot {
+      border-color: #f59e0b !important;
+      box-shadow: 0 0 15px rgba(245, 158, 11, 0.45);
+      transform: scale(1.02);
+    }
+    .drop-slot.drag-over {
+      background-color: rgba(245, 158, 11, 0.25) !important;
+      border-color: #fbbf24 !important;
+      transform: scale(1.04);
+    }
+
+    /* Draggable Chip Styling */
+    .choice-chip {
+      transition: all 0.2s ease;
+      cursor: grab;
+    }
+    .choice-chip:active {
+      cursor: grabbing;
+      transform: scale(0.95);
+    }
+    .choice-chip:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 15px -3px rgba(245, 158, 11, 0.3);
+    }
+
+    /* Sparkle Canvas Overlay */
+    #sparkle-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    /* Film Strip Decoration */
+    .film-strip {
+      background-image: radial-gradient(#334155 25%, transparent 26%);
+      background-size: 20px 20px;
+    }
+
+    @keyframes pulse-glow {
+      0%, 100% { box-shadow: 0 0 15px rgba(245, 158, 11, 0.3); }
+      50% { box-shadow: 0 0 30px rgba(245, 158, 11, 0.7); }
+    }
+    .glow-btn {
+      animation: pulse-glow 2.5s infinite;
+    }
+    .page-panel {
+      display: none;
+    }
+    .page-panel.active {
+      display: flex;
+    }
+  </style>
+</head>
+<body class="h-screen w-screen overflow-hidden flex flex-col">
+
+  <!-- Sparkle Particle Canvas -->
+  <canvas id="sparkle-canvas"></canvas>
+
+  <!-- COMPACT TOP NAVIGATION BAR -->
+  <header class="bg-slate-900 border-b border-slate-800 px-4 py-2.5 shrink-0 z-50">
+    <div class="max-w-[1600px] mx-auto flex items-center justify-between gap-2">
+      
+      <!-- Brand + Page Tabs -->
+      <div class="flex items-center gap-3">
+        <div class="flex items-center gap-2">
+          <div class="w-10 h-10 rounded-xl bg-amber-500 flex items-center justify-center text-slate-950 font-extrabold text-xl shadow">
+            <i class="fa-solid fa-clapperboard"></i>
+          </div>
+          <h1 class="text-2xl font-extrabold tracking-tight text-white hidden sm:block">6H2 Studio</h1>
+        </div>
+
+        <!-- 3-Page Switcher -->
+        <nav class="flex items-center bg-slate-950 p-1.5 rounded-xl border border-slate-800 gap-1.5">
+          <button onclick="switchPage(1)" id="tab-page-1" class="px-4 py-2 rounded-lg text-base font-extrabold transition bg-amber-500 text-slate-950 flex items-center gap-2">
+            <i class="fa-solid fa-sliders"></i> 1. Storyboard
+          </button>
+          <button onclick="switchPage(2)" id="tab-page-2" class="px-4 py-2 rounded-lg text-base font-extrabold transition text-slate-400 hover:text-white flex items-center gap-2">
+            <i class="fa-solid fa-palette"></i> 2. Props & Style
+          </button>
+          <button onclick="switchPage(3)" id="tab-page-3" class="px-4 py-2 rounded-lg text-base font-extrabold transition text-slate-400 hover:text-white flex items-center gap-2">
+            <i class="fa-solid fa-microphone-lines"></i> 3. Quad Pitch
+          </button>
+        </nav>
+      </div>
+
+      <!-- Race-Track Quad Timer -->
+      <div class="flex items-center gap-2 bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-800">
+        <i class="fa-solid fa-flag-checkered text-amber-400 text-base"></i>
+        <span id="timer-display" class="cinematic-font text-2xl font-extrabold text-amber-400 w-16 text-center">04:00</span>
+        <div class="w-24 h-3 bg-slate-800 rounded-full overflow-hidden hidden md:block">
+          <div id="timer-bar" class="h-full bg-gradient-to-r from-emerald-400 via-amber-400 to-rose-500 transition-all duration-500" style="width: 100%;"></div>
+        </div>
+        <button onclick="toggleTimer()" id="timer-btn" class="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-sm rounded-lg transition">
+          <i class="fa-solid fa-play"></i>
+        </button>
+        <button onclick="resetTimer()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm rounded-lg transition">
+          <i class="fa-solid fa-rotate-right"></i>
+        </button>
+      </div>
+
+      <!-- Andrew Voice Status + Clapperboard & Quick Actions -->
+      <div class="flex items-center gap-2">
+        <div class="flex items-center bg-slate-950 rounded-xl px-2.5 py-1.5 border border-slate-800 gap-2">
+          <i class="fa-solid fa-volume-high text-cyan-400 text-sm"></i>
+          <span class="text-sm font-extrabold text-cyan-300 hidden xl:inline">Andrew</span>
+          <button id="speed-toggle" onclick="toggleSpeechSpeed()" class="px-2.5 py-1 bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 rounded-lg text-sm font-bold">
+            85%
+          </button>
+        </div>
+
+        <button onclick="triggerClapperboard()" class="px-3 py-2 bg-rose-600 hover:bg-rose-500 text-white font-extrabold text-sm rounded-xl flex items-center gap-1.5 transition shadow">
+          <i class="fa-solid fa-clapperboard"></i> <span class="hidden xl:inline">Action!</span>
+        </button>
+
+        <button onclick="triggerPraise()" class="px-3 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-sm rounded-xl flex items-center gap-1.5 transition">
+          <i class="fa-solid fa-award"></i> <span class="hidden xl:inline">Praise</span>
+        </button>
+
+        <button onclick="loadFamousPreset()" class="px-3 py-2 bg-purple-600 hover:bg-purple-500 text-white font-bold text-sm rounded-xl flex items-center gap-1.5 transition">
+          <i class="fa-solid fa-wand-magic-sparkles"></i> <span class="hidden xl:inline">Preset</span>
+        </button>
+
+        <button onclick="randomizeAll()" class="px-3 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-sm rounded-xl flex items-center gap-1.5 transition">
+          <i class="fa-solid fa-dice"></i> <span class="hidden xl:inline">Random</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- PRAISE TOAST BANNER -->
+  <div id="praise-banner" class="fixed top-20 left-1/2 -translate-x-1/2 z-50 pointer-events-none opacity-0 transition-all duration-300 transform -translate-y-4">
+    <div class="bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 text-slate-950 px-8 py-4 rounded-2xl shadow-2xl border-4 border-white flex items-center gap-4">
+      <span class="text-4xl">🌟</span>
+      <div id="praise-text" class="text-2xl font-extrabold cinematic-font">"Brilliant co-construction, Detectives!"</div>
+    </div>
+  </div>
+
+  <!-- NON-SCROLLING WORKSPACE -->
+  <main class="flex-1 max-w-[1600px] w-full mx-auto p-3 grid grid-cols-12 gap-4 overflow-hidden min-h-0">
+
+    <!-- LEFT: ALWAYS-VISIBLE LIVE POSTER (5 COLS) -->
+    <section class="col-span-12 lg:col-span-5 flex flex-col h-full min-h-0">
+      <div id="poster-canvas" class="theme-gold border-4 rounded-3xl p-5 shadow-2xl relative overflow-hidden flex-1 flex flex-col justify-between transition-all duration-500">
+        
+        <!-- Top Billing -->
+        <div class="text-center z-10">
+          <div class="text-sm tracking-[0.25em] uppercase text-amber-200/90 font-extrabold">PKXYS 6H2 Studio</div>
+          <div id="poster-cast" class="text-lg font-extrabold tracking-widest uppercase text-white mt-1">STARRING JACKIE CHAN & ZENDAYA</div>
+          <div class="mt-2 inline-block px-4 py-1 rounded-full bg-black/50 backdrop-blur-sm border border-white/20 text-lg font-extrabold text-amber-300" id="poster-genre-pill">
+            🎬 Sci-Fi Adventure
+          </div>
+        </div>
+
+        <!-- Center Visual Stage -->
+        <div class="my-auto py-2 text-center z-10 flex flex-col items-center justify-center">
+          <div id="poster-emojis" class="flex flex-wrap items-center justify-center gap-4 text-7xl mb-3 min-h-[84px] drop-shadow-[0_8px_16px_rgba(0,0,0,0.7)]">
+            <span>🚀</span><span>🤖</span><span>🌌</span>
+          </div>
+          <h2 id="poster-title" contenteditable="true" class="cinematic-font text-4xl xl:text-5xl font-extrabold uppercase tracking-wider text-white drop-shadow-[0_4px_10px_rgba(0,0,0,0.9)] px-2 focus:outline-none">
+            THE GALAXY DETECTIVE
+          </h2>
+          <p id="poster-plot" class="mt-3 text-lg xl:text-xl text-slate-100 max-w-md mx-auto font-bold bg-black/50 backdrop-blur-sm px-4 py-2 rounded-2xl border border-white/20 leading-snug">
+            "Stopping a rogue AI robot in a rain-drenched cybernetic Tokyo."
+          </p>
+        </div>
+
+        <!-- Bottom Billing + Interactive Star Rating -->
+        <div class="z-10 border-t border-white/20 pt-3 flex flex-col gap-1.5 text-center">
+          <div class="text-base uppercase tracking-widest text-amber-200 font-extrabold">
+            DIRECTED BY <span id="poster-director" class="text-white underline decoration-amber-400">HAYAO MIYAZAKI</span>
+          </div>
+          <div class="text-base uppercase tracking-wider text-slate-100 font-semibold">
+            CREW: <span id="poster-crew" class="text-amber-300 font-extrabold">STUNT DOUBLE</span> • MOOD: <span id="poster-mood" class="text-cyan-300 font-extrabold">BREATHTAKING</span>
+          </div>
+          <div class="flex items-center justify-center gap-2 text-amber-400 text-2xl mt-1" id="poster-stars">
+            <button onclick="setStarRating(1)" class="hover:scale-125 transition"><i class="fa-solid fa-star"></i></button>
+            <button onclick="setStarRating(2)" class="hover:scale-125 transition"><i class="fa-solid fa-star"></i></button>
+            <button onclick="setStarRating(3)" class="hover:scale-125 transition"><i class="fa-solid fa-star"></i></button>
+            <button onclick="setStarRating(4)" class="hover:scale-125 transition"><i class="fa-solid fa-star"></i></button>
+            <button onclick="setStarRating(5)" class="hover:scale-125 transition"><i class="fa-solid fa-star"></i></button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT: PAGINATED INTERACTIVE DECK (7 COLS, NO SCROLL) -->
+    <section class="col-span-12 lg:col-span-7 bg-slate-900 border border-slate-800 rounded-3xl p-4 flex flex-col justify-between h-full min-h-0 shadow-xl">
+
+      <!-- ========================================== -->
+      <!-- PAGE 1: STORYBOARD BUILDER (SLOTS + CHIPS) -->
+      <!-- ========================================== -->
+      <div id="page-1" class="page-panel active flex-col justify-between h-full gap-3">
+        
+        <!-- 8 Interactive Storyboard Slots -->
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-lg font-extrabold uppercase tracking-wider text-amber-400"><i class="fa-solid fa-table-cells-large mr-1.5"></i> Storyboard</span>
+            <span id="active-category-badge" class="text-base bg-amber-500/20 text-amber-300 border border-amber-500/40 px-3.5 py-0.5 rounded-full font-extrabold">
+              Genre
+            </span>
+          </div>
+          <div class="grid grid-cols-4 gap-2.5" id="slots-container">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+
+        <!-- 8 Options Grid (2x Larger Font) -->
+        <div class="flex-1 flex flex-col justify-center">
+          <div id="options-pool" class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+
+        <!-- Hidden Category Tabs container kept for JS compatibility -->
+        <div id="category-tabs" class="hidden"></div>
+
+        <!-- Page Footer -->
+        <div class="flex items-center justify-between border-t border-slate-800 pt-2.5">
+          <span class="text-base text-slate-400 font-bold">1 / 3 • Storyboard</span>
+          <button onclick="switchPage(2)" class="px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-base rounded-xl transition flex items-center gap-2">
+            Next: Props & Style <i class="fa-solid fa-arrow-right"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- ========================================== -->
+      <!-- PAGE 2: PROPS (3X EMOJIS) & LIGHTING       -->
+      <!-- ========================================== -->
+      <div id="page-2" class="page-panel flex-col justify-between h-full gap-3">
+        
+        <!-- Color Palette Picker + Studio SFX Bar -->
+        <div class="grid grid-cols-12 gap-3 items-center">
+          <div class="col-span-8">
+            <div class="grid grid-cols-6 gap-2" id="color-palettes">
+              <button onclick="setPosterTheme('theme-gold', 'Golden Sunset & Shadow')" class="h-12 rounded-xl theme-gold border-2 border-amber-400 hover:scale-105 transition flex items-center justify-center text-base font-extrabold text-amber-200">Gold</button>
+              <button onclick="setPosterTheme('theme-cyber', 'Neon Cyber Blue')" class="h-12 rounded-xl theme-cyber border-2 border-white/20 hover:scale-105 transition flex items-center justify-center text-base font-extrabold text-cyan-200">Cyber</button>
+              <button onclick="setPosterTheme('theme-horror', 'Crimson Midnight Shadow')" class="h-12 rounded-xl theme-horror border-2 border-white/20 hover:scale-105 transition flex items-center justify-center text-base font-extrabold text-rose-200">Crimson</button>
+              <button onclick="setPosterTheme('theme-fantasy', 'Mystical Violet Glow')" class="h-12 rounded-xl theme-fantasy border-2 border-white/20 hover:scale-105 transition flex items-center justify-center text-base font-extrabold text-pink-200">Violet</button>
+              <button onclick="setPosterTheme('theme-emerald', 'Enchanted Emerald Mist')" class="h-12 rounded-xl theme-emerald border-2 border-white/20 hover:scale-105 transition flex items-center justify-center text-base font-extrabold text-emerald-200">Emerald</button>
+              <button onclick="setPosterTheme('theme-sunset', 'High-Octane Solar Flare')" class="h-12 rounded-xl theme-sunset border-2 border-white/20 hover:scale-105 transition flex items-center justify-center text-base font-extrabold text-orange-200">Solar</button>
+            </div>
+          </div>
+          <!-- Cinema SFX Soundboard -->
+          <div class="col-span-4 flex gap-1.5 justify-end">
+            <button onclick="playCinemaSFX('suspense')" class="px-3 py-2.5 bg-slate-950 hover:bg-slate-800 border border-slate-700 rounded-xl text-sm font-extrabold text-rose-300 transition">🥁 Drum</button>
+            <button onclick="playCinemaSFX('laser')" class="px-3 py-2.5 bg-slate-950 hover:bg-slate-800 border border-slate-700 rounded-xl text-sm font-extrabold text-cyan-300 transition">⚡ Sci-Fi</button>
+            <button onclick="playCinemaSFX('magic')" class="px-3 py-2.5 bg-slate-950 hover:bg-slate-800 border border-slate-700 rounded-xl text-sm font-extrabold text-amber-300 transition">✨ Magic</button>
+          </div>
+        </div>
+
+        <!-- 3X ENLARGED EMOJI PROP LOADER -->
+        <div class="flex-1 flex flex-col justify-center min-h-0">
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex gap-2">
+              <button onclick="renderEmojiBank('scifi')" class="px-4 py-1.5 bg-slate-800 hover:bg-slate-700 text-base rounded-xl font-extrabold text-cyan-300">🚀 Sci-Fi</button>
+              <button onclick="renderEmojiBank('fantasy')" class="px-4 py-1.5 bg-slate-800 hover:bg-slate-700 text-base rounded-xl font-extrabold text-pink-300">🐉 Fantasy</button>
+              <button onclick="renderEmojiBank('mystery')" class="px-4 py-1.5 bg-slate-800 hover:bg-slate-700 text-base rounded-xl font-extrabold text-amber-300">🕵️ Mystery</button>
+              <button onclick="renderEmojiBank('comedy')" class="px-4 py-1.5 bg-slate-800 hover:bg-slate-700 text-base rounded-xl font-extrabold text-emerald-300">🍌 Comedy</button>
+            </div>
+            <div class="flex gap-2">
+              <button onclick="undoLastEmoji()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-base text-amber-300 rounded-xl font-bold"><i class="fa-solid fa-rotate-left mr-1"></i>Undo</button>
+              <button onclick="clearEmojis()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-base text-rose-400 rounded-xl font-bold"><i class="fa-solid fa-trash-can mr-1"></i>Clear</button>
+            </div>
+          </div>
+          <div id="emoji-bank" class="grid grid-cols-6 gap-3 bg-slate-950 p-3.5 rounded-2xl border border-slate-800">
+            <!-- Rendered by JS at 3x size -->
+          </div>
+        </div>
+
+        <!-- Page Footer -->
+        <div class="flex items-center justify-between border-t border-slate-800 pt-2.5">
+          <button onclick="switchPage(1)" class="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-extrabold text-base rounded-xl transition flex items-center gap-2">
+            <i class="fa-solid fa-arrow-left"></i> Back
+          </button>
+          <span class="text-base text-slate-400 font-bold">2 / 3 • Props & Style</span>
+          <button onclick="switchPage(3)" class="px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-base rounded-xl transition flex items-center gap-2">
+            Next: Quad Pitch <i class="fa-solid fa-arrow-right"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- ========================================== -->
+      <!-- PAGE 3: QUAD ROUND ROBIN & STUDIO PITCH    -->
+      <!-- ========================================== -->
+      <div id="page-3" class="page-panel flex-col justify-between h-full gap-3">
+        
+        <!-- Quad Stems (Doubled Readability) -->
+        <div class="grid grid-cols-2 gap-2.5">
+          <button onclick="speakText(document.getElementById('stem-1').innerText)" class="p-3 rounded-xl bg-slate-950 hover:bg-slate-800 border border-slate-800 text-left transition">
+            <div class="font-extrabold text-base text-amber-400">1. Praiser <i class="fa-solid fa-volume-high ml-1 text-xs"></i></div>
+            <div id="stem-1" class="text-slate-100 text-base font-semibold mt-0.5 leading-snug">"I argue we greenlight this because the setting looks breathtaking."</div>
+          </button>
+          <button onclick="speakText(document.getElementById('stem-2').innerText)" class="p-3 rounded-xl bg-slate-950 hover:bg-slate-800 border border-slate-800 text-left transition">
+            <div class="font-extrabold text-base text-rose-400">2. Skeptic <i class="fa-solid fa-volume-high ml-1 text-xs"></i></div>
+            <div id="stem-2" class="text-slate-100 text-base font-semibold mt-0.5 leading-snug">"I see your point; however, the plot might be too predictable."</div>
+          </button>
+          <button onclick="speakText(document.getElementById('stem-3').innerText)" class="p-3 rounded-xl bg-slate-950 hover:bg-slate-800 border border-slate-800 text-left transition">
+            <div class="font-extrabold text-base text-cyan-400">3. Crew Boss <i class="fa-solid fa-volume-high ml-1 text-xs"></i></div>
+            <div id="stem-3" class="text-slate-100 text-base font-semibold mt-0.5 leading-snug">"To film this safely, a skilled stunt double is required on set."</div>
+          </button>
+          <button onclick="speakText(document.getElementById('stem-4').innerText)" class="p-3 rounded-xl bg-slate-950 hover:bg-slate-800 border border-slate-800 text-left transition">
+            <div class="font-extrabold text-base text-emerald-400">4. Closer <i class="fa-solid fa-volume-high ml-1 text-xs"></i></div>
+            <div id="stem-4" class="text-slate-100 text-base font-semibold mt-0.5 leading-snug">"Therefore, our quad's final consensus is to hire this crew!"</div>
+          </button>
+        </div>
+
+        <!-- Live Pitch Script (Doubled Font Size) -->
+        <div class="bg-slate-950 border-2 border-amber-500/40 rounded-2xl p-4 flex-1 flex flex-col justify-between min-h-0">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-base font-extrabold uppercase tracking-wider text-amber-400">
+              <i class="fa-solid fa-scroll mr-1.5"></i> Quad Pitch Script
+            </span>
+            <div class="flex gap-2">
+              <button onclick="speakPitch()" class="px-4 py-1.5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-extrabold text-base rounded-xl flex items-center gap-1.5 transition">
+                <i class="fa-solid fa-volume-high"></i> Read Aloud
+              </button>
+              <button onclick="stopSpeech()" class="px-3 py-1.5 bg-slate-800 hover:bg-rose-500/30 text-slate-300 text-base rounded-xl transition">
+                <i class="fa-solid fa-stop"></i>
+              </button>
+              <button onclick="sparkleCelebrate()" class="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-base rounded-xl transition">
+                <i class="fa-solid fa-wand-sparkles"></i>
+              </button>
+            </div>
+          </div>
+
+          <div id="pitch-script" contenteditable="true" class="text-xl xl:text-2xl leading-relaxed text-slate-100 bg-slate-900 p-4 rounded-xl border border-slate-800 focus:outline-none flex-1 overflow-y-auto font-medium">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+
+        <!-- Signatures & Final Actions -->
+        <div class="flex flex-wrap items-center justify-between gap-2 border-t border-slate-800 pt-2.5">
+          <button onclick="switchPage(2)" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-extrabold text-base rounded-xl transition flex items-center gap-1.5">
+            <i class="fa-solid fa-arrow-left"></i> Back
+          </button>
+          <input id="quad-names" type="text" placeholder="Quad Signatures (e.g., Leo, Chloe, Ryan, Emma)" class="flex-1 px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-base font-bold text-white placeholder-slate-500 focus:outline-none focus:border-amber-400">
+          <button onclick="copyPitch()" class="py-2.5 px-4 bg-slate-800 hover:bg-slate-700 text-slate-100 font-extrabold text-base rounded-xl border border-slate-700">
+            <i class="fa-solid fa-copy mr-1"></i> Copy
+          </button>
+          <button onclick="greenlightMovie()" class="glow-btn py-2.5 px-5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-extrabold text-base rounded-xl shadow-lg">
+            <i class="fa-solid fa-film mr-1"></i> GREENLIGHT!
+          </button>
+        </div>
+      </div>
+
+    </section>
+  </main>
+
+  <script>
+    // ==========================================
+    // 1. STUDIO DATABASE & STATE
+    // ==========================================
+    const categories = [
+      { id: 'genre', label: 'Genre', icon: 'fa-masks-theater' },
+      { id: 'title', label: 'Film Title', icon: 'fa-heading' },
+      { id: 'director', label: 'Director', icon: 'fa-bullhorn' },
+      { id: 'actor', label: 'Lead Cast', icon: 'fa-star' },
+      { id: 'setting', label: 'Setting', icon: 'fa-location-dot' },
+      { id: 'plot', label: 'Plot Hook', icon: 'fa-bolt' },
+      { id: 'crew', label: 'Key Crew', icon: 'fa-user-gear' },
+      { id: 'mood', label: 'Mood Synonym', icon: 'fa-wand-magic-sparkles' }
+    ];
+
+    const database = {
+      genre: [
+        { text: 'Sci-Fi Adventure', sub: 'Futuristic & Bold', emoji: '🚀' },
+        { text: 'Animated Fantasy', sub: 'Magical & Wonder-filled', emoji: '🐉' },
+        { text: 'Detective Mystery', sub: 'Suspenseful & Clever', emoji: '🕵️' },
+        { text: 'Superhero Action', sub: 'Heroic & Explosive', emoji: '🦸' },
+        { text: 'Slapstick Comedy', sub: 'Hilarious & Playful', emoji: '🍌' },
+        { text: 'Musical Family', sub: 'Heartwarming & Festive', emoji: '🎸' },
+        { text: 'Sports Drama', sub: 'Inspiring & Fast-paced', emoji: '🏆' },
+        { text: 'Time-Travel Thriller', sub: 'Mind-bending & Tense', emoji: '⏳' }
+      ],
+      title: [
+        { text: 'THE GALAXY DETECTIVE', sub: 'Sci-Fi Mystery', emoji: '🌌' },
+        { text: 'SPIRITED AWAY 2: LANTERN REALM', sub: 'Fantasy Sequel', emoji: '🏮' },
+        { text: 'COCO: THE GOLDEN GUITAR', sub: 'Musical Sequel', emoji: '🎸' },
+        { text: 'SPIDER-MAN: SHENZHEN MISSION', sub: 'Superhero Sequel', emoji: '🕷️' },
+        { text: 'FROZEN: THE CRYSTAL STORM', sub: 'Ice Adventure', emoji: '❄️' },
+        { text: 'MINIONS: THE TIME MACHINE', sub: 'Comedy Chaos', emoji: '🥽' },
+        { text: 'UP 2: SKY ISLAND', sub: 'Balloon Voyage', emoji: '🎈' },
+        { text: 'THE FOOTPRINT CONSPIRACY', sub: 'Campus Detective', emoji: '🐾' }
+      ],
+      director: [
+        { text: 'HAYAO MIYAZAKI', sub: 'Master of Animation', emoji: '🎨' },
+        { text: 'STEVEN SPIELBERG', sub: 'Blockbuster Legend', emoji: '🦖' },
+        { text: 'CHRISTOPHER NOLAN', sub: 'Sci-Fi Visionary', emoji: '🕰️' },
+        { text: 'PETE DOCTER', sub: 'Pixar Storyteller', emoji: '🎈' },
+        { text: 'GRETA GERWIG', sub: 'Modern Autuer', emoji: '🎬' },
+        { text: 'JAMES CAMERON', sub: 'Epic Worldbuilder', emoji: '🌊' },
+        { text: 'MAKOTO SHINKAI', sub: 'Sky & Light Poet', emoji: '☄️' },
+        { text: 'ZHANG YIMOU', sub: 'Visual Master', emoji: '🏮' }
+      ],
+      actor: [
+        { text: 'JACKIE CHAN & ZENDAYA', sub: 'Action & Charisma', emoji: '🥋' },
+        { text: 'TOM HOLLAND & MICHELLE YEOH', sub: 'Heroic Duo', emoji: '🌟' },
+        { text: 'KEVIN THE MINION & OLAF', sub: 'Comedy Icons', emoji: '⛄' },
+        { text: 'DETECTIVE ROSS & CHIHIRO', sub: 'Mystery Solvers', emoji: '🔍' },
+        { text: 'DWAYNE JOHNSON & EMMA WATSON', sub: 'Adventure Team', emoji: '🗿' },
+        { text: 'RYAN REYNOLDS & HUGH JACKMAN', sub: 'Witty Rivals', emoji: '⚔️' },
+        { text: 'MILLIE BOBBY BROWN & KEANU REEVES', sub: 'Sci-Fi Leads', emoji: '🕶️' },
+        { text: 'MIGUEL & SPIDER-MAN', sub: 'Crossover Heroes', emoji: '🎸' }
+      ],
+      setting: [
+        { text: 'a rain-drenched cybernetic Tokyo', sub: 'Sci-Fi Metropolis', emoji: '🌆' },
+        { text: 'an enchanted spirit bathhouse lit by red lanterns', sub: 'Mystical Realm', emoji: '🏮' },
+        { text: 'the glowing marigold bridges of the Land of the Dead', sub: 'Vibrant Fantasy', emoji: '🌼' },
+        { text: 'a snow-bound Scandinavian ice fortress', sub: 'Glacial Kingdom', emoji: '🏔️' },
+        { text: 'a floating Victorian house high above the clouds', sub: 'Sky Voyage', emoji: '🎈' },
+        { text: 'a locked school science lab at midnight', sub: 'Campus Mystery', emoji: '🧪' },
+        { text: 'an orbital space station circling Jupiter', sub: 'Deep Space', emoji: '🛰️' },
+        { text: 'the historic canals and stone bridges of Venice', sub: 'European Tour', emoji: '🛶' }
+      ],
+      plot: [
+        { text: 'stopping a rogue AI robot before midnight', sub: 'High-stakes Sci-Fi', emoji: '🤖' },
+        { text: 'solving the mystery of a stolen golden trophy', sub: 'Detective Case', emoji: '🏆' },
+        { text: 'breaking an ancient winter curse with music', sub: 'Magical Quest', emoji: '🎶' },
+        { text: 'rescuing a lost crew from a time-travel vortex', sub: 'Portal Rescue', emoji: '🌀' },
+        { text: 'decoding a secret map hidden inside a guidebook', sub: 'Treasure Hunt', emoji: '🗺️' },
+        { text: 'outsmarting a clumsy supervillain in a talent show', sub: 'Comedy Plot', emoji: '🎤' },
+        { text: 'proving an innocent suspect’s alibi using forensics', sub: 'Courtroom Twist', emoji: '🧬' },
+        { text: 'winning the inter-school winter sports championship', sub: 'Underdog Victory', emoji: '🏒' }
+      ],
+      crew: [
+        { text: 'Stunt Double (performs dangerous jumps safely)', sub: 'Action Safety', emoji: '🤸' },
+        { text: 'Camera Operator (captures dramatic angles)', sub: 'Visual Framing', emoji: '🎥' },
+        { text: 'SFX Makeup Artist (designs creature prosthetics)', sub: 'Character Look', emoji: '🎭' },
+        { text: 'Sound Engineer (mixes thunderous audio & music)', sub: 'Acoustic Mood', emoji: '🎧' },
+        { text: 'Lighting Technician (sets high-contrast shadows)', sub: 'Atmosphere', emoji: '💡' },
+        { text: 'Costume Designer (creates authentic outfits)', sub: 'Visual Style', emoji: '👘' },
+        { text: 'Scriptwriter (crafts unpredictable plot twists)', sub: 'Story Logic', emoji: '✍️' },
+        { text: 'VFX Animator (renders breathtaking CGI magic)', sub: 'Digital Effects', emoji: '✨' }
+      ],
+      mood: [
+        { text: 'Breathtaking (instead of "good")', sub: 'Tier-2 Positive', emoji: '🤩' },
+        { text: 'Suspenseful (instead of "scary")', sub: 'Tier-2 Thriller', emoji: '😰' },
+        { text: 'Whimsical (instead of "funny")', sub: 'Tier-2 Magical', emoji: '🦄' },
+        { text: 'Heartwarming (instead of "nice")', sub: 'Tier-2 Emotional', emoji: '💖' },
+        { text: 'High-Octane (instead of "fast")', sub: 'Tier-2 Action', emoji: '🔥' },
+        { text: 'Mystical (instead of "strange")', sub: 'Tier-2 Fantasy', emoji: '🔮' },
+        { text: 'Uplifting (instead of "happy")', sub: 'Tier-2 Inspiring', emoji: '🌈' },
+        { text: 'Unpredictable (instead of "surprising")', sub: 'Tier-2 Mystery', emoji: '⚡' }
+      ]
+    };
+
+    const emojiCatalog = {
+      scifi: ['🚀', '🤖', '🛸', '🌌', '⚡', '🛰️', '🧬', '🔮', '⏳', '🕶️', '🪐', '💻'],
+      fantasy: ['🐉', '🏮', '✨', '❄️', '🏰', '🦄', '🗡️', '👑', '🌈', '🧙', '🧚', '🌺'],
+      mystery: ['🕵️', '🔍', '🐾', '🏆', '🧪', '🗝️', '🔦', '📜', '🧤', '⏰', '🎭', '💼'],
+      comedy: ['🍌', '🥽', '🎈', '🍕', '🎸', '🕶️', '🐶', '🎉', '🍦', '🛹', '🤪', '🎺']
+    };
+
+    const famousPresets = [
+      {
+        genre: 'Animated Fantasy',
+        title: 'SPIRITED AWAY 2: LANTERN REALM',
+        director: 'HAYAO MIYAZAKI',
+        actor: 'DETECTIVE ROSS & CHIHIRO',
+        setting: 'an enchanted spirit bathhouse lit by red lanterns',
+        plot: 'breaking an ancient winter curse with music',
+        crew: 'VFX Animator (renders breathtaking CGI magic)',
+        mood: 'Mystical (instead of "strange")',
+        emojis: ['🏮', '🐉', '✨'],
+        theme: 'theme-horror'
+      },
+      {
+        genre: 'Musical Family',
+        title: 'COCO: THE GOLDEN GUITAR',
+        director: 'PETE DOCTER',
+        actor: 'MIGUEL & SPIDER-MAN',
+        setting: 'the glowing marigold bridges of the Land of the Dead',
+        plot: 'decoding a secret map hidden inside a guidebook',
+        crew: 'Sound Engineer (mixes thunderous audio & music)',
+        mood: 'Heartwarming (instead of "nice")',
+        emojis: ['🎸', '🌼', '🎶'],
+        theme: 'theme-sunset'
+      },
+      {
+        genre: 'Superhero Action',
+        title: 'SPIDER-MAN: SHENZHEN MISSION',
+        director: 'STEVEN SPIELBERG',
+        actor: 'TOM HOLLAND & MICHELLE YEOH',
+        setting: 'the historic canals and stone bridges of Venice',
+        plot: 'stopping a rogue AI robot before midnight',
+        crew: 'Stunt Double (performs dangerous jumps safely)',
+        mood: 'High-Octane (instead of "fast")',
+        emojis: ['🕷️', '🌆', '⚡'],
+        theme: 'theme-cyber'
+      }
+    ];
+
+    const praiseMessages = [
+      "Brilliant co-construction, Studio Executives! Your Tier-2 vocabulary is spot on!",
+      "Outstanding job, 6H2! Your passive voice rule is crystal clear!",
+      " phenomenal pitch! Even Steven Spielberg would greenlight this movie!",
+      "Five-star teamwork! Every member of your quad contributed to the consensus!",
+      "Incredible visual storytelling! That setting and plot hook are breathtaking!"
+    ];
+
+    let activeCategory = 'genre';
+    let presetIndex = 0;
+    let currentEmojis = ['🚀', '🤖', '🌌'];
+    let currentState = {
+      genre: 'Sci-Fi Adventure',
+      title: 'THE GALAXY DETECTIVE',
+      director: 'HAYAO MIYAZAKI',
+      actor: 'JACKIE CHAN & ZENDAYA',
+      setting: 'a rain-drenched cybernetic Tokyo',
+      plot: 'stopping a rogue AI robot before midnight',
+      crew: 'Stunt Double (performs dangerous jumps safely)',
+      mood: 'Breathtaking (instead of "good")',
+      themeName: 'Golden Sunset & Shadow'
+    };
+
+    // ==========================================
+    // 2. SOUND ENGINE (TONE.JS)
+    // ==========================================
+    let audioReady = false;
+    let synth, chimeSynth;
+
+    async function initAudio() {
+      if (audioReady) return;
+      try {
+        await Tone.start();
+        synth = new Tone.PolySynth(Tone.Synth, {
+          oscillator: { type: "triangle" },
+          envelope: { attack: 0.01, decay: 0.2, sustain: 0.1, release: 0.6 }
+        }).toDestination();
+        chimeSynth = new Tone.Synth({
+          oscillator: { type: "sine" },
+          envelope: { attack: 0.005, decay: 0.15, sustain: 0.05, release: 0.4 }
+        }).toDestination();
+        audioReady = true;
+      } catch (e) {
+        console.warn("Audio init skipped:", e);
+      }
+    }
+
+    function playSound(type) {
+      initAudio().then(() => {
+        if (!synth) return;
+        const now = Tone.now();
+        if (type === 'pop') {
+          chimeSynth.triggerAttackRelease("C6", "32n", now);
+        } else if (type === 'drop') {
+          synth.triggerAttackRelease(["E5", "A5"], "16n", now);
+        } else if (type === 'sparkle') {
+          synth.triggerAttackRelease("C5", "16n", now);
+          synth.triggerAttackRelease("E5", "16n", now + 0.06);
+          synth.triggerAttackRelease("G5", "16n", now + 0.12);
+          synth.triggerAttackRelease("C6", "8n", now + 0.18);
+        } else if (type === 'fanfare') {
+          synth.triggerAttackRelease(["C4", "E4", "G4"], "8n", now);
+          synth.triggerAttackRelease(["F4", "A4", "C5"], "8n", now + 0.15);
+          synth.triggerAttackRelease(["G4", "B4", "D5"], "8n", now + 0.30);
+          synth.triggerAttackRelease(["C5", "E5", "G5", "C6"], "4n", now + 0.45);
+        }
+      });
+    }
+
+    // ==========================================
+    // 3. MICROSOFT ANDREW TTS ENGINE (LOCKED TO ANDREW)
+    // ==========================================
+    let voices = [];
+    let andrewVoice = null;
+    let slowSpeed = true; // 85% speed default
+
+    function populateVoices() {
+      voices = window.speechSynthesis.getVoices();
+      if (!voices.length) return;
+
+      // Always lock onto Microsoft Andrew (Multilingual or Natural Online first)
+      andrewVoice = voices.find(v => /Andrew/i.test(v.name) && /Multilingual|Online|Natural/i.test(v.name))
+                 || voices.find(v => /Andrew/i.test(v.name))
+                 || voices.find(v => v.name.includes('Microsoft') && v.lang.toLowerCase().includes('en'))
+                 || voices.find(v => v.lang.toLowerCase().includes('en'))
+                 || voices[0];
+    }
+
+    window.speechSynthesis.onvoiceschanged = populateVoices;
+    setTimeout(populateVoices, 300);
+
+    function toggleSpeechSpeed() {
+      slowSpeed = !slowSpeed;
+      const btn = document.getElementById('speed-toggle');
+      btn.textContent = slowSpeed ? '85%' : '100%';
+      btn.className = slowSpeed
+        ? 'px-2.5 py-1 bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 rounded-lg text-sm font-bold transition'
+        : 'px-2.5 py-1 bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-lg text-sm font-bold transition';
+      playSound('pop');
+    }
+
+    function speakText(text) {
+      if (!('speechSynthesis' in window)) return;
+      if (!andrewVoice) populateVoices();
+      window.speechSynthesis.cancel();
+      const utter = new SpeechSynthesisUtterance(text);
+      if (andrewVoice) utter.voice = andrewVoice;
+      utter.rate = slowSpeed ? 0.85 : 1.0;
+      utter.pitch = 1.0;
+      window.speechSynthesis.speak(utter);
+    }
+
+    function speakPitch() {
+      playSound('sparkle');
+      const scriptText = document.getElementById('pitch-script').innerText;
+      speakText(scriptText);
+    }
+
+    function stopSpeech() {
+      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+    }
+
+    // ==========================================
+    // 4. SPARKLE PARTICLE ENGINE
+    // ==========================================
+    const canvas = document.getElementById('sparkle-canvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    function createSparkles(x, y, count = 28) {
+      const colors = ['#f59e0b', '#fbbf24', '#38bdf8', '#34d399', '#f472b6', '#ffffff'];
+      for (let i = 0; i < count; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = Math.random() * 7 + 2;
+        particles.push({
+          x, y,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed - 2,
+          size: Math.random() * 6 + 3,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          alpha: 1,
+          decay: Math.random() * 0.02 + 0.015,
+          rotation: Math.random() * Math.PI
+        });
+      }
+    }
+
+    function animateSparkles() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.15; // gravity
+        p.alpha -= p.decay;
+        if (p.alpha <= 0) {
+          particles.splice(i, 1);
+          continue;
+        }
+        ctx.save();
+        ctx.globalAlpha = p.alpha;
+        ctx.fillStyle = p.color;
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.rotation);
+        // Draw 4-point star sparkle
+        ctx.beginPath();
+        for (let j = 0; j < 4; j++) {
+          ctx.lineTo(Math.cos((j * Math.PI) / 2) * p.size, Math.sin((j * Math.PI) / 2) * p.size);
+          ctx.lineTo(Math.cos(((j + 0.5) * Math.PI) / 2) * (p.size * 0.4), Math.sin(((j + 0.5) * Math.PI) / 2) * (p.size * 0.4));
+        }
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+      }
+      requestAnimationFrame(animateSparkles);
+    }
+    animateSparkles();
+
+    function sparkleCelebrate() {
+      playSound('sparkle');
+      createSparkles(window.innerWidth * 0.5, window.innerHeight * 0.4, 55);
+    }
+
+    // ==========================================
+    // 5. UI RENDERING (TABS, CHIPS, SLOTS, POSTER, PITCH)
+    // ==========================================
+    function switchPage(pageNum) {
+      [1, 2, 3].forEach(n => {
+        const panel = document.getElementById(`page-${n}`);
+        const tab = document.getElementById(`tab-page-${n}`);
+        if (n === pageNum) {
+          panel.classList.add('active');
+          tab.className = 'px-4 py-2 rounded-lg text-base font-extrabold transition bg-amber-500 text-slate-950 flex items-center gap-2';
+        } else {
+          panel.classList.remove('active');
+          tab.className = 'px-4 py-2 rounded-lg text-base font-extrabold transition text-slate-400 hover:text-white flex items-center gap-2';
+        }
+      });
+      playSound('pop');
+    }
+
+    function renderCategoryTabs() {
+      const container = document.getElementById('category-tabs');
+      if (!container) return;
+      container.innerHTML = '';
+    }
+
+    function renderOptionsPool() {
+      const pool = document.getElementById('options-pool');
+      pool.innerHTML = '';
+      const items = database[activeCategory] || [];
+      const catObj = categories.find(c => c.id === activeCategory);
+      document.getElementById('active-category-badge').textContent = catObj.label;
+
+      items.forEach(item => {
+        const isSelected = currentState[activeCategory] === item.text;
+        const card = document.createElement('div');
+        card.className = `choice-chip p-3 rounded-2xl border-2 flex items-center gap-3 ${
+          isSelected
+            ? 'bg-amber-500/20 border-amber-400 text-white'
+            : 'bg-slate-950 border-slate-800 text-slate-100 hover:border-amber-500/50'
+        }`;
+        card.draggable = true;
+
+        card.addEventListener('dragstart', (e) => {
+          e.dataTransfer.setData('text/plain', JSON.stringify({
+            category: activeCategory,
+            text: item.text,
+            emoji: item.emoji
+          }));
+        });
+
+        card.addEventListener('click', (e) => {
+          selectItemForCategory(activeCategory, item.text, item.emoji, e.clientX, e.clientY);
+        });
+
+        card.innerHTML = `
+          <span class="text-4xl bg-slate-900 w-14 h-14 rounded-xl flex items-center justify-center shrink-0 border border-slate-800">${item.emoji}</span>
+          <div class="min-w-0 flex-1">
+            <div class="text-lg font-extrabold leading-tight line-clamp-2">${item.text}</div>
+            <div class="text-sm text-slate-400 font-semibold truncate mt-0.5">${item.sub}</div>
+          </div>
+        `;
+        pool.appendChild(card);
+      });
+    }
+
+    function renderSlots() {
+      const container = document.getElementById('slots-container');
+      container.innerHTML = '';
+      categories.forEach(cat => {
+        const isActive = cat.id === activeCategory;
+        const slot = document.createElement('div');
+        slot.className = `drop-slot p-3 rounded-2xl bg-slate-950 border-2 cursor-pointer flex flex-col justify-between min-h-[88px] ${
+          isActive ? 'active-slot border-amber-500' : 'border-slate-800 hover:border-slate-700'
+        }`;
+
+        // Click slot to switch active category
+        slot.onclick = () => {
+          activeCategory = cat.id;
+          playSound('pop');
+          updateCategoryUI();
+        };
+
+        // Drag-and-drop listeners
+        slot.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          slot.classList.add('drag-over');
+        });
+        slot.addEventListener('dragleave', () => {
+          slot.classList.remove('drag-over');
+        });
+        slot.addEventListener('drop', (e) => {
+          e.preventDefault();
+          slot.classList.remove('drag-over');
+          try {
+            const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+            selectItemForCategory(cat.id, data.text, data.emoji, e.clientX, e.clientY);
+          } catch (err) {}
+        });
+
+        slot.innerHTML = `
+          <div class="flex items-center justify-between text-xs font-extrabold uppercase tracking-wider ${isActive ? 'text-amber-400' : 'text-slate-400'}">
+            <span><i class="fa-solid ${cat.icon} mr-1"></i>${cat.label}</span>
+            ${isActive ? '<span class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping"></span>' : ''}
+          </div>
+          <div class="text-base font-extrabold text-white line-clamp-2 mt-1 leading-snug">${currentState[cat.id]}</div>
+        `;
+        container.appendChild(slot);
+      });
+    }
+
+    function selectItemForCategory(catId, valueText, emoji, clientX, clientY) {
+      currentState[catId] = valueText;
+      if (emoji && (catId === 'genre' || catId === 'plot' || catId === 'setting')) {
+        if (currentEmojis.length >= 5) currentEmojis.shift();
+        currentEmojis.push(emoji);
+      }
+      playSound('drop');
+      if (clientX && clientY) {
+        createSparkles(clientX, clientY, 22);
+      }
+      updateAllViews();
+    }
+
+    function renderEmojiBank(filter = 'scifi') {
+      const bank = document.getElementById('emoji-bank');
+      bank.innerHTML = '';
+      const list = emojiCatalog[filter] || emojiCatalog.scifi;
+      list.forEach(em => {
+        const btn = document.createElement('button');
+        btn.className = 'text-6xl p-3 rounded-2xl bg-slate-900 hover:bg-amber-500/20 border-2 border-slate-800 hover:border-amber-400 transition transform active:scale-90 flex items-center justify-center shadow-md';
+        btn.textContent = em;
+        btn.onclick = (e) => {
+          if (currentEmojis.length >= 6) currentEmojis.shift();
+          currentEmojis.push(em);
+          playSound('pop');
+          createSparkles(e.clientX, e.clientY, 18);
+          updatePosterAndPitch();
+        };
+        bank.appendChild(btn);
+      });
+    }
+
+    function undoLastEmoji() {
+      if (currentEmojis.length > 1) {
+        currentEmojis.pop();
+        playSound('pop');
+        updatePosterAndPitch();
+      }
+    }
+
+    function setStarRating(stars) {
+      const starContainer = document.getElementById('poster-stars');
+      starContainer.innerHTML = '';
+      for (let i = 1; i <= 5; i++) {
+        const btn = document.createElement('button');
+        btn.className = 'hover:scale-125 transition';
+        btn.onclick = () => setStarRating(i);
+        btn.innerHTML = i <= stars
+          ? '<i class="fa-solid fa-star text-amber-400"></i>'
+          : '<i class="fa-regular fa-star text-amber-400/40"></i>';
+        starContainer.appendChild(btn);
+      }
+      playSound('sparkle');
+      speakText(`${stars} out of 5 stars!`);
+    }
+
+    function triggerClapperboard() {
+      playSound('fanfare');
+      createSparkles(window.innerWidth * 0.5, window.innerHeight * 0.3, 50);
+      speakText(`Lights! Camera! Action! Scene one of ${currentState.title}, take one!`);
+    }
+
+    function playCinemaSFX(effect) {
+      initAudio().then(() => {
+        const now = Tone.now();
+        if (effect === 'suspense') {
+          synth.triggerAttackRelease(["C2", "G2"], "4n", now);
+          synth.triggerAttackRelease(["C2", "F#2"], "2n", now + 0.3);
+        } else if (effect === 'laser') {
+          chimeSynth.triggerAttackRelease("C7", "16n", now);
+          chimeSynth.triggerAttackRelease("G6", "16n", now + 0.05);
+          chimeSynth.triggerAttackRelease("C6", "16n", now + 0.1);
+        } else if (effect === 'magic') {
+          playSound('sparkle');
+        }
+      });
+    }
+
+    function clearEmojis() {
+      currentEmojis = ['🎬'];
+      playSound('pop');
+      updatePosterAndPitch();
+    }
+
+    function setPosterTheme(themeClass, themeLabel) {
+      const poster = document.getElementById('poster-canvas');
+      poster.className = `${themeClass} border-4 rounded-3xl p-5 shadow-2xl relative overflow-hidden flex-1 flex flex-col justify-between transition-all duration-500`;
+      currentState.themeName = themeLabel;
+      playSound('sparkle');
+      createSparkles(window.innerWidth * 0.5, window.innerHeight * 0.45, 30);
+      updatePosterAndPitch();
+    }
+
+    function updatePosterAndPitch() {
+      // Update Poster Elements
+      document.getElementById('poster-genre-pill').textContent = `🎬 ${currentState.genre}`;
+      document.getElementById('poster-title').textContent = currentState.title;
+      document.getElementById('poster-director').textContent = currentState.director;
+      document.getElementById('poster-cast').textContent = `STARRING ${currentState.actor}`;
+      document.getElementById('poster-plot').textContent = `"${currentState.plot.charAt(0).toUpperCase() + currentState.plot.slice(1)} in ${currentState.setting}."`;
+      
+      const cleanCrew = currentState.crew.split('(')[0].trim();
+      const cleanMood = currentState.mood.split('(')[0].trim();
+      document.getElementById('poster-crew').textContent = cleanCrew;
+      document.getElementById('poster-mood').textContent = cleanMood;
+
+      // Render Emojis
+      const emojiContainer = document.getElementById('poster-emojis');
+      emojiContainer.innerHTML = currentEmojis.map(e => `<span class="hover:scale-125 transition cursor-pointer">${e}</span>`).join('');
+
+      // Update Co-Constructed Pitch Script (ICAP + Passive Voice + Contrastive Conjunctions)
+      const pitchBox = document.getElementById('pitch-script');
+      pitchBox.innerHTML = `
+        <p class="mb-2"><strong class="text-amber-400">Dear Studio Executives,</strong></p>
+        <p class="mb-2">Our quad strongly recommends greenlighting our new <strong>${currentState.genre}</strong> film, <em>"${currentState.title}"</em>, directed by <strong>${currentState.director}</strong> and starring <strong>${currentState.actor}</strong>.</p>
+        <p class="mb-2">The story is set in <strong>${currentState.setting}</strong> and focuses on <strong>${currentState.plot}</strong>. Because the visual tone is <strong class="text-cyan-300">${cleanMood}</strong>, our <strong>${ currentState.themeName }</strong> color palette is used to hook the audience immediately.</p>
+        <p><strong>Although</strong> this production is challenging, a skilled <strong class="text-emerald-300">${currentState.crew}</strong> <u>is required</u> on set so that every scene <u>is filmed</u> safely. <strong>Therefore</strong>, we believe this film will be a blockbuster hit!</p>
+      `;
+    }
+
+    function updateCategoryUI() {
+      renderCategoryTabs();
+      renderOptionsPool();
+      renderSlots();
+    }
+
+    function updateAllViews() {
+      updateCategoryUI();
+      updatePosterAndPitch();
+    }
+
+    // ==========================================
+    // 6. PRESETS, RANDOMIZER, PRAISE & TIMER
+    // ==========================================
+    function loadFamousPreset() {
+      const p = famousPresets[presetIndex % famousPresets.length];
+      presetIndex++;
+      currentState.genre = p.genre;
+      currentState.title = p.title;
+      currentState.director = p.director;
+      currentState.actor = p.actor;
+      currentState.setting = p.setting;
+      currentState.plot = p.plot;
+      currentState.crew = p.crew;
+      currentState.mood = p.mood;
+      currentEmojis = [...p.emojis];
+      setPosterTheme(p.theme, 'Iconic Studio Palette');
+      updateAllViews();
+    }
+
+    function randomizeAll() {
+      categories.forEach(cat => {
+        const list = database[cat.id];
+        const pick = list[Math.floor(Math.random() * list.length)];
+        currentState[cat.id] = pick.text;
+      });
+      const allEmojis = [...emojiCatalog.scifi, ...emojiCatalog.fantasy, ...emojiCatalog.mystery, ...emojiCatalog.comedy];
+      currentEmojis = [
+        allEmojis[Math.floor(Math.random() * allEmojis.length)],
+        allEmojis[Math.floor(Math.random() * allEmojis.length)],
+        allEmojis[Math.floor(Math.random() * allEmojis.length)]
+      ];
+      const themes = ['theme-gold', 'theme-cyber', 'theme-horror', 'theme-fantasy', 'theme-emerald', 'theme-sunset'];
+      setPosterTheme(themes[Math.floor(Math.random() * themes.length)], 'Dynamic Studio Lighting');
+      updateAllViews();
+    }
+
+    function triggerPraise() {
+      playSound('fanfare');
+      createSparkles(window.innerWidth * 0.5, 120, 65);
+      const msg = praiseMessages[Math.floor(Math.random() * praiseMessages.length)];
+      const banner = document.getElementById('praise-banner');
+      document.getElementById('praise-text').textContent = `"${msg}"`;
+      banner.classList.remove('opacity-0', '-translate-y-4');
+      banner.classList.add('opacity-100', 'translate-y-0');
+      speakText(msg);
+
+      setTimeout(() => {
+        banner.classList.remove('opacity-100', 'translate-y-0');
+        banner.classList.add('opacity-0', '-translate-y-4');
+      }, 4200);
+    }
+
+    function greenlightMovie() {
+      playSound('fanfare');
+      createSparkles(window.innerWidth * 0.5, window.innerHeight * 0.5, 90);
+      const quad = document.getElementById('quad-names').value.trim() || '6H2 Studio Quad';
+      speakText(`Greenlight approved for ${quad}! Presenting ${currentState.title}, directed by ${currentState.director}!`);
+    }
+
+    function copyPitch() {
+      const text = document.getElementById('pitch-script').innerText;
+      const quad = document.getElementById('quad-names').value.trim();
+      const fullText = quad ? `${text}\n\nSigned by Quad: ${quad}` : text;
+      
+      const textarea = document.createElement('textarea');
+      textarea.value = fullText;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+
+      playSound('sparkle');
+      const banner = document.getElementById('praise-banner');
+      document.getElementById('praise-text').textContent = "Pitch Copied to Clipboard for CWB!";
+      banner.classList.remove('opacity-0', '-translate-y-4');
+      banner.classList.add('opacity-100', 'translate-y-0');
+      setTimeout(() => {
+        banner.classList.remove('opacity-100', 'translate-y-0');
+        banner.classList.add('opacity-0', '-translate-y-4');
+      }, 2500);
+    }
+
+    // 4-Minute Quad Countdown Timer
+    let totalSeconds = 240;
+    let remainingSeconds = 240;
+    let timerInterval = null;
+
+    function updateTimerDisplay() {
+      const mins = String(Math.floor(remainingSeconds / 60)).padStart(2, '0');
+      const secs = String(remainingSeconds % 60).padStart(2, '0');
+      document.getElementById('timer-display').textContent = `${mins}:${secs}`;
+      const pct = (remainingSeconds / totalSeconds) * 100;
+      document.getElementById('timer-bar').style.width = `${pct}%`;
+    }
+
+    function toggleTimer() {
+      const btn = document.getElementById('timer-btn');
+      if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+        btn.innerHTML = '<i class="fa-solid fa-play"></i> Resume';
+      } else {
+        playSound('pop');
+        btn.innerHTML = '<i class="fa-solid fa-pause"></i> Pause';
+        timerInterval = setInterval(() => {
+          if (remainingSeconds > 0) {
+            remainingSeconds--;
+            updateTimerDisplay();
+          } else {
+            clearInterval(timerInterval);
+            timerInterval = null;
+            btn.innerHTML = '<i class="fa-solid fa-play"></i> Start';
+            playSound('fanfare');
+            speakText("Time is up, Studio Executives! Please finalize your quad signatures.");
+          }
+        }, 1000);
+      }
+    }
+
+    function resetTimer() {
+      if (timerInterval) clearInterval(timerInterval);
+      timerInterval = null;
+      remainingSeconds = totalSeconds;
+      updateTimerDisplay();
+      document.getElementById('timer-btn').innerHTML = '<i class="fa-solid fa-play"></i> Start';
+      playSound('pop');
+    }
+
+    // Initialize App on Load
+    window.onload = () => {
+      renderEmojiBank('scifi');
+      updateAllViews();
+    };
+  </script>
+</body>
+</html>
