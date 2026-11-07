@@ -128,15 +128,6 @@
 </head>
 <body class="min-h-screen flex flex-col antialiased">
 
-    <!-- Navbar -->
-    <nav class="bg-slate-900 p-3 shadow-md border-b-4 border-slate-700 flex justify-end items-center z-10">
-        <div class="flex gap-4 items-center">
-            <button id="mute-btn" onclick="toggleMute()" class="text-slate-300 hover:text-white text-xl">
-                <i class="fa-solid fa-volume-high"></i>
-            </button>
-        </div>
-    </nav>
-
     <!-- Main Content Area -->
     <main class="flex-grow flex flex-col items-center p-2 sm:p-4 w-full max-w-7xl mx-auto relative">
 
@@ -195,11 +186,15 @@
         <!-- 2. CHEAT SHEET / LEARNING SCREEN -->
         <section id="learn-screen" class="w-full hide animate-pop flex flex-col h-full justify-between">
             <div class="flex justify-between items-center mb-2">
-                <button onclick="showScreen('home-screen')" class="text-slate-400 hover:text-white font-bold text-xl">
-                    <i class="fa-solid fa-arrow-left mr-2"></i> Menu
-                </button>
-                <h2 id="learn-title" class="text-3xl md:text-4xl font-black text-white uppercase tracking-widest text-center">Theme Title</h2>
-                <div class="w-24"></div> <!-- Spacer for flex alignment -->
+                <div class="flex gap-2 sm:gap-4 items-center">
+                    <button onclick="showScreen('home-screen')" class="text-slate-400 hover:text-white font-bold text-lg sm:text-xl">
+                        <i class="fa-solid fa-arrow-left mr-2"></i> Menu
+                    </button>
+                    <button onclick="startGame()" class="btn-chunky btn-neutral px-4 py-2 rounded-xl text-sm sm:text-lg font-black uppercase tracking-wider shadow-md">
+                        Start Quiz <i class="fa-solid fa-play ml-1"></i>
+                    </button>
+                </div>
+                <h2 id="learn-title" class="text-2xl md:text-4xl font-black text-white uppercase tracking-widest text-right">Theme Title</h2>
             </div>
 
             <!-- The Golden Rule Box (Compacted) -->
@@ -223,10 +218,6 @@
             <div id="vocab-container" class="bg-slate-800 border-4 border-slate-700 rounded-3xl p-4 mb-4 shadow-xl flex-grow overflow-hidden">
                 <!-- Populated by JS -->
             </div>
-
-            <button onclick="startGame()" class="btn-chunky btn-neutral w-full py-4 rounded-2xl text-3xl font-black uppercase tracking-wider mb-2 shadow-lg">
-                Start The Quiz! <i class="fa-solid fa-play ml-2"></i>
-            </button>
         </section>
 
         <!-- 3. GAME SCREEN -->
@@ -279,111 +270,6 @@
             </div>
         </section>
 
-        <!-- 2. CHEAT SHEET / LEARNING SCREEN -->
-        <section id="learn-screen" class="w-full hide animate-pop">
-            <div class="flex justify-between items-center mb-6">
-                <button onclick="showScreen('home-screen')" class="text-slate-400 hover:text-white font-bold">
-                    <i class="fa-solid fa-arrow-left mr-2"></i> Back to Menu
-                </button>
-                <h2 id="learn-title" class="text-3xl font-black text-white uppercase tracking-widest">Theme Title</h2>
-                <div class="w-24"></div> <!-- Spacer for flex alignment -->
-            </div>
-
-            <!-- The Golden Rule Box -->
-            <div class="bg-slate-800 border-4 border-slate-700 rounded-3xl p-6 mb-8 shadow-xl">
-                <h3 class="text-2xl font-bold text-center mb-6 text-yellow-400">⭐ The Golden Rule ⭐</h3>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- -ING Rule -->
-                    <div class="bg-slate-900 p-6 rounded-2xl border-2 border-orange-500 flex flex-col items-center text-center">
-                        <div class="text-5xl mb-4">📦</div>
-                        <h4 class="text-3xl font-black text-orange-400 mb-2">THING ➔ -ING</h4>
-                        <p class="text-slate-300 text-lg">Describes the thing that <b class="text-orange-400">causes</b> the feeling.</p>
-                        <p class="mt-4 text-xl font-bold bg-slate-800 px-4 py-2 rounded-lg w-full">
-                            The movie was <span class="text-orange-400">exciting</span>.
-                            <button onclick="speakText('The movie was exciting.')" class="ml-2 text-slate-400 hover:text-white"><i class="fa-solid fa-volume-up"></i></button>
-                        </p>
-                    </div>
-
-                    <!-- -ED Rule -->
-                    <div class="bg-slate-900 p-6 rounded-2xl border-2 border-blue-500 flex flex-col items-center text-center">
-                        <div class="text-5xl mb-4">🧍</div>
-                        <h4 class="text-3xl font-black text-blue-400 mb-2">PERSON ➔ -ED</h4>
-                        <p class="text-slate-300 text-lg">Describes how a person <b class="text-blue-400">feels</b> inside.</p>
-                        <p class="mt-4 text-xl font-bold bg-slate-800 px-4 py-2 rounded-lg w-full">
-                            I was <span class="text-blue-400">excited</span>.
-                            <button onclick="speakText('I was excited.')" class="ml-2 text-slate-400 hover:text-white"><i class="fa-solid fa-volume-up"></i></button>
-                        </p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Vocabulary List Injection Container -->
-            <div id="vocab-container" class="bg-slate-800 border-4 border-slate-700 rounded-3xl p-6 mb-8 shadow-xl">
-                <!-- Populated by JS -->
-            </div>
-
-            <button onclick="startGame()" class="btn-chunky btn-neutral w-full py-5 rounded-2xl text-2xl font-black uppercase tracking-wider mb-10 shadow-lg">
-                Start The Quiz! <i class="fa-solid fa-play ml-2"></i>
-            </button>
-        </section>
-
-        <!-- 3. GAME SCREEN -->
-        <section id="game-screen" class="w-full max-w-4xl mx-auto hide">
-            <!-- Game Header -->
-            <div class="flex justify-between items-center mb-4 bg-slate-800 p-4 rounded-2xl border-2 border-slate-700">
-                <div class="text-xl font-bold text-slate-300">
-                    Question: <span id="q-counter" class="text-white">1/10</span>
-                </div>
-                <div class="flex items-center gap-4">
-                    <div class="text-2xl font-black text-yellow-400 flex items-center gap-2">
-                        <i class="fa-solid fa-star"></i> <span id="score-display">0</span>
-                    </div>
-                    <div id="streak-container" class="text-2xl font-black text-orange-500 flex items-center gap-2 transition-transform duration-300">
-                        <i class="fa-solid fa-fire"></i> <span id="streak-display">0</span>
-                    </div>
-                </div>
-                <button onclick="quitGame()" class="text-red-400 hover:text-red-300 font-bold">
-                    Quit <i class="fa-solid fa-right-from-bracket ml-1"></i>
-                </button>
-            </div>
-
-            <!-- Timer -->
-            <div class="mb-8">
-                <div class="flex justify-between text-sm font-bold text-slate-400 mb-1">
-                    <span>Time Remaining</span>
-                    <span id="timer-text">15s</span>
-                </div>
-                <div class="timer-container">
-                    <div id="timer-bar" class="timer-bar"></div>
-                </div>
-            </div>
-
-            <!-- Question Area -->
-            <div class="bg-slate-800 border-4 border-slate-600 rounded-3xl p-8 md:p-12 mb-8 text-center shadow-2xl relative">
-                <!-- TTS Button for Question -->
-                <button onclick="speakCurrentQuestion()" class="absolute top-4 right-4 bg-slate-700 hover:bg-slate-600 text-white rounded-full w-12 h-12 flex items-center justify-center text-xl transition-colors">
-                    <i class="fa-solid fa-volume-up"></i>
-                </button>
-                
-                <div id="q-emoji" class="text-6xl mb-6 drop-shadow-lg">🤔</div>
-                <h2 id="q-text" class="text-2xl md:text-4xl font-bold leading-relaxed mb-2 text-white">
-                    The question goes here...
-                </h2>
-            </div>
-
-            <!-- Answer Buttons -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="answer-buttons">
-                <!-- Populated by JS -->
-                <button class="btn-chunky btn-ed py-6 rounded-2xl text-3xl font-black shadow-lg flex justify-center items-center gap-4">
-                    excited <i class="fa-solid fa-volume-up text-xl opacity-50"></i>
-                </button>
-                <button class="btn-chunky btn-ing py-6 rounded-2xl text-3xl font-black shadow-lg flex justify-center items-center gap-4">
-                    exciting <i class="fa-solid fa-volume-up text-xl opacity-50"></i>
-                </button>
-            </div>
-        </section>
-
         <!-- STORY BUILDER SCREEN (Grade 5) -->
         <section id="builder-screen" class="w-full h-full hide animate-pop flex-col">
             <div class="flex justify-between items-center mb-4">
@@ -395,16 +281,31 @@
             </div>
 
             <div class="flex flex-col lg:flex-row gap-6 flex-grow">
-                <!-- Left: Prompts -->
-                <div class="bg-slate-800 border-4 border-slate-700 p-4 rounded-3xl w-full lg:w-1/4 flex flex-col h-full max-h-[80vh] overflow-y-auto">
+                <!-- Left: Prompts & Word Bank -->
+                <div class="bg-slate-800 border-4 border-slate-700 p-4 rounded-3xl w-full lg:w-1/3 flex flex-col h-full max-h-[80vh] overflow-y-auto">
                     <h3 class="text-xl text-yellow-400 font-bold mb-4"><i class="fa-solid fa-book-open"></i> 1. Pick a Mystery</h3>
-                    <div id="builder-prompts" class="flex flex-col gap-2">
+                    <div id="builder-prompts" class="flex flex-col gap-2 mb-6">
                         <!-- Populated by JS -->
                     </div>
+                    
+                    <!-- Word Bank (Moved to Left Column) -->
+                    <div class="p-4 bg-slate-900 rounded-2xl border-2 border-slate-600 mb-4">
+                        <div class="flex flex-col mb-3">
+                            <h4 class="text-lg text-slate-300 font-bold"><i class="fa-solid fa-hand-pointer"></i> Word Bank</h4>
+                            <span class="text-xs text-slate-400">Tap word ➔ Tap blank (Or Drag & Drop)</span>
+                        </div>
+                        <div id="builder-word-bank" class="flex flex-wrap gap-2 justify-center min-h-[60px]">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+
+                    <button onclick="checkBuilderStory()" class="btn-chunky btn-neutral w-full mt-auto py-4 rounded-2xl text-xl font-black uppercase tracking-wider shadow-lg">
+                        Check My Story! <i class="fa-solid fa-magnifying-glass ml-2"></i>
+                    </button>
                 </div>
 
                 <!-- Right: Builder -->
-                <div class="bg-slate-800 border-4 border-slate-700 p-6 rounded-3xl w-full lg:w-3/4 flex flex-col">
+                <div class="bg-slate-800 border-4 border-slate-700 p-6 rounded-3xl w-full lg:w-2/3 flex flex-col">
                     <div class="bg-slate-900 p-3 rounded-2xl border-2 border-slate-600 mb-4">
                         <h4 id="active-prompt-title" class="text-xl font-bold text-blue-300 mb-1">Select a story on the left!</h4>
                         <p id="active-prompt-text" class="text-base text-slate-300">...</p>
@@ -415,21 +316,6 @@
                     <div id="builder-report-container" class="flex-grow flex flex-col justify-center gap-8 text-xl md:text-2xl font-black leading-loose text-white bg-slate-900 p-8 rounded-2xl border-2 border-slate-600 mb-4 shadow-inner">
                         <!-- Populated dynamically by JS based on the story -->
                     </div>
-
-                    <!-- Word Bank -->
-                    <div class="p-4 bg-slate-900 rounded-2xl border-2 border-slate-600">
-                        <div class="flex justify-between items-center mb-3">
-                            <h4 class="text-lg text-slate-300 font-bold"><i class="fa-solid fa-hand-pointer"></i> Word Bank</h4>
-                            <span class="text-sm text-slate-400">Tap word ➔ Tap blank (Or Drag & Drop)</span>
-                        </div>
-                        <div id="builder-word-bank" class="flex flex-wrap gap-3 justify-center min-h-[60px]">
-                            <!-- Populated by JS -->
-                        </div>
-                    </div>
-
-                    <button onclick="checkBuilderStory()" class="btn-chunky btn-neutral w-full mt-6 py-4 rounded-2xl text-2xl font-black uppercase tracking-wider shadow-lg">
-                        Check My Story! <i class="fa-solid fa-magnifying-glass ml-2"></i>
-                    </button>
                 </div>
             </div>
         </section>
@@ -945,25 +831,25 @@
             // Populate Learning Screen
             document.getElementById('learn-title').innerText = currentThemeData.title;
             
-            // Compact 2-column grid for Vocab
+            // Compact grid for Vocab: definitions to the right to save vertical space and expand width
             const vocabHtml = currentThemeData.vocab.map(v => `
-                <div class="bg-slate-900 rounded-xl p-3 flex items-center gap-3 border-2 border-slate-700">
-                    <div class="text-4xl text-center min-w-[50px]">${v.emoji}</div>
-                    <div class="flex flex-col w-full gap-2">
-                        <div class="bg-slate-800 p-2 rounded-lg border-l-4 border-blue-500 cursor-pointer hover:bg-slate-700 transition-colors" onclick="speakText('${v.ed}')">
-                            <span class="text-2xl font-bold text-blue-400 block leading-none mb-1">${v.ed}</span>
-                            <span class="text-slate-300 text-lg leading-none">${v.edM}</span>
+                <div class="bg-slate-900 rounded-xl p-2 flex items-center gap-2 border-2 border-slate-700">
+                    <div class="text-3xl text-center min-w-[45px]">${v.emoji}</div>
+                    <div class="flex flex-col w-full gap-1">
+                        <div class="bg-slate-800 p-2 rounded-lg border-l-4 border-blue-500 cursor-pointer hover:bg-slate-700 transition-colors flex justify-between items-center gap-2" onclick="speakText('${v.ed}')">
+                            <span class="text-lg md:text-xl font-bold text-blue-400 whitespace-nowrap">${v.ed}</span>
+                            <span class="text-slate-300 text-sm text-right leading-tight">${v.edM}</span>
                         </div>
-                        <div class="bg-slate-800 p-2 rounded-lg border-l-4 border-orange-500 cursor-pointer hover:bg-slate-700 transition-colors" onclick="speakText('${v.ing}')">
-                            <span class="text-2xl font-bold text-orange-400 block leading-none mb-1">${v.ing}</span>
-                            <span class="text-slate-300 text-lg leading-none">${v.ingM}</span>
+                        <div class="bg-slate-800 p-2 rounded-lg border-l-4 border-orange-500 cursor-pointer hover:bg-slate-700 transition-colors flex justify-between items-center gap-2" onclick="speakText('${v.ing}')">
+                            <span class="text-lg md:text-xl font-bold text-orange-400 whitespace-nowrap">${v.ing}</span>
+                            <span class="text-slate-300 text-sm text-right leading-tight">${v.ingM}</span>
                         </div>
                     </div>
                 </div>
             `).join('');
 
             document.getElementById('vocab-container').innerHTML = `
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 h-full overflow-y-auto pr-2 pb-2">
+                <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-2 h-full overflow-y-auto pr-2 pb-2">
                     ${vocabHtml}
                 </div>
             `;
