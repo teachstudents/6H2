@@ -1,0 +1,1416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adjective Detectives & Critics</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tone.js for Sound Effects -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap');
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: #1e293b; /* Slate 800 */
+            color: #f8fafc;
+            overflow-x: hidden;
+        }
+
+        /* Chunky Button Styles */
+        .btn-chunky {
+            transition: all 0.1s ease;
+            position: relative;
+            top: 0;
+        }
+        .btn-chunky:active {
+            top: 4px;
+            box-shadow: 0 0px 0 0 transparent !important;
+        }
+        
+        .btn-ed {
+            background-color: #3b82f6; /* Blue 500 */
+            box-shadow: 0 6px 0 0 #1d4ed8; /* Blue 700 */
+            color: white;
+        }
+        .btn-ing {
+            background-color: #f97316; /* Orange 500 */
+            box-shadow: 0 6px 0 0 #c2410c; /* Orange 700 */
+            color: white;
+        }
+        .btn-neutral {
+            background-color: #8b5cf6; /* Violet 500 */
+            box-shadow: 0 6px 0 0 #6d28d9; /* Violet 700 */
+            color: white;
+        }
+        
+        /* Animations */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+        .animate-shake {
+            animation: shake 0.4s ease-in-out;
+        }
+
+        @keyframes pop {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .animate-pop {
+            animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        /* Timer Bar */
+        .timer-container {
+            width: 100%;
+            background-color: #334155;
+            border-radius: 999px;
+            height: 20px;
+            overflow: hidden;
+            border: 3px solid #0f172a;
+        }
+        .timer-bar {
+            height: 100%;
+            background-color: #10b981; /* Emerald 500 */
+            width: 100%;
+            transition: width 1s linear, background-color 0.3s;
+        }
+        .timer-warning { background-color: #f59e0b; } /* Amber */
+        .timer-danger { background-color: #ef4444; } /* Red */
+
+        .text-ed { color: #60a5fa; font-weight: bold; } /* Blue text */
+        .text-ing { color: #fb923c; font-weight: bold; } /* Orange text */
+        
+        /* Drag and Drop / Builder Styles */
+        .word-pill {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 999px;
+            font-weight: 900;
+            font-size: 1.25rem;
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.2s;
+            box-shadow: 0 4px 0 0 rgba(0,0,0,0.2);
+        }
+        .word-pill:active { transform: translateY(4px); box-shadow: 0 0 0 0 transparent; }
+        .word-pill.selected {
+            transform: scale(1.1) translateY(-2px);
+            box-shadow: 0 0 15px 4px rgba(255, 255, 255, 0.4);
+            z-index: 10;
+        }
+        .drop-zone {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 140px;
+            height: 48px;
+            border: 3px dashed #64748b;
+            border-radius: 999px;
+            vertical-align: middle;
+            background-color: #1e293b;
+            margin: 0 0.5rem;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .drop-zone:hover { background-color: #334155; }
+        .drop-zone.correct { border-color: #10b981; background-color: rgba(16, 185, 129, 0.2); }
+        .drop-zone.wrong { border-color: #ef4444; background-color: rgba(239, 68, 68, 0.2); }
+
+        .hide { display: none !important; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col antialiased">
+
+    <!-- Navbar -->
+    <nav class="bg-slate-900 p-3 shadow-md border-b-4 border-slate-700 flex justify-end items-center z-10">
+        <div class="flex gap-4 items-center">
+            <button id="mute-btn" onclick="toggleMute()" class="text-slate-300 hover:text-white text-xl">
+                <i class="fa-solid fa-volume-high"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow flex flex-col items-center p-2 sm:p-4 w-full max-w-7xl mx-auto relative">
+
+        <!-- 1. HOME SCREEN -->
+        <section id="home-screen" class="w-full flex flex-col items-center justify-center py-4 animate-pop">
+            <h1 class="text-4xl md:text-6xl font-black text-center mb-4 drop-shadow-md text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-orange-400">
+                Choose Your Adventure!
+            </h1>
+            <p class="text-2xl text-slate-300 mb-8 text-center max-w-3xl font-bold">
+                Learn the difference between <span class="text-ed">-ed</span> and <span class="text-ing">-ing</span> adjectives.
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 w-full max-w-7xl px-4">
+                <!-- Detective Card -->
+                <div class="bg-slate-800 rounded-3xl p-6 border-4 border-slate-700 flex flex-col items-center text-center transform hover:scale-105 transition-transform">
+                    <div class="text-7xl mb-2">🕵️‍♂️</div>
+                    <h2 class="text-3xl font-bold mb-2 text-white">Grade 5:<br>Detective</h2>
+                    <p class="text-slate-400 mb-4 text-lg">A1-B1 Quiz</p>
+                    <button onclick="loadTheme('detective')" class="btn-chunky btn-neutral w-full py-4 rounded-xl text-2xl font-bold uppercase tracking-wider mt-auto">
+                        Play Quiz
+                    </button>
+                </div>
+
+                <!-- Story Builder Card -->
+                <div class="bg-slate-800 rounded-3xl p-6 border-4 border-slate-700 flex flex-col items-center text-center transform hover:scale-105 transition-transform">
+                    <div class="text-7xl mb-2">📝</div>
+                    <h2 class="text-3xl font-bold mb-2 text-white">Grade 5:<br>Story Builder</h2>
+                    <p class="text-slate-400 mb-4 text-lg">Drag & Drop Practice</p>
+                    <button onclick="openBuilder()" class="btn-chunky bg-emerald-600 shadow-[0_6px_0_0_#047857] text-white w-full py-4 rounded-xl text-2xl font-bold uppercase tracking-wider mt-auto">
+                        Build Story
+                    </button>
+                </div>
+
+                <!-- Movie Card -->
+                <div class="bg-slate-800 rounded-3xl p-6 border-4 border-slate-700 flex flex-col items-center text-center transform hover:scale-105 transition-transform">
+                    <div class="text-7xl mb-2">🎬</div>
+                    <h2 class="text-3xl font-bold mb-2 text-white">Grade 6:<br>Cinema</h2>
+                    <p class="text-slate-400 mb-4 text-lg">A1-B1 Quiz</p>
+                    <button onclick="loadTheme('movie')" class="btn-chunky btn-neutral w-full py-4 rounded-xl text-2xl font-bold uppercase tracking-wider mt-auto">
+                        Play Quiz
+                    </button>
+                </div>
+
+                <!-- B2-C1 Advanced Card -->
+                <div class="bg-slate-800 rounded-3xl p-6 border-4 border-slate-700 flex flex-col items-center text-center transform hover:scale-105 transition-transform">
+                    <div class="text-7xl mb-2">🧠</div>
+                    <h2 class="text-3xl font-bold mb-2 text-white">Advanced:<br>B2-C1</h2>
+                    <p class="text-slate-400 mb-4 text-lg">Master Level Quiz</p>
+                    <button onclick="loadTheme('advanced')" class="btn-chunky bg-purple-600 shadow-[0_6px_0_0_#4c1d95] text-white w-full py-4 rounded-xl text-2xl font-bold uppercase tracking-wider mt-auto">
+                        Play Quiz
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. CHEAT SHEET / LEARNING SCREEN -->
+        <section id="learn-screen" class="w-full hide animate-pop flex flex-col h-full justify-between">
+            <div class="flex justify-between items-center mb-2">
+                <button onclick="showScreen('home-screen')" class="text-slate-400 hover:text-white font-bold text-xl">
+                    <i class="fa-solid fa-arrow-left mr-2"></i> Menu
+                </button>
+                <h2 id="learn-title" class="text-3xl md:text-4xl font-black text-white uppercase tracking-widest text-center">Theme Title</h2>
+                <div class="w-24"></div> <!-- Spacer for flex alignment -->
+            </div>
+
+            <!-- The Golden Rule Box (Compacted) -->
+            <div class="bg-slate-800 border-4 border-slate-700 rounded-2xl p-4 mb-4 shadow-xl">
+                <div class="flex flex-col md:flex-row gap-4 items-center justify-center">
+                    <div class="text-2xl font-bold text-yellow-400 px-4">⭐ RULE:</div>
+                    <!-- -ING Rule -->
+                    <div class="flex-1 bg-slate-900 px-4 py-2 rounded-xl border-2 border-orange-500 flex items-center justify-between">
+                        <div class="text-2xl font-black text-orange-400">📦 THING ➔ -ING</div>
+                        <div class="text-xl font-bold text-white">The movie was <span class="text-orange-400">exciting</span>.</div>
+                    </div>
+                    <!-- -ED Rule -->
+                    <div class="flex-1 bg-slate-900 px-4 py-2 rounded-xl border-2 border-blue-500 flex items-center justify-between">
+                        <div class="text-2xl font-black text-blue-400">🧍 PERSON ➔ -ED</div>
+                        <div class="text-xl font-bold text-white">I was <span class="text-blue-400">excited</span>.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Vocabulary List Injection Container -->
+            <div id="vocab-container" class="bg-slate-800 border-4 border-slate-700 rounded-3xl p-4 mb-4 shadow-xl flex-grow overflow-hidden">
+                <!-- Populated by JS -->
+            </div>
+
+            <button onclick="startGame()" class="btn-chunky btn-neutral w-full py-4 rounded-2xl text-3xl font-black uppercase tracking-wider mb-2 shadow-lg">
+                Start The Quiz! <i class="fa-solid fa-play ml-2"></i>
+            </button>
+        </section>
+
+        <!-- 3. GAME SCREEN -->
+        <section id="game-screen" class="w-full max-w-5xl mx-auto hide">
+            <!-- Game Header -->
+            <div class="flex justify-between items-center mb-4 bg-slate-800 p-4 rounded-2xl border-2 border-slate-700">
+                <div class="text-2xl font-bold text-slate-300">
+                    Question: <span id="q-counter" class="text-white">1/10</span>
+                </div>
+                <div class="flex items-center gap-6">
+                    <div class="text-3xl font-black text-yellow-400 flex items-center gap-2">
+                        <i class="fa-solid fa-star"></i> <span id="score-display">0</span>
+                    </div>
+                    <div id="streak-container" class="text-3xl font-black text-orange-500 flex items-center gap-2 transition-transform duration-300">
+                        <i class="fa-solid fa-fire"></i> <span id="streak-display">0</span>
+                    </div>
+                </div>
+                <button onclick="quitGame()" class="text-red-400 hover:text-red-300 font-bold text-2xl">
+                    Quit <i class="fa-solid fa-right-from-bracket ml-1"></i>
+                </button>
+            </div>
+
+            <!-- Timer -->
+            <div class="mb-6">
+                <div class="flex justify-between text-lg font-bold text-slate-400 mb-1">
+                    <span>Time Remaining</span>
+                    <span id="timer-text">15s</span>
+                </div>
+                <div class="timer-container h-6">
+                    <div id="timer-bar" class="timer-bar"></div>
+                </div>
+            </div>
+
+            <!-- Question Area -->
+            <div class="bg-slate-800 border-4 border-slate-600 rounded-3xl p-8 md:p-10 mb-8 text-center shadow-2xl relative">
+                <!-- TTS Button for Question -->
+                <button onclick="speakCurrentQuestion()" class="absolute top-4 right-4 bg-slate-700 hover:bg-slate-600 text-white rounded-full w-16 h-16 flex items-center justify-center text-3xl transition-colors">
+                    <i class="fa-solid fa-volume-up"></i>
+                </button>
+                
+                <div id="q-emoji" class="text-7xl mb-6 drop-shadow-lg">🤔</div>
+                <h2 id="q-text" class="text-3xl md:text-5xl font-bold leading-snug mb-2 text-white">
+                    The question goes here...
+                </h2>
+            </div>
+
+            <!-- Answer Buttons -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="answer-buttons">
+                <!-- Populated by JS -->
+            </div>
+        </section>
+
+        <!-- 2. CHEAT SHEET / LEARNING SCREEN -->
+        <section id="learn-screen" class="w-full hide animate-pop">
+            <div class="flex justify-between items-center mb-6">
+                <button onclick="showScreen('home-screen')" class="text-slate-400 hover:text-white font-bold">
+                    <i class="fa-solid fa-arrow-left mr-2"></i> Back to Menu
+                </button>
+                <h2 id="learn-title" class="text-3xl font-black text-white uppercase tracking-widest">Theme Title</h2>
+                <div class="w-24"></div> <!-- Spacer for flex alignment -->
+            </div>
+
+            <!-- The Golden Rule Box -->
+            <div class="bg-slate-800 border-4 border-slate-700 rounded-3xl p-6 mb-8 shadow-xl">
+                <h3 class="text-2xl font-bold text-center mb-6 text-yellow-400">⭐ The Golden Rule ⭐</h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- -ING Rule -->
+                    <div class="bg-slate-900 p-6 rounded-2xl border-2 border-orange-500 flex flex-col items-center text-center">
+                        <div class="text-5xl mb-4">📦</div>
+                        <h4 class="text-3xl font-black text-orange-400 mb-2">THING ➔ -ING</h4>
+                        <p class="text-slate-300 text-lg">Describes the thing that <b class="text-orange-400">causes</b> the feeling.</p>
+                        <p class="mt-4 text-xl font-bold bg-slate-800 px-4 py-2 rounded-lg w-full">
+                            The movie was <span class="text-orange-400">exciting</span>.
+                            <button onclick="speakText('The movie was exciting.')" class="ml-2 text-slate-400 hover:text-white"><i class="fa-solid fa-volume-up"></i></button>
+                        </p>
+                    </div>
+
+                    <!-- -ED Rule -->
+                    <div class="bg-slate-900 p-6 rounded-2xl border-2 border-blue-500 flex flex-col items-center text-center">
+                        <div class="text-5xl mb-4">🧍</div>
+                        <h4 class="text-3xl font-black text-blue-400 mb-2">PERSON ➔ -ED</h4>
+                        <p class="text-slate-300 text-lg">Describes how a person <b class="text-blue-400">feels</b> inside.</p>
+                        <p class="mt-4 text-xl font-bold bg-slate-800 px-4 py-2 rounded-lg w-full">
+                            I was <span class="text-blue-400">excited</span>.
+                            <button onclick="speakText('I was excited.')" class="ml-2 text-slate-400 hover:text-white"><i class="fa-solid fa-volume-up"></i></button>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Vocabulary List Injection Container -->
+            <div id="vocab-container" class="bg-slate-800 border-4 border-slate-700 rounded-3xl p-6 mb-8 shadow-xl">
+                <!-- Populated by JS -->
+            </div>
+
+            <button onclick="startGame()" class="btn-chunky btn-neutral w-full py-5 rounded-2xl text-2xl font-black uppercase tracking-wider mb-10 shadow-lg">
+                Start The Quiz! <i class="fa-solid fa-play ml-2"></i>
+            </button>
+        </section>
+
+        <!-- 3. GAME SCREEN -->
+        <section id="game-screen" class="w-full max-w-4xl mx-auto hide">
+            <!-- Game Header -->
+            <div class="flex justify-between items-center mb-4 bg-slate-800 p-4 rounded-2xl border-2 border-slate-700">
+                <div class="text-xl font-bold text-slate-300">
+                    Question: <span id="q-counter" class="text-white">1/10</span>
+                </div>
+                <div class="flex items-center gap-4">
+                    <div class="text-2xl font-black text-yellow-400 flex items-center gap-2">
+                        <i class="fa-solid fa-star"></i> <span id="score-display">0</span>
+                    </div>
+                    <div id="streak-container" class="text-2xl font-black text-orange-500 flex items-center gap-2 transition-transform duration-300">
+                        <i class="fa-solid fa-fire"></i> <span id="streak-display">0</span>
+                    </div>
+                </div>
+                <button onclick="quitGame()" class="text-red-400 hover:text-red-300 font-bold">
+                    Quit <i class="fa-solid fa-right-from-bracket ml-1"></i>
+                </button>
+            </div>
+
+            <!-- Timer -->
+            <div class="mb-8">
+                <div class="flex justify-between text-sm font-bold text-slate-400 mb-1">
+                    <span>Time Remaining</span>
+                    <span id="timer-text">15s</span>
+                </div>
+                <div class="timer-container">
+                    <div id="timer-bar" class="timer-bar"></div>
+                </div>
+            </div>
+
+            <!-- Question Area -->
+            <div class="bg-slate-800 border-4 border-slate-600 rounded-3xl p-8 md:p-12 mb-8 text-center shadow-2xl relative">
+                <!-- TTS Button for Question -->
+                <button onclick="speakCurrentQuestion()" class="absolute top-4 right-4 bg-slate-700 hover:bg-slate-600 text-white rounded-full w-12 h-12 flex items-center justify-center text-xl transition-colors">
+                    <i class="fa-solid fa-volume-up"></i>
+                </button>
+                
+                <div id="q-emoji" class="text-6xl mb-6 drop-shadow-lg">🤔</div>
+                <h2 id="q-text" class="text-2xl md:text-4xl font-bold leading-relaxed mb-2 text-white">
+                    The question goes here...
+                </h2>
+            </div>
+
+            <!-- Answer Buttons -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="answer-buttons">
+                <!-- Populated by JS -->
+                <button class="btn-chunky btn-ed py-6 rounded-2xl text-3xl font-black shadow-lg flex justify-center items-center gap-4">
+                    excited <i class="fa-solid fa-volume-up text-xl opacity-50"></i>
+                </button>
+                <button class="btn-chunky btn-ing py-6 rounded-2xl text-3xl font-black shadow-lg flex justify-center items-center gap-4">
+                    exciting <i class="fa-solid fa-volume-up text-xl opacity-50"></i>
+                </button>
+            </div>
+        </section>
+
+        <!-- STORY BUILDER SCREEN (Grade 5) -->
+        <section id="builder-screen" class="w-full h-full hide animate-pop flex-col">
+            <div class="flex justify-between items-center mb-4">
+                <button onclick="showScreen('home-screen')" class="text-slate-400 hover:text-white font-bold text-xl">
+                    <i class="fa-solid fa-arrow-left mr-2"></i> Menu
+                </button>
+                <h2 class="text-3xl md:text-4xl font-black text-white uppercase tracking-widest text-center">Story Builder 📝</h2>
+                <div class="w-24"></div>
+            </div>
+
+            <div class="flex flex-col lg:flex-row gap-6 flex-grow">
+                <!-- Left: Prompts -->
+                <div class="bg-slate-800 border-4 border-slate-700 p-4 rounded-3xl w-full lg:w-1/4 flex flex-col h-full max-h-[80vh] overflow-y-auto">
+                    <h3 class="text-xl text-yellow-400 font-bold mb-4"><i class="fa-solid fa-book-open"></i> 1. Pick a Mystery</h3>
+                    <div id="builder-prompts" class="flex flex-col gap-2">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+                <!-- Right: Builder -->
+                <div class="bg-slate-800 border-4 border-slate-700 p-6 rounded-3xl w-full lg:w-3/4 flex flex-col">
+                    <div class="bg-slate-900 p-3 rounded-2xl border-2 border-slate-600 mb-4">
+                        <h4 id="active-prompt-title" class="text-xl font-bold text-blue-300 mb-1">Select a story on the left!</h4>
+                        <p id="active-prompt-text" class="text-base text-slate-300">...</p>
+                    </div>
+
+                    <h3 class="text-2xl text-yellow-400 font-bold mb-2"><i class="fa-solid fa-puzzle-piece"></i> 2. Complete the Report</h3>
+                    
+                    <div id="builder-report-container" class="flex-grow flex flex-col justify-center gap-8 text-xl md:text-2xl font-black leading-loose text-white bg-slate-900 p-8 rounded-2xl border-2 border-slate-600 mb-4 shadow-inner">
+                        <!-- Populated dynamically by JS based on the story -->
+                    </div>
+
+                    <!-- Word Bank -->
+                    <div class="p-4 bg-slate-900 rounded-2xl border-2 border-slate-600">
+                        <div class="flex justify-between items-center mb-3">
+                            <h4 class="text-lg text-slate-300 font-bold"><i class="fa-solid fa-hand-pointer"></i> Word Bank</h4>
+                            <span class="text-sm text-slate-400">Tap word ➔ Tap blank (Or Drag & Drop)</span>
+                        </div>
+                        <div id="builder-word-bank" class="flex flex-wrap gap-3 justify-center min-h-[60px]">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+
+                    <button onclick="checkBuilderStory()" class="btn-chunky btn-neutral w-full mt-6 py-4 rounded-2xl text-2xl font-black uppercase tracking-wider shadow-lg">
+                        Check My Story! <i class="fa-solid fa-magnifying-glass ml-2"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. RESULTS SCREEN -->
+        <section id="result-screen" class="w-full max-w-2xl mx-auto hide animate-pop text-center">
+            <div class="bg-slate-800 border-4 border-slate-700 rounded-3xl p-10 shadow-2xl">
+                <div id="result-emoji" class="text-8xl mb-6">🏆</div>
+                <h2 id="result-title" class="text-4xl font-black mb-4 text-yellow-400">Case Closed!</h2>
+                <p class="text-2xl text-slate-300 mb-8">
+                    Your final score is: <span id="final-score" class="font-bold text-white text-4xl">0</span>
+                </p>
+                <div id="result-rank" class="text-xl font-bold bg-slate-900 p-4 rounded-xl text-violet-300 mb-8 inline-block">
+                    Rank: Master Sleuth
+                </div>
+                
+                <!-- Review Mistakes Section -->
+                <div id="mistakes-container" class="mt-2 mb-8 text-left bg-slate-900 rounded-2xl p-6 max-h-80 overflow-y-auto hide shadow-inner border-2 border-slate-700">
+                    <h3 class="text-2xl font-black text-red-400 mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-triangle-exclamation"></i> Let's Review:
+                    </h3>
+                    <div id="mistakes-list" class="flex flex-col gap-3">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <button onclick="startGame()" class="btn-chunky btn-neutral py-4 rounded-xl text-xl font-bold">
+                        Play Again <i class="fa-solid fa-rotate-right ml-2"></i>
+                    </button>
+                    <button onclick="showScreen('home-screen')" class="btn-chunky bg-slate-600 shadow-[0_6px_0_0_#475569] text-white py-4 rounded-xl text-xl font-bold">
+                        Main Menu <i class="fa-solid fa-house ml-2"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Modal for Feedback (Correct/Incorrect) -->
+    <div id="feedback-modal" class="fixed inset-0 bg-black bg-opacity-80 z-50 flex items-center justify-center hide px-4">
+        <div id="feedback-card" class="bg-slate-800 border-4 rounded-3xl p-8 max-w-lg w-full text-center transform scale-90 transition-transform duration-300">
+            <div id="feedback-icon" class="text-7xl mb-4">✅</div>
+            <h3 id="feedback-title" class="text-4xl font-black mb-2">Correct!</h3>
+            <p id="feedback-desc" class="text-xl text-slate-300 mb-8 font-semibold">Explanation goes here.</p>
+            <button onclick="nextQuestion()" class="btn-chunky btn-neutral w-full py-4 rounded-xl text-2xl font-bold">
+                Next <i class="fa-solid fa-arrow-right ml-2"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // --- 1. DATA AND CONTENT ---
+
+        const BUILDER_DATA = {
+            prompts: [
+                { 
+                    title: "The Missing Trophy 🏆", 
+                    text: "The school trophy disappeared during lunch. Detective Mia found a muddy footprint, a blue water bottle, and a note with one word: 'SORRY'. Who took the trophy?",
+                    frames: [
+                        { t1: "The muddy footprint was", t2: "so Mia felt" },
+                        { t1: "The missing trophy was", t2: "and the principal became" },
+                        { t1: "The discovery of the note was", t2: "and the students were" }
+                    ]
+                },
+                { 
+                    title: "The Strange Noise 👻", 
+                    text: "Every night, students hear a strange noise near the gym. The sound is loud and scary. What is making the noise?",
+                    frames: [
+                        { t1: "The strange noise was", t2: "so the students felt" },
+                        { t1: "The dark, empty gym was", t2: "and the teachers became" },
+                        { t1: "The whole mystery was", t2: "and everyone was" }
+                    ]
+                },
+                { 
+                    title: "The Lost Class Pet 🐹", 
+                    text: "When the students arrive at school, their class hamster is gone. The cage door is open, but there are no footprints. Where did the hamster go?",
+                    frames: [
+                        { t1: "The empty cage was", t2: "so the kids felt" },
+                        { t1: "The missing hamster was", t2: "and the teacher became" },
+                        { t1: "The lack of footprints was", t2: "and the detectives were" }
+                    ]
+                },
+                { 
+                    title: "The Secret Message ✉️", 
+                    text: "A student finds a note that says: 'Look under the old oak tree.' Why was the message left there, and who wrote it?",
+                    frames: [
+                        { t1: "The secret note was", t2: "so the reader felt" },
+                        { t1: "The hidden tree location was", t2: "and the finder became" },
+                        { t1: "The final discovery was", t2: "and the friends were" }
+                    ]
+                }
+            ],
+            words: [
+                { word: "confusing", type: "ing" }, { word: "confused", type: "ed" },
+                { word: "surprising", type: "ing" }, { word: "surprised", type: "ed" },
+                { word: "interesting", type: "ing" }, { word: "interested", type: "ed" },
+                { word: "frightening", type: "ing" }, { word: "frightened", type: "ed" }
+            ]
+        };
+
+        const APP_DATA = {
+            detective: {
+                title: "Grade 5: Detective Science 🕵️‍♂️",
+                themeEmoji: "🕵️‍♂️",
+                ranks: ["Rookie Cop", "Private Eye", "Lead Inspector", "Master Sleuth"],
+                vocab: [
+                    { ed: "confused", ing: "confusing", edM: "unable to understand", ingM: "difficult to understand", emoji: "😵‍💫" },
+                    { ed: "worried", ing: "worrying", edM: "feeling nervous", ingM: "causing concern", emoji: "😟" },
+                    { ed: "shocked", ing: "shocking", edM: "very surprised", ingM: "causing surprise", emoji: "😱" },
+                    { ed: "puzzled", ing: "puzzling", edM: "unable to solve", ingM: "hard to understand", emoji: "🧩" },
+                    { ed: "terrified", ing: "terrifying", edM: "extremely scared", ingM: "extremely scary", emoji: "😨" },
+                    { ed: "frightened", ing: "frightening", edM: "scared", ingM: "making people scared", emoji: "👻" },
+                    { ed: "fascinated", ing: "fascinating", edM: "very interested", ingM: "extremely interesting", emoji: "🔍" },
+                    { ed: "intrigued", ing: "intriguing", edM: "very curious", ingM: "creating curiosity", emoji: "🧐" },
+                    { ed: "convinced", ing: "convincing", edM: "sure something is true", ingM: "easy to believe", emoji: "✅" },
+                    { ed: "alarmed", ing: "alarming", edM: "suddenly worried", ingM: "causing worry", emoji: "🚨" }
+                ],
+                questions: [
+                    {
+                        text: "The detective looked at the messy room. He was completely ________.",
+                        correct: "confused", type: "ed", emoji: "😵‍💫", options: ["confused", "confusing"],
+                        explanation: "We use -ed because it describes how the DETECTIVE (a person) feels inside."
+                    },
+                    {
+                        text: "The missing diamond is a very ________ mystery.",
+                        correct: "puzzling", type: "ing", emoji: "🧩", options: ["puzzled", "puzzling"],
+                        explanation: "We use -ing because it describes the MYSTERY (a thing) that causes the feeling."
+                    },
+                    {
+                        text: "I am ________ about where the thief went.",
+                        correct: "worried", type: "ed", emoji: "😟", options: ["worried", "worrying"],
+                        explanation: "We use -ed because it describes how 'I' (a person) feel."
+                    },
+                    {
+                        text: "Finding a monster in the basement was absolutely ________!",
+                        correct: "terrifying", type: "ing", emoji: "😱", options: ["terrified", "terrifying"],
+                        explanation: "We use -ing because it describes the EVENT of finding the monster (a thing)."
+                    },
+                    {
+                        text: "The evidence left behind by the robber was very ________.",
+                        correct: "shocking", type: "ing", emoji: "📸", options: ["shocked", "shocking"],
+                        explanation: "We use -ing because it describes the EVIDENCE (a thing)."
+                    },
+                    {
+                        text: "The suspect's story was very ________. It didn't make any sense.",
+                        correct: "confusing", type: "ing", emoji: "🤔", options: ["confused", "confusing"],
+                        explanation: "We use -ing because it describes the STORY (a thing)."
+                    },
+                    {
+                        text: "When the lights suddenly went out, the rookie cop felt ________.",
+                        correct: "frightened", type: "ed", emoji: "🔦", options: ["frightened", "frightening"],
+                        explanation: "We use -ed because it describes how the COP (a person) felt."
+                    },
+                    {
+                        text: "The howling wind outside the haunted house was ________.",
+                        correct: "frightening", type: "ing", emoji: "🌪️", options: ["frightened", "frightening"],
+                        explanation: "We use -ing because it describes the WIND (a thing)."
+                    },
+                    {
+                        text: "The police were ________ to find the stolen car hidden in the river.",
+                        correct: "shocked", type: "ed", emoji: "🚓", options: ["shocked", "shocking"],
+                        explanation: "We use -ed because it describes how the POLICE (people) felt."
+                    },
+                    {
+                        text: "The footprints stopped suddenly in the snow. It was a ________ situation.",
+                        correct: "puzzling", type: "ing", emoji: "👣", options: ["puzzled", "puzzling"],
+                        explanation: "We use -ing because it describes the SITUATION (a thing)."
+                    },
+                    {
+                        text: "The detective found a glowing green key. It was a very ________ clue.",
+                        correct: "fascinating", type: "ing", emoji: "🔑", options: ["fascinated", "fascinating"],
+                        explanation: "We use -ing because it describes the CLUE (a thing)."
+                    },
+                    {
+                        text: "Mia was ________ by the strange muddy footprint in the library.",
+                        correct: "intrigued", type: "ed", emoji: "🔎", options: ["intrigued", "intriguing"],
+                        explanation: "We use -ed because it describes how MIA (a person) felt."
+                    },
+                    {
+                        text: "The suspect's excuse was very ________. The police let him go.",
+                        correct: "convincing", type: "ing", emoji: "🗣️", options: ["convinced", "convincing"],
+                        explanation: "We use -ing because it describes the EXCUSE (a thing) that causes belief."
+                    },
+                    {
+                        text: "The witness heard an ________ noise coming from the basement.",
+                        correct: "alarming", type: "ing", emoji: "🔊", options: ["alarmed", "alarming"],
+                        explanation: "We use -ing because it describes the NOISE (a thing)."
+                    },
+                    {
+                        text: "After finding the secret message, the students were ________.",
+                        correct: "fascinated", type: "ed", emoji: "✉️", options: ["fascinated", "fascinating"],
+                        explanation: "We use -ed because it describes how the STUDENTS (people) felt."
+                    },
+                    {
+                        text: "The secret map they found was highly ________.",
+                        correct: "intriguing", type: "ing", emoji: "🗺️", options: ["intrigued", "intriguing"],
+                        explanation: "We use -ing because it describes the MAP (a thing)."
+                    },
+                    {
+                        text: "The inspector was ________ that the butler was guilty.",
+                        correct: "convinced", type: "ed", emoji: "⚖️", options: ["convinced", "convincing"],
+                        explanation: "We use -ed because it describes how the INSPECTOR (a person) felt."
+                    },
+                    {
+                        text: "Everyone was ________ when the alarm rang at midnight.",
+                        correct: "alarmed", type: "ed", emoji: "⏰", options: ["alarmed", "alarming"],
+                        explanation: "We use -ed because it describes how EVERYONE (people) felt."
+                    },
+                    {
+                        text: "The new evidence was so ________ that it changed the whole case.",
+                        correct: "convincing", type: "ing", emoji: "📁", options: ["convinced", "convincing"],
+                        explanation: "We use -ing because it describes the EVIDENCE (a thing)."
+                    },
+                    {
+                        text: "When the lights went out, it was an ________ event for everyone.",
+                        correct: "alarming", type: "ing", emoji: "🚨", options: ["alarmed", "alarming"],
+                        explanation: "We use -ing because it describes the EVENT (a thing)."
+                    }
+                ]
+            },
+            movie: {
+                title: "Grade 6: Cinema Critics 🎬",
+                themeEmoji: "🎬",
+                ranks: ["Popcorn Eater", "Movie Fan", "Film Critic", "Academy Director"],
+                vocab: [
+                    { ed: "excited", ing: "exciting", edM: "happy and full of energy", ingM: "very fun", emoji: "🤩" },
+                    { ed: "bored", ing: "boring", edM: "unhappy, nothing to do", ingM: "not fun", emoji: "🥱" },
+                    { ed: "interested", ing: "interesting", edM: "wanting to know more", ingM: "makes you want to learn", emoji: "🤔" },
+                    { ed: "disappointed", ing: "disappointing", edM: "unhappy it wasn't good", ingM: "not as expected", emoji: "😞" },
+                    { ed: "amused", ing: "amusing", edM: "entertained", ingM: "a little funny", emoji: "😂" },
+                    { ed: "moved", ing: "moving", edM: "emotionally touched", ingM: "makes you emotional", emoji: "😭" }
+                ],
+                questions: [
+                    {
+                        text: "The action movie had lots of explosions. It was very ________!",
+                        correct: "exciting", type: "ing", emoji: "💥", options: ["excited", "exciting"],
+                        explanation: "We use -ing because it describes the MOVIE (a thing)."
+                    },
+                    {
+                        text: "I fell asleep because the documentary was so ________.",
+                        correct: "boring", type: "ing", emoji: "🥱", options: ["bored", "boring"],
+                        explanation: "We use -ing because it describes the DOCUMENTARY (a thing)."
+                    },
+                    {
+                        text: "My sister loves science fiction. She is very ________ in aliens.",
+                        correct: "interested", type: "ed", emoji: "👽", options: ["interested", "interesting"],
+                        explanation: "We use -ed because it describes how the SISTER (a person) feels."
+                    },
+                    {
+                        text: "The comedy film wasn't very funny. We were quite ________.",
+                        correct: "disappointed", type: "ed", emoji: "😞", options: ["disappointed", "disappointing"],
+                        explanation: "We use -ed because it describes how WE (people) felt after watching."
+                    },
+                    {
+                        text: "The ending of the drama was very sad and ________.",
+                        correct: "moving", type: "ing", emoji: "😭", options: ["moved", "moving"],
+                        explanation: "We use -ing because it describes the ENDING of the film (a thing)."
+                    },
+                    {
+                        text: "We laughed a lot! The main actor was very ________.",
+                        correct: "amusing", type: "ing", emoji: "😂", options: ["amused", "amusing"],
+                        explanation: "Even though the actor is a person, he is the CAUSE of the feeling, so we use -ing."
+                    },
+                    {
+                        text: "I felt so ________ when the superhero finally saved the city.",
+                        correct: "excited", type: "ed", emoji: "🦸‍♂️", options: ["excited", "exciting"],
+                        explanation: "We use -ed because it describes how 'I' (a person) felt."
+                    },
+                    {
+                        text: "The special effects were terrible. It was a very ________ movie.",
+                        correct: "disappointing", type: "ing", emoji: "📉", options: ["disappointed", "disappointing"],
+                        explanation: "We use -ing because it describes the MOVIE (a thing)."
+                    },
+                    {
+                        text: "Are you ________ in watching a scary horror movie tonight?",
+                        correct: "interested", type: "ed", emoji: "🍿", options: ["interested", "interesting"],
+                        explanation: "We use -ed because it describes how YOU (a person) feel."
+                    },
+                    {
+                        text: "The students were ________ because the long film had no talking at all.",
+                        correct: "bored", type: "ed", emoji: "🏫", options: ["bored", "boring"],
+                        explanation: "We use -ed because it describes how the STUDENTS (people) felt."
+                    },
+                    {
+                        text: "The new superhero movie has amazing stunts. It is incredibly ________!",
+                        correct: "exciting", type: "ing", emoji: "🦸‍♀️", options: ["excited", "exciting"],
+                        explanation: "We use -ing because it describes the MOVIE (a thing)."
+                    },
+                    {
+                        text: "I was really ________ when my favorite character survived the battle.",
+                        correct: "relieved", type: "ed", emoji: "😅", options: ["relieved", "relieving"],
+                        explanation: "We use -ed because it describes how 'I' (a person) felt. (Note: Relieved acts like an -ed adjective here!)."
+                    },
+                    {
+                        text: "The documentary about the ocean was incredibly ________. I learned a lot.",
+                        correct: "interesting", type: "ing", emoji: "🌊", options: ["interested", "interesting"],
+                        explanation: "We use -ing because it describes the DOCUMENTARY (a thing)."
+                    },
+                    {
+                        text: "We were very ________ by the magician's tricks in the fantasy film.",
+                        correct: "amused", type: "ed", emoji: "🎩", options: ["amused", "amusing"],
+                        explanation: "We use -ed because it describes how WE (people) felt."
+                    },
+                    {
+                        text: "The music in the sad scene was very ________. It made me cry.",
+                        correct: "moving", type: "ing", emoji: "🎻", options: ["moved", "moving"],
+                        explanation: "We use -ing because it describes the MUSIC (a thing)."
+                    },
+                    {
+                        text: "I was completely ________ because the movie was three hours of people just talking.",
+                        correct: "bored", type: "ed", emoji: "💤", options: ["bored", "boring"],
+                        explanation: "We use -ed because it describes how 'I' (a person) felt."
+                    },
+                    {
+                        text: "The ending of the movie was ________. I thought it would be better.",
+                        correct: "disappointing", type: "ing", emoji: "👎", options: ["disappointed", "disappointing"],
+                        explanation: "We use -ing because it describes the ENDING (a thing)."
+                    },
+                    {
+                        text: "Are you ________ in seeing the new animated movie?",
+                        correct: "interested", type: "ed", emoji: "🎨", options: ["interested", "interesting"],
+                        explanation: "We use -ed because it describes how YOU (a person) feel."
+                    },
+                    {
+                        text: "The plot of the mystery movie was quite ________. I loved trying to solve it.",
+                        correct: "interesting", type: "ing", emoji: "🕵️‍♀️", options: ["interested", "interesting"],
+                        explanation: "We use -ing because it describes the PLOT (a thing)."
+                    },
+                    {
+                        text: "My brother was ________ to meet the actor who played the villain.",
+                        correct: "excited", type: "ed", emoji: "🤝", options: ["excited", "exciting"],
+                        explanation: "We use -ed because it describes how the BROTHER (a person) felt."
+                    }
+                ]
+            },
+            advanced: {
+                title: "Advanced: B2-C1 Challenge 🧠",
+                themeEmoji: "🧠",
+                ranks: ["Apprentice", "Scholar", "Wordsmith", "Linguistic Master"],
+                vocab: [
+                    { ed: "mesmerized", ing: "mesmerizing", edM: "unable to stop watching", ingM: "difficult to stop watching", emoji: "🌀" },
+                    { ed: "astonished", ing: "astonishing", edM: "extremely surprised", ingM: "surprisingly impressive", emoji: "😲" },
+                    { ed: "bewildered", ing: "bewildering", edM: "completely confused", ingM: "extremely confusing", emoji: "🤯" },
+                    { ed: "intrigued", ing: "intriguing", edM: "very curious", ingM: "creating curiosity", emoji: "🔍" },
+                    { ed: "unsettled", ing: "unsettling", edM: "feeling uncomfortable", ingM: "making people uncomfortable", emoji: "🥶" },
+                    { ed: "overwhelmed", ing: "overwhelming", edM: "feeling too much emotion", ingM: "very powerful emotionally", emoji: "🌊" }
+                ],
+                questions: [
+                    {
+                        text: "The documentary about deep space was incredibly ________. I couldn't look away.",
+                        correct: "mesmerizing", type: "ing", emoji: "🌌", options: ["mesmerized", "mesmerizing"],
+                        explanation: "We use -ing because it describes the DOCUMENTARY (a thing)."
+                    },
+                    {
+                        text: "The jury was ________ by the unexpected new DNA evidence.",
+                        correct: "astonished", type: "ed", emoji: "⚖️", options: ["astonished", "astonishing"],
+                        explanation: "We use -ed because it describes how the JURY (people) felt."
+                    },
+                    {
+                        text: "The plot twist at the very end of the thriller was truly ________.",
+                        correct: "astonishing", type: "ing", emoji: "📖", options: ["astonished", "astonishing"],
+                        explanation: "We use -ing because it describes the PLOT TWIST (a thing)."
+                    },
+                    {
+                        text: "She felt completely ________ by the complex legal terms in the contract.",
+                        correct: "bewildered", type: "ed", emoji: "🤯", options: ["bewildered", "bewildering"],
+                        explanation: "We use -ed because it describes how SHE (a person) felt."
+                    },
+                    {
+                        text: "The silent, empty room felt ________, as if someone was watching us.",
+                        correct: "unsettling", type: "ing", emoji: "🥶", options: ["unsettled", "unsettling"],
+                        explanation: "We use -ing because it describes the ROOM/SITUATION (a thing)."
+                    },
+                    {
+                        text: "The alien landscape in the game was ________. It held everyone's attention.",
+                        correct: "mesmerizing", type: "ing", emoji: "🪐", options: ["mesmerized", "mesmerizing"],
+                        explanation: "We use -ing because it describes the LANDSCAPE (a thing)."
+                    },
+                    {
+                        text: "I am ________ by how the street magician performed that card trick.",
+                        correct: "intrigued", type: "ed", emoji: "🃏", options: ["intrigued", "intriguing"],
+                        explanation: "We use -ed because it describes how 'I' (a person) feel."
+                    },
+                    {
+                        text: "The amount of sadness portrayed in the tragedy play was ________.",
+                        correct: "overwhelming", type: "ing", emoji: "🎭", options: ["overwhelmed", "overwhelming"],
+                        explanation: "We use -ing because it describes the AMOUNT OF SADNESS (a thing)."
+                    },
+                    {
+                        text: "The famous detective found an ________ clue hidden behind the old painting.",
+                        correct: "intriguing", type: "ing", emoji: "🖼️", options: ["intrigued", "intriguing"],
+                        explanation: "We use -ing because it describes the CLUE (a thing)."
+                    },
+                    {
+                        text: "After hearing the strange noises in the attic, the family felt ________.",
+                        correct: "unsettled", type: "ed", emoji: "🏚️", options: ["unsettled", "unsettling"],
+                        explanation: "We use -ed because it describes how the FAMILY (people) felt."
+                    }
+                ]
+            }
+        };
+
+        // --- 2. STATE MANAGEMENT ---
+        let currentThemeKey = '';
+        let currentThemeData = null;
+        let score = 0;
+        let streak = 0;
+        let mistakes = [];
+        let currentDynamicLimit = 20;
+        let currentQIndex = 0;
+        let timerInterval = null;
+        let timeLeft = 20;
+        const TIME_LIMIT = 20;
+        let isMuted = false;
+        
+        // Tone.js Synths
+        let synthDing;
+        let synthBuzzer;
+        let synthTick;
+        let audioInitialized = false;
+
+        // --- 3. AUDIO & TTS SETUP ---
+        
+        async function initAudio() {
+            if (audioInitialized) return;
+            await Tone.start();
+            
+            // Bright Ding for correct
+            synthDing = new Tone.Synth({
+                oscillator: { type: "sine" },
+                envelope: { attack: 0.01, decay: 0.5, sustain: 0, release: 0.1 }
+            }).toDestination();
+            synthDing.volume.value = -5;
+
+            // Low Buzzer for incorrect
+            synthBuzzer = new Tone.Synth({
+                oscillator: { type: "sawtooth" },
+                envelope: { attack: 0.05, decay: 0.2, sustain: 0.2, release: 0.2 }
+            }).toDestination();
+            synthBuzzer.volume.value = -10;
+
+            // Tick for timer
+            synthTick = new Tone.MembraneSynth().toDestination();
+            synthTick.volume.value = -20;
+
+            audioInitialized = true;
+        }
+
+        function playSound(type) {
+            if (isMuted || !audioInitialized) return;
+            if (Tone.context.state !== 'running') Tone.context.resume();
+
+            if (type === 'ding') {
+                synthDing.triggerAttackRelease("C6", "8n");
+                setTimeout(() => synthDing.triggerAttackRelease("E6", "8n"), 100);
+            } else if (type === 'buzzer') {
+                synthBuzzer.triggerAttackRelease("C2", "4n");
+            } else if (type === 'tick') {
+                synthTick.triggerAttackRelease("C2", "32n");
+            }
+        }
+
+        function toggleMute() {
+            isMuted = !isMuted;
+            const btn = document.getElementById('mute-btn');
+            btn.innerHTML = isMuted ? '<i class="fa-solid fa-volume-xmark text-red-400"></i>' : '<i class="fa-solid fa-volume-high"></i>';
+        }
+
+        function speakText(text, ev = null) {
+            if (ev) ev.stopPropagation();
+            if (isMuted || !('speechSynthesis' in window)) return;
+            
+            window.speechSynthesis.cancel(); // Stop current speech
+            
+            // Clean up text (remove blanks)
+            const cleanText = text.replace(/_+/g, "blank");
+            
+            const utterance = new SpeechSynthesisUtterance(cleanText);
+            utterance.rate = 0.85; // Slower for EFL
+            utterance.pitch = 1.1;
+
+            // Try to find Andrew's English voice
+            const voices = window.speechSynthesis.getVoices();
+            const engVoice = voices.find(v => v.name.includes('Andrew') && v.lang.includes('en')) || 
+                             voices.find(v => v.name.includes('Microsoft') && v.lang.includes('en')) || 
+                             voices.find(v => v.lang.includes('en'));
+            if (engVoice) utterance.voice = engVoice;
+
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function speakCurrentQuestion() {
+            if(currentThemeData && currentThemeData.questions[currentQIndex]) {
+                speakText(currentThemeData.questions[currentQIndex].text);
+            }
+        }
+
+        // --- 4. CORE LOGIC & NAVIGATION ---
+
+        function showScreen(screenId) {
+            document.querySelectorAll('main > section').forEach(s => s.classList.add('hide'));
+            document.getElementById(screenId).classList.remove('hide');
+            window.scrollTo(0,0);
+        }
+
+        function loadTheme(theme) {
+            initAudio(); // Initialize audio context on first user interaction
+            currentThemeKey = theme;
+            currentThemeData = APP_DATA[theme];
+            
+            // Populate Learning Screen
+            document.getElementById('learn-title').innerText = currentThemeData.title;
+            
+            // Compact 2-column grid for Vocab
+            const vocabHtml = currentThemeData.vocab.map(v => `
+                <div class="bg-slate-900 rounded-xl p-3 flex items-center gap-3 border-2 border-slate-700">
+                    <div class="text-4xl text-center min-w-[50px]">${v.emoji}</div>
+                    <div class="flex flex-col w-full gap-2">
+                        <div class="bg-slate-800 p-2 rounded-lg border-l-4 border-blue-500 cursor-pointer hover:bg-slate-700 transition-colors" onclick="speakText('${v.ed}')">
+                            <span class="text-2xl font-bold text-blue-400 block leading-none mb-1">${v.ed}</span>
+                            <span class="text-slate-300 text-lg leading-none">${v.edM}</span>
+                        </div>
+                        <div class="bg-slate-800 p-2 rounded-lg border-l-4 border-orange-500 cursor-pointer hover:bg-slate-700 transition-colors" onclick="speakText('${v.ing}')">
+                            <span class="text-2xl font-bold text-orange-400 block leading-none mb-1">${v.ing}</span>
+                            <span class="text-slate-300 text-lg leading-none">${v.ingM}</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            document.getElementById('vocab-container').innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 h-full overflow-y-auto pr-2 pb-2">
+                    ${vocabHtml}
+                </div>
+            `;
+
+            showScreen('learn-screen');
+        }
+
+        function startGame() {
+            score = 0;
+            streak = 0;
+            mistakes = [];
+            currentQIndex = 0;
+            currentDynamicLimit = 20;
+            
+            // Shuffle questions
+            currentThemeData.questions.sort(() => Math.random() - 0.5);
+            
+            // Reset UI
+            document.querySelectorAll('#score-display').forEach(el => el.innerText = score);
+            document.querySelectorAll('#streak-display').forEach(el => el.innerText = streak);
+            document.querySelectorAll('#streak-container').forEach(el => {
+                el.classList.remove('scale-125', 'scale-110', 'text-red-500');
+                el.classList.add('text-orange-500');
+            });
+            
+            showScreen('game-screen');
+            loadQuestion();
+        }
+
+        function quitGame() {
+            stopTimer();
+            showScreen('home-screen');
+        }
+
+        function loadQuestion() {
+            if (currentQIndex >= currentThemeData.questions.length) {
+                endGame();
+                return;
+            }
+
+            const q = currentThemeData.questions[currentQIndex];
+            
+            // Update UI
+            document.getElementById('q-counter').innerText = `${currentQIndex + 1} / ${currentThemeData.questions.length}`;
+            document.getElementById('q-emoji').innerText = q.emoji || currentThemeData.themeEmoji;
+            
+            // Format text (replace blank with styled span)
+            const formattedText = q.text.replace('________', '<span class="border-b-4 border-slate-500 text-transparent w-24 inline-block px-4">_</span>');
+            document.getElementById('q-text').innerHTML = formattedText;
+
+            // Setup Buttons
+            const btnContainer = document.getElementById('answer-buttons');
+            btnContainer.innerHTML = '';
+            
+            // Randomize button order
+            const options = [...q.options].sort(() => Math.random() - 0.5);
+            
+            options.forEach(opt => {
+                // Determine if this is an -ed or -ing word to style the button
+                const isEd = opt.endsWith('ed');
+                const btnClass = isEd ? 'btn-ed' : 'btn-ing';
+                
+                const btn = document.createElement('button');
+                btn.className = `btn-chunky ${btnClass} py-6 rounded-2xl text-3xl font-black shadow-lg flex justify-center items-center gap-4`;
+                btn.innerHTML = `${opt}`; // Sound emojis removed
+                btn.onclick = () => handleAnswer(opt, q);
+                btnContainer.appendChild(btn);
+            });
+
+            // Auto-read question
+            setTimeout(() => speakCurrentQuestion(), 300);
+
+            startTimer();
+        }
+
+        function startTimer() {
+            stopTimer();
+            // Adaptive timer: 20s normally, drops to 15s if streak >= 5
+            currentDynamicLimit = (streak >= 5) ? 15 : 20;
+            timeLeft = currentDynamicLimit;
+            updateTimerUI();
+
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                updateTimerUI();
+                
+                if(timeLeft > 0 && timeLeft <= 5) {
+                    playSound('tick');
+                }
+
+                if (timeLeft <= 0) {
+                    stopTimer();
+                    handleTimeOut();
+                }
+            }, 1000);
+        }
+
+        function stopTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+        }
+
+        function updateTimerUI() {
+            const bar = document.getElementById('timer-bar');
+            const text = document.getElementById('timer-text');
+            const percentage = (timeLeft / currentDynamicLimit) * 100;
+            
+            if (bar) bar.style.width = `${percentage}%`;
+            if (text) text.innerText = `${timeLeft}s`;
+
+            // Color changes
+            if (bar) {
+                bar.classList.remove('timer-warning', 'timer-danger');
+                if (percentage <= 33) {
+                    bar.classList.add('timer-danger');
+                } else if (percentage <= 66) {
+                    bar.classList.add('timer-warning');
+                }
+            }
+        }
+
+        function handleAnswer(selectedOpt, question) {
+            stopTimer();
+            const isCorrect = selectedOpt === question.correct;
+            
+            if (isCorrect) {
+                streak++;
+                score += 100 + (timeLeft * 10) + (streak * 20); // Bonus for speed and streak
+                
+                // Update UI (handles duplicates if any)
+                document.querySelectorAll('#score-display').forEach(el => el.innerText = score);
+                document.querySelectorAll('#streak-display').forEach(el => el.innerText = streak);
+                
+                document.querySelectorAll('#streak-container').forEach(el => {
+                    if (streak >= 5) {
+                        el.classList.add('scale-125', 'text-red-500');
+                        el.classList.remove('text-orange-500');
+                    } else if (streak >= 3) {
+                        el.classList.add('scale-110');
+                    }
+                });
+
+                playSound('ding');
+                showFeedback(true, question);
+            } else {
+                mistakes.push({ question, wrongAnswer: selectedOpt, isTimeOut: false });
+                streak = 0;
+                
+                document.querySelectorAll('#streak-display').forEach(el => el.innerText = streak);
+                document.querySelectorAll('#streak-container').forEach(el => {
+                    el.classList.remove('scale-125', 'scale-110', 'text-red-500');
+                    el.classList.add('text-orange-500');
+                });
+
+                playSound('buzzer');
+                document.getElementById('game-screen').classList.add('animate-shake');
+                setTimeout(() => document.getElementById('game-screen').classList.remove('animate-shake'), 400);
+                showFeedback(false, question);
+            }
+        }
+
+        function handleTimeOut() {
+            playSound('buzzer');
+            const q = currentThemeData.questions[currentQIndex];
+            
+            mistakes.push({ question: q, wrongAnswer: "Time Out", isTimeOut: true });
+            streak = 0;
+            
+            document.querySelectorAll('#streak-display').forEach(el => el.innerText = streak);
+            document.querySelectorAll('#streak-container').forEach(el => {
+                el.classList.remove('scale-125', 'scale-110', 'text-red-500');
+                el.classList.add('text-orange-500');
+            });
+
+            showFeedback(false, q, true);
+        }
+
+        function showFeedback(isCorrect, question, isTimeOut = false) {
+            const modal = document.getElementById('feedback-modal');
+            const card = document.getElementById('feedback-card');
+            const icon = document.getElementById('feedback-icon');
+            const title = document.getElementById('feedback-title');
+            const desc = document.getElementById('feedback-desc');
+
+            modal.classList.remove('hide');
+            
+            // Reset styles
+            card.classList.remove('border-green-500', 'border-red-500', 'scale-90');
+            card.classList.add('scale-100');
+
+            if (isCorrect) {
+                card.classList.add('border-green-500');
+                icon.innerText = "🎉";
+                title.innerText = "Correct!";
+                title.className = "text-4xl font-black mb-2 text-green-400";
+            } else {
+                card.classList.add('border-red-500');
+                icon.innerText = isTimeOut ? "⏰" : "❌";
+                title.innerText = isTimeOut ? "Time's Up!" : "Not Quite!";
+                title.className = "text-4xl font-black mb-2 text-red-400";
+            }
+
+            // Replace blanks with the correct answer styled nicely
+            const isEd = question.correct.endsWith('ed');
+            const colorClass = isEd ? 'text-blue-400' : 'text-orange-400';
+            const fullSentence = question.text.replace('________', `<span class="${colorClass} font-bold underline">${question.correct}</span>`);
+            
+            desc.innerHTML = `
+                <div class="mb-4 text-lg border-b-2 border-slate-700 pb-4">${fullSentence}</div>
+                <div class="text-sm text-slate-400">
+                    <b class="text-white">Why?</b> ${question.explanation}
+                </div>
+            `;
+            
+            // Auto read explanation
+            setTimeout(() => { speakText(question.explanation); }, 500);
+        }
+
+        function nextQuestion() {
+            document.getElementById('feedback-modal').classList.add('hide');
+            document.getElementById('feedback-card').classList.remove('scale-100');
+            document.getElementById('feedback-card').classList.add('scale-90');
+            
+            window.speechSynthesis.cancel(); // Stop talking when moving on
+            
+            currentQIndex++;
+            loadQuestion();
+        }
+
+        function endGame() {
+            showScreen('result-screen');
+            document.getElementById('final-score').innerText = score;
+            
+            // Calculate Rank
+            const maxPossible = currentThemeData.questions.length * 250; // Max ~250 per q
+            const percentage = score / maxPossible;
+            
+            let rankIndex = 0;
+            if (percentage > 0.4) rankIndex = 1;
+            if (percentage > 0.7) rankIndex = 2;
+            if (percentage > 0.9) rankIndex = 3;
+            
+            document.getElementById('result-rank').innerText = `Rank: ${currentThemeData.ranks[rankIndex]}`;
+            
+            // Render Mistakes List
+            const mistakesContainer = document.getElementById('mistakes-container');
+            const mistakesList = document.getElementById('mistakes-list');
+            
+            if (mistakes.length > 0) {
+                mistakesContainer.classList.remove('hide');
+                mistakesList.innerHTML = mistakes.map((m) => `
+                    <div class="bg-slate-800 p-4 rounded-xl border-l-4 border-red-500 mb-2 shadow-sm">
+                        <p class="text-slate-300 text-sm mb-3 font-bold leading-relaxed">
+                            Q: ${m.question.text.replace('________', '___')}
+                        </p>
+                        <p class="text-sm mb-1 font-semibold">
+                            <span class="text-red-400 line-through mr-3"><i class="fa-solid fa-xmark"></i> ${m.wrongAnswer}</span>
+                            <span class="text-green-400"><i class="fa-solid fa-check"></i> ${m.question.correct}</span>
+                        </p>
+                        <p class="text-sm text-slate-300 mt-3 bg-slate-900 p-3 rounded-lg border-l-2 border-yellow-400">
+                            <i class="fa-solid fa-lightbulb text-yellow-400 mr-2"></i> ${m.question.explanation}
+                        </p>
+                    </div>
+                `).join('');
+            } else {
+                mistakesContainer.classList.add('hide');
+                mistakesList.innerHTML = '';
+            }
+
+            if (percentage > 0.7) {
+                playSound('ding');
+            }
+        }
+
+        // Initialize voices on load to prevent delay later
+        window.speechSynthesis.onvoiceschanged = () => {
+            window.speechSynthesis.getVoices();
+        };
+
+        // --- 5. STORY BUILDER LOGIC ---
+
+        let selectedBuilderWord = null;
+
+        function openBuilder() {
+            initAudio();
+            showScreen('builder-screen');
+            
+            // Populate Prompts
+            const promptContainer = document.getElementById('builder-prompts');
+            promptContainer.innerHTML = BUILDER_DATA.prompts.map((p, idx) => `
+                <div class="bg-slate-900 p-3 rounded-xl border-2 border-slate-600 cursor-pointer hover:bg-slate-700 transition-colors" onclick="selectPrompt(${idx})">
+                    <h4 class="font-bold text-sm text-white mb-1">${p.title}</h4>
+                </div>
+            `).join('');
+            
+            // Select first prompt by default
+            selectPrompt(0);
+
+            // Populate Word Bank
+            resetBuilder();
+        }
+
+        function selectPrompt(idx) {
+            const p = BUILDER_DATA.prompts[idx];
+            document.getElementById('active-prompt-title').innerText = p.title;
+            document.getElementById('active-prompt-text').innerText = p.text;
+            
+            // Build dynamic drop zones based on the story
+            const reportContainer = document.getElementById('builder-report-container');
+            reportContainer.innerHTML = p.frames.map(f => `
+                <p>
+                    ${f.t1} <span class="drop-zone" data-type="ing" onclick="handleZoneClick(this)" ondragover="handleDragOver(event)" ondrop="handleDrop(event, this)"></span>, 
+                    ${f.t2} <span class="drop-zone" data-type="ed" onclick="handleZoneClick(this)" ondragover="handleDragOver(event)" ondrop="handleDrop(event, this)"></span>.
+                </p>
+            `).join('');
+            
+            resetBuilder(); // Rebuild word bank and clear words
+            speakText(p.text);
+        }
+
+        function resetBuilder() {
+            selectedBuilderWord = null;
+            const bank = document.getElementById('builder-word-bank');
+            bank.innerHTML = '';
+            
+            // Clear drop zones
+            document.querySelectorAll('.drop-zone').forEach(zone => {
+                zone.innerHTML = '';
+                zone.classList.remove('correct', 'wrong');
+            });
+
+            // Create word pills
+            BUILDER_DATA.words.forEach(w => {
+                const isEd = w.type === 'ed';
+                const bgClass = isEd ? 'bg-blue-500 hover:bg-blue-400' : 'bg-orange-500 hover:bg-orange-400';
+                
+                const pill = document.createElement('div');
+                pill.className = `word-pill ${bgClass} text-white`;
+                pill.innerText = w.word;
+                pill.dataset.word = w.word;
+                pill.dataset.type = w.type;
+                pill.draggable = true;
+                
+                // Events for Tap & Drop
+                pill.onclick = (e) => { e.stopPropagation(); handleWordClick(pill); };
+                // Events for Drag & Drop
+                pill.ondragstart = (e) => handleDragStart(e, pill);
+
+                bank.appendChild(pill);
+            });
+        }
+
+        // Tap Logic
+        function handleWordClick(el) {
+            // If word is already in a blank, move it back to bank
+            if (el.parentElement.classList.contains('drop-zone')) {
+                document.getElementById('builder-word-bank').appendChild(el);
+                el.classList.remove('selected');
+                selectedBuilderWord = null;
+                playSound('tick');
+                return;
+            }
+
+            // Deselect all others
+            document.querySelectorAll('.word-pill').forEach(p => p.classList.remove('selected'));
+            
+            if (selectedBuilderWord === el) {
+                selectedBuilderWord = null; // Toggle off
+            } else {
+                el.classList.add('selected');
+                selectedBuilderWord = el;
+                speakText(el.innerText);
+            }
+        }
+
+        function handleZoneClick(zone) {
+            if (selectedBuilderWord) {
+                // If zone is occupied, kick the old word back to the bank
+                if (zone.children.length > 0) {
+                    document.getElementById('builder-word-bank').appendChild(zone.children[0]);
+                }
+                zone.appendChild(selectedBuilderWord);
+                zone.classList.remove('correct', 'wrong');
+                selectedBuilderWord.classList.remove('selected');
+                selectedBuilderWord = null;
+                playSound('tick');
+            }
+        }
+
+        // Drag Logic
+        function handleDragStart(ev, el) {
+            selectedBuilderWord = el;
+            speakText(el.innerText);
+        }
+        function handleDragOver(ev) {
+            ev.preventDefault(); // Necessary to allow dropping
+        }
+        function handleDrop(ev, zone) {
+            ev.preventDefault();
+            handleZoneClick(zone); // Reuse tap logic for the drop resolution
+        }
+
+        function checkBuilderStory() {
+            const zones = document.querySelectorAll('.drop-zone');
+            let allFilled = true;
+            let allCorrect = true;
+
+            zones.forEach(zone => {
+                if (zone.children.length === 0) {
+                    allFilled = false;
+                }
+            });
+
+            if (!allFilled) {
+                alert("Detectives leave no blanks! Please fill all the spaces.");
+                return;
+            }
+
+            zones.forEach(zone => {
+                const expectedType = zone.dataset.type; // 'ing' or 'ed'
+                const wordElement = zone.children[0];
+                const actualType = wordElement.dataset.type;
+
+                zone.classList.remove('correct', 'wrong');
+
+                if (expectedType === actualType) {
+                    zone.classList.add('correct');
+                } else {
+                    zone.classList.add('wrong');
+                    allCorrect = false;
+                }
+            });
+
+            if (allCorrect) {
+                playSound('ding');
+                document.getElementById('builder-screen').classList.add('animate-shake'); // Fun wiggle
+                setTimeout(() => document.getElementById('builder-screen').classList.remove('animate-shake'), 400);
+                
+                // Construct and read the whole story
+                let storyText = "Great job! ";
+                const paragraphs = document.querySelectorAll('#builder-screen p');
+                paragraphs.forEach(p => storyText += p.innerText + " ");
+                speakText(storyText);
+
+            } else {
+                playSound('buzzer');
+            }
+        }
+    </script>
+</body>
+</html>
